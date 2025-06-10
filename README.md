@@ -980,10 +980,10 @@ async getProductsWithFilters(filters: ProductFiltersDto) {
 
 **⭐ 如果這個專案對您有幫助，請給我們一個 Star！**
 
-[![GitHub stars](https://img.shields.io/github/stars/zipperoo/backend?style=social)](https://github.com/zipperoo/backend/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/zipperoo/backend?style=social)](https://github.com/zipperoo/backend/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/zipperoo/backend)](https://github.com/zipperoo/backend/issues)
-[![GitHub license](https://img.shields.io/github/license/zipperoo/backend)](https://github.com/zipperoo/backend/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/zipperoo/backend?style=social)](https://github.com/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/zipperoo/backend?style=social)](https://github.com/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo/network/members)
+[![GitHub issues](https://github.com/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo/backend)](https://github.com/zipperoo/backend/issues)
+[![GitHub license](https://img.shields.io/github/license/zipperoo/backend)](https://github.com/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo/blob/main/LICENSE)
 
 **🚀 打造下一代電商平台，讓商業更簡單！**
 
