@@ -58,57 +58,191 @@ Zipperoo 是一個功能完整的電商平台，支援：
 ### 3.1 用戶註冊
 - **端點**: `POST /auth/register`
 - **權限**: Public
-- **請求體**:
+- **目的**: 註冊新用戶（買家或賣家）。
+- **請求體** (`RegisterDto`):
 ```json
 {
   "account": "string (3字符以上)",
   "password": "string (6字符以上)",
   "username": "string (2字符以上)",
-  "email": "string (可選)",
+  "email": "string (可選, 有效email格式)",
   "phone": "string (可選)",
   "role": "BUYER | SELLER",
-  "shopName": "string (賣家必填)",
-  "description": "string (可選)"
+  "shopName": "string (賣家必填, 當 role 為 SELLER)",
+  "description": "string (可選, 賣家商店描述)"
+}
+```
+- **成功回應** (`ResponseDto<AuthResponseDto>`):
+```json
+{
+  "statusCode": 201,
+  "message": "註冊成功",
+  "data": {
+    "accessToken": "string (JWT)",
+    "refreshToken": "string (JWT)",
+    "user": {
+      "id": "number",
+      "account": "string",
+      "username": "string",
+      "email": "string (可選)",
+      "phone": "string (可選)",
+      "role": "BUYER | SELLER",
+      "shopName": "string (可選)",
+      "description": "string (可選)"
+    }
+  }
 }
 ```
 
 ### 3.2 用戶登入
 - **端點**: `POST /auth/login`
 - **權限**: Public
-- **請求體**:
+- **目的**: 使用帳號密碼登入系統。
+- **請求體** (`LoginDto`):
 ```json
 {
-  "account": "string",
-  "password": "string"
+  "account": "string (3字符以上)",
+  "password": "string (6字符以上)"
+}
+```
+- **成功回應** (`ResponseDto<AuthResponseDto>`):
+```json
+{
+  "statusCode": 200,
+  "message": "登入成功",
+  "data": {
+    "accessToken": "string (JWT)",
+    "refreshToken": "string (JWT)",
+    "user": {
+      "id": "number",
+      "account": "string",
+      "username": "string",
+      "email": "string (可選)",
+      "phone": "string (可選)",
+      "role": "BUYER | SELLER | ADMIN", // Note: Controller returns User model which can be ADMIN
+      "shopName": "string (可選)",
+      "description": "string (可選)"
+    }
+  }
 }
 ```
 
 ### 3.3 用戶登出
 - **端點**: `POST /auth/logout`
-- **權限**: Buyer | Seller | Admin
+- **權限**: Buyer | Seller | Admin (需要有效 accessToken)
+- **目的**: 登出當前用戶，使其 accessToken 失效。
+- **成功回應** (`ResponseDto<null>`):
+```json
+{
+  "statusCode": 200,
+  "message": "成功登出",
+  "data": null
+}
+```
 
 ### 3.4 獲取個人資料
 - **端點**: `GET /auth/profile`
-- **權限**: Buyer | Seller | Admin
+- **權限**: Buyer | Seller | Admin (需要有效 accessToken)
+- **目的**: 獲取當前登入用戶的詳細資料。
+- **成功回應** (`ResponseDto<User>`):
+```json
+{
+  "statusCode": 200,
+  "message": "成功獲取用戶資料",
+  "data": { // Prisma User Model structure
+    "id": "number",
+    "account": "string",
+    "username": "string",
+    "email": "string (可選)",
+    "phone": "string (可選)",
+    "role": "BUYER | SELLER | ADMIN",
+    "hashedPassword": "string (不會在回應中返回)",
+    "isBlocked": "boolean",
+    "refreshToken": "string (可選, 不會在此回應中返回)",
+    "createdAt": "string (ISO8601 DateTime)",
+    "updatedAt": "string (ISO8601 DateTime)",
+    // Seller specific fields if applicable
+    "shopName": "string (可選)",
+    "description": "string (可選)"
+    // Buyer specific fields if applicable
+    // Admin specific fields if applicable
+  }
+}
+```
+*注意: `hashedPassword` 和 `refreshToken` 欄位不會在實際 API 回應中返回。*
 
 ### 3.5 忘記密碼
 - **端點**: `POST /auth/forgot-password`
 - **權限**: Public
-- **請求體**:
+- **目的**: 請求重設密碼，系統將發送重設指令（例如郵件）給用戶。
+- **請求體** (`ForgotPasswordDto`):
 ```json
 {
-  "email": "string"
+  "email": "string (用戶註冊的email)"
+}
+```
+- **成功回應** (`ResponseDto<{ message: string }>`):
+```json
+{
+  "statusCode": 200,
+  "message": "已發送密碼重置郵件", // 或類似的成功訊息
+  "data": {
+    "message": "如果該 Email 存在，您將會收到一封密碼重置郵件。"
+  }
 }
 ```
 
 ### 3.6 重設密碼
 - **端點**: `POST /auth/reset-password`
-- **權限**: Public
-- **請求體**:
+- **權限**: Public (通常需要請求中包含有效的重設token)
+- **目的**: 使用收到的token重設用戶密碼。
+- **請求體** (`ResetPasswordDto`):
 ```json
 {
-  "token": "string",
+  "token": "string (從忘記密碼流程中獲取的token)",
   "newPassword": "string (8字符以上)"
+}
+```
+- **成功回應** (`ResponseDto<AuthResponseDto>`):
+```json
+{
+  "statusCode": 200,
+  "message": "密碼重設成功",
+  "data": {
+    "accessToken": "string (JWT)",
+    "refreshToken": "string (JWT)",
+    "user": {
+      "id": "number",
+      "account": "string",
+      "username": "string",
+      "email": "string (可選)",
+      "phone": "string (可選)",
+      "role": "BUYER | SELLER | ADMIN",
+      "shopName": "string (可選)",
+      "description": "string (可選)"
+    }
+  }
+}
+```
+
+### 3.7 刷新 Access Token
+- **端點**: `POST /auth/refresh-token`
+- **權限**: Public (需要有效的 refreshToken 在請求體中)
+- **目的**: 使用 refreshToken 獲取新的 accessToken。
+- **請求體** (`RefreshTokenDto` - 假設結構):
+```json
+{
+  "refreshToken": "string (用戶持有的refreshToken)"
+}
+```
+- **成功回應** (`ResponseDto<{ accessToken: string }>`):
+```json
+{
+  "statusCode": 200,
+  "message": "成功刷新Token",
+  "data": {
+    "accessToken": "string (新的JWT)"
+  }
 }
 ```
 

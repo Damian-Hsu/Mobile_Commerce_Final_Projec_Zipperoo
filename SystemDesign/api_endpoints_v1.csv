@@ -6,10 +6,11 @@ POST,/auth/logout,用戶登出,"Buyer | Seller | Admin",Authentication,AuthContr
 GET,/auth/profile,獲取個人資料,"Buyer | Seller | Admin",Authentication,AuthController
 POST,/auth/forgot-password,忘記密碼,Public,Authentication,AuthController
 POST,/auth/reset-password,重設密碼,Public,Authentication,AuthController
-GET,/products,獲取商品列表（帶搜尋篩選）,Public,Public API,ProductController
-GET,/products/{id},獲取單一商品詳情,Public,Public API,ProductController
-GET,/categories,獲取所有分類,Public,Public API,ProductController
-GET,/categories/{id}/products,獲取分類下的商品,Public,Public API,ProductController
+POST,/auth/refresh-token,刷新Token,Public,Authentication,AuthController
+GET,/products,獲取商品列表（帶搜尋篩選）,Public,Public API,PublicProductController 
+GET,/products/{id},獲取單一商品詳情,Public,Public API,PublicProductController 
+GET,/categories,獲取所有分類,Public,Public API,CategoryController
+GET,/categories/{id}/products,獲取分類下的商品,Public,Public API,PublicProductController 
 POST,/categories,創建分類,"Seller | Admin",Category Management,CategoryController
 GET,/categories/{id},獲取單一分類,Public,Category Management,CategoryController
 PATCH,/categories/{id},更新分類,"Seller | Admin",Category Management,CategoryController
