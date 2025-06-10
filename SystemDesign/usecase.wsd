@@ -1,0 +1,200 @@
+@startuml Zipperoo電商平台使用案例圖
+' 方向
+left to right direction
+
+'==================== Actors ====================
+actor Visitor as "訪客"
+actor Buyer as "買家"
+actor Seller as "賣家"
+actor Admin as "管理員"
+
+'==================== Use-case Packages ====================
+package "系統檢查 (System)" {
+    usecase UC_HealthCheck as "系統健康檢查"
+}
+
+package "帳號認證 (Authentication)" {
+    usecase UC_Register as "註冊帳號"
+    usecase UC_Login as "登入"
+    usecase UC_Logout as "登出"
+    usecase UC_GetProfile as "查看個人資料"
+    usecase UC_ForgotPassword as "忘記密碼"
+    usecase UC_ResetPassword as "重設密碼"
+}
+
+package "公開功能 (Public API)" {
+    usecase UC_BrowseProducts as "瀏覽商品列表\n(含搜尋篩選)"
+    usecase UC_ViewProductDetail as "查看商品詳情\n(含評價平均分)"
+    usecase UC_BrowseCategories as "瀏覽分類"
+    usecase UC_ViewCategoryProducts as "查看分類下商品"
+    usecase UC_ViewProductReviews as "查看商品評價"
+}
+
+package "分類管理 (Category Management)" {
+    usecase UC_CreateCategory as "建立新分類"
+    usecase UC_GetCategory as "查看單一分類"
+    usecase UC_UpdateCategory as "更新分類"
+    usecase UC_DeleteCategory as "刪除分類"
+}
+
+package "買家功能 (Buyer API)" {
+    usecase UC_ViewCart as "查看購物車"
+    usecase UC_AddCartItem as "選擇商品款式並加入購物車"
+    usecase UC_UpdateCartItem as "更新購物車商品\n(數量/選中狀態)"
+    usecase UC_RemoveCartItem as "移除購物車商品"
+    usecase UC_Checkout as "結帳\n(支援指定項目ID)"
+    usecase UC_ViewMyOrders as "查看我的訂單"
+    usecase UC_ViewOrderDetail as "查看訂單詳情"
+    usecase UC_CancelOrder as "取消訂單"
+}
+
+package "賣家功能 (Seller API)" {
+    usecase UC_ViewMyProducts as "查看我的商品"
+    usecase UC_CreateProduct as "上架新商品(含多款)"
+    usecase UC_GetMyProduct as "查看我的單一商品"
+    usecase UC_UpdateProduct as "更新商品基本資訊"
+    usecase UC_DeleteProduct as "下架/刪除商品"
+    usecase UC_ViewSellerOrders as "查看收到的訂單"
+    usecase UC_ShipOrder as "標記訂單為已出貨"
+    usecase UC_CompleteOrder as "標記訂單為已完成"
+}
+
+package "商品款式管理 (Variant Management)" {
+    usecase UC_AddVariants as "為商品新增款式"
+    usecase UC_UpdateVariant as "更新商品款式"
+    usecase UC_DeleteVariant as "刪除商品款式"
+}
+
+package "評價系統 (Review API)" {
+    usecase UC_CreateReview as "創建商品評價"
+    usecase UC_UpdateReview as "更新評價"
+    usecase UC_DeleteReview as "刪除評價"
+}
+
+package "聊天系統 (Chat API)" {
+    usecase UC_CreateChatRoom as "創建或獲取聊天室"
+    usecase UC_GetChatRooms as "獲取聊天室列表"
+    usecase UC_GetRoomMessages as "查看聊天訊息"
+    usecase UC_SendMessage as "發送訊息"
+}
+
+package "圖片管理 (Image API)" {
+    usecase UC_UploadImages as "上傳商品圖片"
+    usecase UC_DeleteImage as "刪除商品圖片"
+    usecase UC_GetImageByName as "通過檔名獲取圖片"
+    usecase UC_GetImageById as "通過ID獲取圖片"
+}
+
+package "管理員功能 (Admin API)" {
+    usecase UC_GetAllUsers as "獲取所有用戶"
+    usecase UC_DeleteUser as "刪除用戶"
+    usecase UC_BlockUser as "封鎖用戶"
+    usecase UC_UnblockUser as "解除封鎖用戶"
+    usecase UC_GetAllProducts as "獲取所有商品"
+    usecase UC_AdminDeleteProduct as "刪除任意商品"
+    usecase UC_GetAllOrders as "獲取所有訂單"
+    usecase UC_GetOrderDetail as "獲取訂單詳情"
+    usecase UC_UpdateOrderStatus as "更新訂單狀態"
+    usecase UC_ViewLogs as "查看系統日誌"
+}
+
+'==================== Associations ====================
+' --- 訪客 ---
+Visitor --> UC_HealthCheck
+Visitor --> UC_Register
+Visitor --> UC_Login
+Visitor --> UC_ForgotPassword
+Visitor --> UC_ResetPassword
+Visitor --> UC_BrowseProducts
+Visitor --> UC_ViewProductDetail
+Visitor --> UC_BrowseCategories
+Visitor --> UC_ViewCategoryProducts
+Visitor --> UC_ViewProductReviews
+Visitor --> UC_GetImageByName
+Visitor --> UC_GetImageById
+
+' --- 買家 ---
+Buyer --> UC_Logout
+Buyer --> UC_GetProfile
+Buyer --> UC_ViewCart
+Buyer --> UC_AddCartItem
+Buyer --> UC_UpdateCartItem
+Buyer --> UC_RemoveCartItem
+Buyer --> UC_Checkout
+Buyer --> UC_ViewMyOrders
+Buyer --> UC_ViewOrderDetail
+Buyer --> UC_CancelOrder
+Buyer --> UC_CreateReview
+Buyer --> UC_UpdateReview
+Buyer --> UC_DeleteReview
+Buyer --> UC_CreateChatRoom
+Buyer --> UC_GetChatRooms
+Buyer --> UC_GetRoomMessages
+Buyer --> UC_SendMessage
+Buyer --> UC_UploadImages
+Buyer --|> Visitor
+
+' --- 賣家 ---
+Seller --> UC_Logout
+Seller --> UC_GetProfile
+Seller --> UC_ViewMyProducts
+Seller --> UC_CreateProduct
+Seller --> UC_GetMyProduct
+Seller --> UC_UpdateProduct
+Seller --> UC_DeleteProduct
+Seller --> UC_ViewSellerOrders
+Seller --> UC_ShipOrder
+Seller --> UC_CompleteOrder
+Seller --> UC_AddVariants
+Seller --> UC_UpdateVariant
+Seller --> UC_DeleteVariant
+Seller --> UC_UploadImages
+Seller --> UC_DeleteImage
+Seller --> UC_CreateCategory
+Seller --> UC_GetCategory
+Seller --> UC_UpdateCategory
+Seller --> UC_DeleteCategory
+Seller --> UC_CreateChatRoom
+Seller --> UC_GetChatRooms
+Seller --> UC_GetRoomMessages
+Seller --> UC_SendMessage
+Seller --|> Visitor
+
+' --- 管理員 ---
+Admin --> UC_Logout
+Admin --> UC_GetProfile
+Admin --> UC_GetAllUsers
+Admin --> UC_DeleteUser
+Admin --> UC_BlockUser
+Admin --> UC_UnblockUser
+Admin --> UC_GetAllProducts
+Admin --> UC_AdminDeleteProduct
+Admin --> UC_GetAllOrders
+Admin --> UC_GetOrderDetail
+Admin --> UC_UpdateOrderStatus
+Admin --> UC_ViewLogs
+Admin --> UC_CreateCategory
+Admin --> UC_GetCategory
+Admin --> UC_UpdateCategory
+Admin --> UC_DeleteCategory
+Admin --> UC_AddVariants
+Admin --> UC_UpdateVariant
+Admin --> UC_DeleteVariant
+Admin --> UC_CreateReview
+Admin --> UC_UpdateReview
+Admin --> UC_DeleteReview
+Admin --> UC_CreateChatRoom
+Admin --> UC_GetChatRooms
+Admin --> UC_GetRoomMessages
+Admin --> UC_SendMessage
+Admin --> UC_UploadImages
+Admin --> UC_DeleteImage
+Admin --|> Visitor
+
+'==================== Include / Extend ====================
+UC_CreateReview ..> UC_ViewOrderDetail : <<extend>>
+UC_Checkout ..> UC_ViewCart : <<include>>
+UC_AddCartItem ..> UC_BrowseProducts : <<extend>>
+UC_SendMessage ..> UC_CreateChatRoom : <<include>>
+
+@enduml

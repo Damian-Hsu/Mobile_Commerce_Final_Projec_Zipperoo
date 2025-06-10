@@ -1,0 +1,269 @@
+//>> I don't want to code the fxxking prisma a second time.
+//>> I feel eyes are broken.
+//>> I don't think this config can run on a MacBook.
+//>> I have tested the system on Windows and Ubuntu.
+//>> Well... My English is not good, so the sentences start with "I" ~~
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "windows", "debian-openssl-1.1.x"] 
+
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+// ============ Enums =============
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum ProductStatus {
+  ON_SHELF
+  OFF_SHELF
+  DELETED
+}
+
+enum OrderStatus {
+  UNCOMPLETED
+  COMPLETED
+  CANCELED
+}
+
+//============= Core Models ===================
+model User {
+  id Int @id @default(autoincrement())
+  account String  @unique
+  passwordHash String  @map("password_hash")
+  username String
+  email String  @unique
+  phone String?
+  role Role
+  isBlocked Boolean @default(false) @map("is_blocked")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Seller specific fields
+  shopName String? @map("shop_name")
+  description String?
+
+  // Relations
+  products Product[] @relation("SellerProducts")
+  cart Cart?
+  buyerOrders Order[] @relation("BuyerOrders")
+  sellerOrders Order[] @relation("SellerOrders")
+  reviews Review[]
+  sentMessages  ChatMessage[] @relation("MessageSender")
+  buyerChatRooms ChatRoom[] @relation("BuyerChatRooms")
+  sellerChatRooms ChatRoom[] @relation("SellerChatRooms")
+  logEntries LogEntry[]
+
+  @@map("users")
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  sellerId    Int      @map("seller_id")
+  categoryId  Int?     @map("category_id")
+  name        String
+  description String?
+  status      ProductStatus @default(ON_SHELF)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  seller      User              @relation("SellerProducts", fields: [sellerId], references: [id], onDelete: Cascade)
+  category    Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images      ProductImage[]
+  reviews     Review[]
+  variants    ProductVariant[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id Int @id @default(autoincrement())
+  productId Int @map("product_id")
+  url String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id          Int      @id @default(autoincrement())
+  productId   Int      @map("product_id")
+  name        String   // e.g., "Red / XL"
+  price       Int
+  stock       Int
+  attributes  Json?    // e.g., {"size": "XL", "color": "Red"}
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  @@map("product_variants")
+}
+
+model Cart {
+  id Int @id @default(autoincrement())
+  buyerId Int @unique @map("buyer_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  buyer User @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id               Int      @id @default(autoincrement())
+  cartId           Int      @map("cart_id")
+  productVariantId Int      @map("product_variant_id")
+  quantity         Int
+  unitPrice        Int      @map("unit_price")
+  isSelected       Boolean  @default(true) @map("is_selected")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  cart             Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productVariantId])
+  @@map("cart_items")
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+  buyerId Int @map("buyer_id")
+  sellerId Int @map("seller_id")
+  totalAmount Int @map("total_amount") // stored in cents
+  status OrderStatus @default(UNCOMPLETED)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  buyer User @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller User @relation("SellerOrders", fields: [sellerId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+  review Review?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id               Int      @id @default(autoincrement())
+  orderId          Int      @map("order_id")
+  productVariantId Int      @map("product_variant_id")
+  quantity         Int
+  unitPrice        Int      @map("unit_price")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Review {
+  id Int @id @default(autoincrement())
+  productId Int @map("product_id")
+  orderId Int @unique @map("order_id")
+  buyerId Int @map("buyer_id")
+  score Int // 1-5 rating
+  comment String?
+  isEdited Boolean @default(false) @map("is_edited")
+  isDeleted Boolean @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  buyer User @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model ChatRoom {
+  id Int @id @default(autoincrement())
+  buyerId Int @map("buyer_id")
+  sellerId Int @map("seller_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  buyer User @relation("BuyerChatRooms", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller User @relation("SellerChatRooms", fields: [sellerId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@unique([buyerId, sellerId])
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id Int @id @default(autoincrement())
+  roomId Int @map("room_id")
+  fromUserId Int @map("from_user_id")
+  content String
+  isEdited Boolean @default(false) @map("is_edited")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  fromUser User @relation("MessageSender", fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model LogEntry {
+  id Int @id @default(autoincrement())
+  event String
+  actorId Int?     @map("actor_id")
+  meta Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@map("log_entries")
+}
+
+model PasswordResetToken {
+  id Int @id @default(autoincrement())
+  email String   @unique
+  token String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("password_reset_tokens")
+} 

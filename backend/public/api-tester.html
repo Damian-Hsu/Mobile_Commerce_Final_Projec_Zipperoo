@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zipperoo API Tester</title>
+    <link rel="stylesheet" href="api-tester-style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Zipperoo API Tester</h1>
+            <p>Complete Backend API Tester</p>
+        </div>
+
+        <div class="auth-section">
+            <div class="auth-controls">
+                <div id="authStatus" class="auth-status logged-out">未登入</div>
+                <input type="text" id="serverUrl" class="form-control" placeholder="伺服器地址" value="http://localhost" style="max-width: 200px;">
+                <input type="text" id="loginUsername" class="form-control" placeholder="用戶名" style="max-width: 150px;">
+                <input type="password" id="loginPassword" class="form-control" placeholder="密碼" style="max-width: 150px;">
+                <select id="userRole" class="form-control" style="max-width: 100px;">
+                    <option value="BUYER">買家</option>
+                    <option value="SELLER">賣家</option>
+                </select>
+                <button class="btn btn-primary" onclick="login()">登入</button>
+                <button class="btn btn-success" onclick="register()">註冊</button>
+                <button class="btn btn-danger" onclick="logout()">登出</button>
+                <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="quickLogin('admin')" style="font-size: 12px; padding: 4px 8px;">快速登錄：管理員</button>
+                    <button class="btn btn-secondary" onclick="quickLogin('seller')" style="font-size: 12px; padding: 4px 8px;">快速登錄：賣家</button>
+                    <button class="btn btn-secondary" onclick="quickLogin('buyer')" style="font-size: 12px; padding: 4px 8px;">快速登錄：買家</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="api-panel">
+                <!-- 系統健康檢查 -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        ❤️ 系統健康檢查
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>檢查系統狀態</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="checkHealth()">檢查系統健康狀態</button>
+                                <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                                    💡 無需登入即可檢查系統狀態
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 認證 API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        🔐 認證 API
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取個人資料</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getProfile()">獲取個人資料</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>登出</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="logout()">執行登出</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>忘記密碼</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>電子郵件:</label>
+                                    <input type="email" id="forgotPasswordEmail" class="form-control" placeholder="註冊時使用的電子郵件">
+                                </div>
+                                <button class="btn btn-primary" onclick="forgotPassword()">請求重設密碼</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>重設密碼</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>重設權杖 (Token):</label>
+                                    <input type="text" id="resetPasswordToken" class="form-control" placeholder="從郵件中獲取的權杖">
+                                </div>
+                                <div class="form-group">
+                                    <label>新密碼:</label>
+                                    <input type="password" id="resetPasswordNew" class="form-control" placeholder="至少8個字符">
+                                </div>
+                                <button class="btn btn-primary" onclick="resetPassword()">重設密碼</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 公共 API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        🏪 公共商品 API
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取商品列表</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>頁碼:</label>
+                                    <input type="number" id="productsPage" class="form-control" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>每頁數量:</label>
+                                    <input type="number" id="productsLimit" class="form-control" value="10">
+                                </div>
+                                <div class="form-group">
+                                    <label>搜尋關鍵字:</label>
+                                    <input type="text" id="productsSearch" class="form-control" placeholder="商品名稱或描述">
+                                </div>
+                                <button class="btn btn-primary" onclick="getProducts()">獲取商品</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取單一商品詳情</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="text" id="getSingleProductId" class="form-control" placeholder="商品 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="getSingleProduct()">獲取商品詳情</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取所有分類</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getCategories()">獲取所有分類</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取分類下的商品</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>分類 ID:</label>
+                                    <input type="text" id="getCategoryProductsId" class="form-control" placeholder="分類 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="getCategoryProducts()">獲取商品</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: CATEGORY MANAGEMENT API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        📚 分類管理 API (賣家/管理員)
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>創建分類</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>分類名稱:</label>
+                                    <input type="text" id="createCategoryName" class="form-control" placeholder="新的分類名稱">
+                                </div>
+                                <button class="btn btn-primary" onclick="createCategory()">創建分類</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>更新分類</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>分類 ID:</label>
+                                    <input type="number" id="updateCategoryId" class="form-control" placeholder="要更新的分類 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>新分類名稱:</label>
+                                    <input type="text" id="updateCategoryName" class="form-control" placeholder="新的分類名稱">
+                                </div>
+                                <button class="btn btn-primary" onclick="updateCategory()">更新分類</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>刪除分類</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>分類 ID:</label>
+                                    <input type="number" id="deleteCategoryId" class="form-control" placeholder="要刪除的分類 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="deleteCategory()">刪除分類</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 買家 API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        🛒 買家 API
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取購物車</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getCart()">獲取購物車</button>
+                                <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                                    💡 查看購物車內容以獲取各項目的 ID，用於指定結帳
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>添加商品到購物車</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品款式 ID (Variant ID):</label>
+                                    <input type="text" id="addCartProductVariantId" class="form-control" placeholder="商品款式 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>數量:</label>
+                                    <input type="number" id="addCartQuantity" class="form-control" value="1">
+                                </div>
+                                <button class="btn btn-primary" onclick="addToCart()">添加至購物車</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>更新購物車商品</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>購物車項目 ID (Item ID):</label>
+                                    <input type="text" id="updateCartItemId" class="form-control" placeholder="購物車項目 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>新數量 (可選):</label>
+                                    <input type="number" id="updateCartItemQuantity" class="form-control" placeholder="留空則不更新數量">
+                                </div>
+                                <div class="form-group">
+                                    <label>是否選中:</label>
+                                    <select id="updateCartItemSelected" class="form-control">
+                                        <option value="">不更改</option>
+                                        <option value="true">選中</option>
+                                        <option value="false">取消選中</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="updateCartItem()">更新項目</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>從購物車刪除商品</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>購物車項目 ID (Item ID):</label>
+                                    <input type="text" id="deleteCartItemId" class="form-control" placeholder="購物車項目 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="deleteCartItem()">刪除商品</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>結帳</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>指定購物車項目 ID (可選，用逗號分隔):</label>
+                                    <input type="text" id="checkoutCartItemIds" class="form-control" placeholder="例如: 1,2,3 (留空則結帳已選中的商品)">
+                                </div>
+                                <p style="color: #666; font-size: 0.9em;">
+                                    💡 可以指定特定的購物車項目ID進行結帳，或留空使用已選中的商品
+                                </p>
+                                <button class="btn btn-primary" onclick="checkout()">結帳</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取訂單列表</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getBuyerOrders()">獲取我的訂單</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取單一訂單詳情</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>訂單 ID:</label>
+                                    <input type="text" id="getBuyerOrderId" class="form-control" placeholder="訂單 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="getBuyerOrderDetail()">獲取訂單詳情</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>取消訂單</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>訂單 ID:</label>
+                                    <input type="text" id="cancelOrderId" class="form-control" placeholder="要取消的訂單 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="cancelOrder()">取消訂單</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: IMAGE MANAGEMENT API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        🖼️ 圖片管理 API (賣家/管理員)
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>上傳商品圖片</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="number" id="uploadImageProductId" class="form-control" placeholder="要添加圖片的商品 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>圖片文件 (最多8張):</label>
+                                    <input type="file" id="uploadImageFiles" class="form-control" multiple accept="image/*">
+                                </div>
+                                <button class="btn btn-primary" onclick="uploadImages()">上傳圖片</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>刪除商品圖片</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>圖片 ID:</label>
+                                    <input type="number" id="deleteImageId" class="form-control" placeholder="要刪除的圖片 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="deleteImage()">刪除圖片</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>通過檔名獲取圖片</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>圖片檔名:</label>
+                                    <input type="text" id="getImageByName" class="form-control" placeholder="圖片檔名 (例如: image.jpg)">
+                                </div>
+                                <button class="btn btn-primary" onclick="getImageByFilename()">獲取圖片</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>通過 ID 獲取圖片</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>圖片 ID:</label>
+                                    <input type="number" id="getImageById" class="form-control" placeholder="圖片 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="getImageById()">獲取圖片</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 賣家 API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        👨‍💼 賣家 API
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>創建商品</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品名稱:</label>
+                                    <input type="text" id="createProductName" class="form-control" placeholder="商品名稱">
+                                </div>
+                                <div class="form-group">
+                                    <label>描述:</label>
+                                    <textarea id="createProductDescription" class="form-control" placeholder="商品描述"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>分類 ID:</label>
+                                    <input type="number" id="createProductCategoryId" class="form-control" placeholder="分類 ID (可選)">
+                                </div>
+                                <div class="form-group">
+                                    <label>圖片網址 (以 , 分隔):</label>
+                                    <input type="text" id="createProductImageUrls" class="form-control" placeholder="http://...,http://...">
+                                </div>
+                                <hr>
+                                <h5>商品款式 (Variants)</h5>
+                                <div id="createProductVariantsContainer">
+                                    <!-- Variants will be added here dynamically -->
+                                    <div class="variant-item">
+                                        <input type="text" class="form-control variant-name" placeholder="款式名稱 (e.g. 紅色, M)">
+                                        <input type="number" class="form-control variant-price" placeholder="價格">
+                                        <input type="number" class="form-control variant-stock" placeholder="庫存">
+                                        <button class="btn btn-danger btn-sm" onclick="removeVariant(this)">移除</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary" onclick="addVariant()">新增款式</button>
+                                <hr>
+                                <button class="btn btn-primary" onclick="createProduct()">創建商品</button>
+                            </div>
+                        </div>
+
+                        <!-- Variant Management Endpoints -->
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>為商品新增款式</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="number" id="addProductVariantsProductId" class="form-control" placeholder="要新增款式的商品 ID">
+                                </div>
+                                <hr>
+                                <h5>商品款式 (Variants)</h5>
+                                <div id="addProductVariantsContainer">
+                                    <div class="variant-item">
+                                        <input type="text" class="form-control variant-name" placeholder="款式名稱 (e.g. 藍色, L)">
+                                        <input type="number" class="form-control variant-price" placeholder="價格">
+                                        <input type="number" class="form-control variant-stock" placeholder="庫存">
+                                        <button class="btn btn-danger btn-sm" onclick="removeVariant(this)">移除</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary" onclick="addVariant(true)">新增款式</button>
+                                <hr>
+                                <button class="btn btn-primary" onclick="addProductVariants()">新增款式</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>更新商品款式</span>
+                                <span class="method-badge method-put">PUT</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>款式 ID (Variant ID):</label>
+                                    <input type="number" id="updateVariantId" class="form-control" placeholder="要更新的款式 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>新名稱:</label>
+                                    <input type="text" id="updateVariantName" class="form-control" placeholder="款式名稱 (可選)">
+                                </div>
+                                <div class="form-group">
+                                    <label>新價格:</label>
+                                    <input type="number" id="updateVariantPrice" class="form-control" placeholder="價格 (可選)">
+                                </div>
+                                <div class="form-group">
+                                    <label>新庫存:</label>
+                                    <input type="number" id="updateVariantStock" class="form-control" placeholder="庫存 (可選)">
+                                </div>
+                                <button class="btn btn-primary" onclick="updateVariant()">更新款式</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>刪除商品款式</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>款式 ID (Variant ID):</label>
+                                    <input type="number" id="deleteVariantId" class="form-control" placeholder="要刪除的款式 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="deleteVariant()">刪除款式</button>
+                            </div>
+                        </div>
+                        <!-- End of Variant Management -->
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>更新商品</span>
+                                <span class="method-badge method-put">PUT</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="text" id="updateProductId" class="form-control" placeholder="商品 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>商品名稱:</label>
+                                    <input type="text" id="updateProductName" class="form-control" placeholder="新商品名稱">
+                                </div>
+                                <div class="form-group">
+                                    <label>描述:</label>
+                                    <textarea id="updateProductDescription" class="form-control" placeholder="新商品描述"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>價格:</label>
+                                    <input type="number" id="updateProductPrice" class="form-control" placeholder="新價格" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>庫存:</label>
+                                    <input type="number" id="updateProductStock" class="form-control" placeholder="新庫存數量">
+                                </div>
+                                <div class="form-group">
+                                    <label>圖片 URL:</label>
+                                    <input type="url" id="updateProductImageUrl" class="form-control" placeholder="新商品圖片 URL">
+                                </div>
+                                <button class="btn btn-primary" onclick="updateProduct()">更新商品</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>刪除商品</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="text" id="deleteProductId" class="form-control" placeholder="要刪除的商品 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="deleteProduct()">刪除商品</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取我的商品</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getMyProducts()">獲取我的商品</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取賣家訂單</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getSellerOrders()">獲取賣家訂單</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>發貨訂單</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>訂單 ID:</label>
+                                    <input type="text" id="shipOrderId" class="form-control" placeholder="要發貨的訂單 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="shipOrder()">標記為已發貨</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>完成訂單</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>訂單 ID:</label>
+                                    <input type="text" id="completeOrderId" class="form-control" placeholder="要完成的訂單 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="completeOrder()">標記為已完成</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 管理員 API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        👑 管理員 API
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取所有用戶</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getAllUsers()">獲取所有用戶</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>刪除用戶</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>用戶 ID:</label>
+                                    <input type="text" id="deleteUserId" class="form-control" placeholder="要刪除的用戶 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="deleteUser()">刪除用戶</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>封鎖/解鎖用戶</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>用戶 ID:</label>
+                                    <input type="text" id="blockUserId" class="form-control" placeholder="要操作的用戶 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="blockUser()">封鎖用戶</button>
+                                <button class="btn btn-secondary" onclick="unblockUser()">解鎖用戶</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>刪除商品 (管理員)</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="text" id="adminDeleteProductId" class="form-control" placeholder="要刪除的商品 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="adminDeleteProduct()">刪除商品</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取系統日誌</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <button class="btn btn-primary" onclick="getSystemLogs()">獲取系統日誌</button>
+                            </div>
+                        </div>
+
+                        <!-- NEW: ADMIN ORDER MANAGEMENT -->
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取所有訂單 (管理員)</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>頁碼:</label>
+                                    <input type="number" id="adminOrdersPage" class="form-control" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>每頁數量:</label>
+                                    <input type="number" id="adminOrdersPageSize" class="form-control" value="10">
+                                </div>
+                                <button class="btn btn-primary" onclick="adminGetOrders()">獲取所有訂單</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取訂單詳情 (管理員)</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>訂單 ID:</label>
+                                    <input type="number" id="adminGetOrderId" class="form-control" placeholder="訂單 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="adminGetOrderDetails()">獲取訂單詳情</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>更新訂單狀態 (管理員)</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>訂單 ID:</label>
+                                    <input type="number" id="adminUpdateOrderStatusId" class="form-control" placeholder="訂單 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>新狀態:</label>
+                                    <select id="adminUpdateOrderStatus" class="form-control">
+                                        <option value="UNCOMPLETED">未完成</option>
+                                        <option value="COMPLETED">已完成</option>
+                                        <option value="CANCELED">已取消</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="adminUpdateOrderStatus()">更新狀態</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 聊天 API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        💬 聊天 API
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>創建或獲取聊天室</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>對方用戶 ID (如果您是買家，請填賣家ID；如果您是賣家，請填買家ID):</label>
+                                    <input type="number" id="chatOtherUserId" class="form-control" placeholder="對方用戶 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="createOrGetChatRoom()">創建/獲取聊天室</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取我的聊天室列表</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>頁碼:</label>
+                                    <input type="number" id="chatRoomsPage" class="form-control" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>每頁數量:</label>
+                                    <input type="number" id="chatRoomsPageSize" class="form-control" value="10">
+                                </div>
+                                <button class="btn btn-primary" onclick="getChatRooms()">獲取聊天室列表</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取聊天室訊息</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>聊天室 ID:</label>
+                                    <input type="number" id="chatRoomId" class="form-control" placeholder="聊天室 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>頁碼:</label>
+                                    <input type="number" id="chatMessagesPage" class="form-control" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>每頁數量:</label>
+                                    <input type="number" id="chatMessagesPageSize" class="form-control" value="20">
+                                </div>
+                                <button class="btn btn-primary" onclick="getChatMessages()">獲取聊天訊息</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>發送訊息</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>聊天室 ID:</label>
+                                    <input type="number" id="sendMessageRoomId" class="form-control" placeholder="聊天室 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>訊息內容:</label>
+                                    <textarea id="sendMessageContent" class="form-control" placeholder="輸入訊息內容" rows="3"></textarea>
+                                </div>
+                                <button class="btn btn-primary" onclick="sendMessage()">發送訊息</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 評價 API -->
+                <div class="api-section">
+                    <div class="api-section-header" onclick="toggleSection(this)">
+                        ⭐ 評價 API
+                        <span>▼</span>
+                    </div>
+                    <div class="api-section-content">
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>創建評價</span>
+                                <span class="method-badge method-post">POST</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="text" id="reviewProductId" class="form-control" placeholder="商品 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>評分 (1-5):</label>
+                                    <input type="number" id="reviewScore" class="form-control" min="1" max="5" value="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>評價內容 (可選):</label>
+                                    <textarea id="reviewComment" class="form-control" placeholder="評價內容"></textarea>
+                                </div>
+                                <button class="btn btn-primary" onclick="createReview()">創建評價</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>獲取商品評價列表</span>
+                                <span class="method-badge method-get">GET</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>商品 ID:</label>
+                                    <input type="text" id="getReviewsProductId" class="form-control" placeholder="商品 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="getProductReviews()">獲取評價</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>修改評價</span>
+                                <span class="method-badge method-patch">PATCH</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>評價 ID:</label>
+                                    <input type="text" id="editReviewId" class="form-control" placeholder="評價 ID">
+                                </div>
+                                <div class="form-group">
+                                    <label>新評分 (1-5):</label>
+                                    <input type="number" id="editReviewScore" class="form-control" min="1" max="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>新評價內容 (可選):</label>
+                                    <textarea id="editReviewComment" class="form-control" placeholder="新評價內容"></textarea>
+                                </div>
+                                <button class="btn btn-primary" onclick="editReview()">修改評價</button>
+                            </div>
+                        </div>
+
+                        <div class="api-endpoint">
+                            <div class="endpoint-header">
+                                <span>刪除評價</span>
+                                <span class="method-badge method-delete">DELETE</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <div class="form-group">
+                                    <label>評價 ID:</label>
+                                    <input type="text" id="deleteReviewId" class="form-control" placeholder="評價 ID">
+                                </div>
+                                <button class="btn btn-primary" onclick="deleteReview()">刪除評價</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="response-panel">
+                <div class="response-header">📋 API 響應</div>
+                <div id="responseContent" class="response-content">等待 API 調用...</div>
+            </div>
+        </div>
+
+        
+
+    </div>
+    <script src="api-tester-scripts.js"></script>
+</body>
+</html> 

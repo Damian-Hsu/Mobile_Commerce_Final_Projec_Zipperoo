@@ -1,0 +1,19 @@
+# 環境變數
+.env
+
+# VS Code 設定
+.vscode/
+
+# node_modules 忽略所有層級
+node_modules/
+
+# 編譯後輸出
+dist/
+*.log
+
+# 暫存資料或大檔資料夾
+data/
+
+# Prisma 或 DB 檔案
+*.sqlite
+*.db

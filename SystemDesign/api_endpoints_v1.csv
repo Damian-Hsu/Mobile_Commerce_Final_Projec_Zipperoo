@@ -1,0 +1,57 @@
+Method,Path,Description,Allowed Roles,API Group,Controller
+GET,/health,系統健康檢查,Public,System,HealthController
+POST,/auth/register,用戶註冊,Public,Authentication,AuthController
+POST,/auth/login,用戶登入,Public,Authentication,AuthController
+POST,/auth/logout,用戶登出,"Buyer | Seller | Admin",Authentication,AuthController
+GET,/auth/profile,獲取個人資料,"Buyer | Seller | Admin",Authentication,AuthController
+POST,/auth/forgot-password,忘記密碼,Public,Authentication,AuthController
+POST,/auth/reset-password,重設密碼,Public,Authentication,AuthController
+GET,/products,獲取商品列表（帶搜尋篩選）,Public,Public API,ProductController
+GET,/products/{id},獲取單一商品詳情,Public,Public API,ProductController
+GET,/categories,獲取所有分類,Public,Public API,ProductController
+GET,/categories/{id}/products,獲取分類下的商品,Public,Public API,ProductController
+POST,/categories,創建分類,"Seller | Admin",Category Management,CategoryController
+GET,/categories/{id},獲取單一分類,Public,Category Management,CategoryController
+PATCH,/categories/{id},更新分類,"Seller | Admin",Category Management,CategoryController
+DELETE,/categories/{id},刪除分類,"Seller | Admin",Category Management,CategoryController
+GET,/seller/products,獲取賣家商品列表,Seller,Seller API,ProductController (Seller)
+POST,/seller/products,創建商品,Seller,Seller API,ProductController (Seller)
+GET,/seller/products/{id},獲取賣家單一商品,Seller,Seller API,ProductController (Seller)
+PUT,/seller/products/{id},更新商品,Seller,Seller API,ProductController (Seller)
+DELETE,/seller/products/{id},刪除商品,Seller,Seller API,ProductController (Seller)
+GET,/seller/orders,獲取賣家訂單列表,Seller,Seller API,ProductController (Seller)
+PATCH,/seller/orders/{orderId}/ship,訂單出貨,Seller,Seller API,ProductController (Seller)
+PATCH,/seller/orders/{orderId}/complete,完成訂單,Seller,Seller API,ProductController (Seller)
+POST,/seller/products/{productId}/variants,為商品新增款式,"Seller | Admin",Variant Management,VariantController
+PUT,/seller/variants/{variantId},更新商品款式,"Seller | Admin",Variant Management,VariantController
+DELETE,/seller/variants/{variantId},刪除商品款式,"Seller | Admin",Variant Management,VariantController
+GET,/buyers/me/cart,獲取購物車,Buyer,Buyer API,CartController
+POST,/buyers/me/cart/items,添加商品到購物車,Buyer,Buyer API,CartController
+PATCH,/buyers/me/cart/items/{itemId},更新購物車項目,Buyer,Buyer API,CartController
+DELETE,/buyers/me/cart/items/{itemId},從購物車刪除商品,Buyer,Buyer API,CartController
+POST,/buyers/me/checkout,結帳（支援指定項目ID）,Buyer,Buyer API,OrderController
+GET,/buyers/me/orders,獲取買家訂單列表,Buyer,Buyer API,OrderController
+GET,/buyers/me/orders/{orderId},獲取買家單一訂單,Buyer,Buyer API,OrderController
+PATCH,/buyers/me/orders/{orderId}/cancel,取消訂單,Buyer,Buyer API,OrderController
+POST,/products/{productId}/reviews,創建商品評價,"Buyer | Admin",Review API,ReviewController
+GET,/products/{productId}/reviews,獲取商品評價列表,Public,Review API,ReviewController
+PATCH,/reviews/{reviewId},更新評價,"Buyer | Admin",Review API,ReviewController
+DELETE,/reviews/{reviewId},刪除評價,"Buyer | Admin",Review API,ReviewController
+POST,/chat/rooms,創建或獲取聊天室,"Buyer | Seller | Admin",Chat API,ChatController
+GET,/chat/rooms,獲取用戶聊天室列表,"Buyer | Seller | Admin",Chat API,ChatController
+GET,/chat/rooms/{roomId}/messages,獲取聊天室訊息,"Buyer | Seller | Admin",Chat API,ChatController
+POST,/chat/rooms/{roomId}/messages,發送訊息,"Buyer | Seller | Admin",Chat API,ChatController
+POST,/products/{productId}/images,上傳商品圖片,"Seller | Admin | Buyer",Image API,ImageController
+DELETE,/images/{imageId},刪除商品圖片,"Seller | Admin",Image API,ImageController
+GET,/imagesFromName/{imgName},通過檔名獲取圖片,Public,Image API,ImageController
+GET,/imagesFromID/{imageId},通過ID獲取圖片,Public,Image API,ImageController
+GET,/admin/users,獲取所有用戶,Admin,Admin API,AdminController
+DELETE,/admin/users/{userId},刪除用戶,Admin,Admin API,AdminController
+PATCH,/admin/users/{userId}/block,封鎖用戶,Admin,Admin API,AdminController
+PATCH,/admin/users/{userId}/unblock,解除封鎖用戶,Admin,Admin API,AdminController
+GET,/admin/products,獲取所有商品（管理員）,Admin,Admin API,AdminController
+DELETE,/admin/products/{productId},刪除商品（管理員）,Admin,Admin API,AdminController
+GET,/admin/orders,獲取所有訂單,Admin,Admin API,AdminController
+GET,/admin/orders/{id},獲取單一訂單詳情,Admin,Admin API,AdminController
+PATCH,/admin/orders/{id}/status,更新訂單狀態,Admin,Admin API,AdminController
+GET,/admin/logs,獲取系統日誌,Admin,Admin API,AdminController

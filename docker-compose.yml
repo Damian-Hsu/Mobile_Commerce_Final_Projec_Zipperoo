@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: zipperoo_postgres
+    environment:
+      POSTGRES_DB: zipperoo_db
+      POSTGRES_USER: zipperoo
+      POSTGRES_PASSWORD: zipperoo123
+      TZ: Asia/Taipei
+    command: postgres -c ssl=off -c timezone=Asia/Taipei
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - zipperoo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zipperoo -d zipperoo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: zipperoo_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - zipperoo_network
+  nginx:
+    image: nginx:alpine
+    container_name: zipperoo_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./data/uploads:/var/www/uploads
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - zipperoo_network
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zipperoo_backend
+    environment:
+      DATABASE_URL: "postgresql://zipperoo:zipperoo123@postgres:5432/zipperoo_db?schema=public&sslmode=disable"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      REFRESH_JWT_SECRET: ${REFRESH_JWT_SECRET}
+      REFRESH_JWT_EXPIRES_IN: ${REFRESH_JWT_EXPIRES_IN}
+      PORT: ${BAKEND_PORT}
+      NODE_ENV: "production"
+      CORS_ORIGIN: "http://localhost"
+    ports:
+      - "3001:3000"
+      - "5555:5555"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/public:/app/public
+      - ./backend/tsconfig.json:/app/tsconfig.json
+      - ./backend/nest-cli.json:/app/nest-cli.json
+      - ./backend/package.json:/app/package.json
+      - ./backend/package-lock.json:/app/package-lock.json
+      - ./data/uploads:/app/uploads
+    networks:
+      - zipperoo_network
+
+
+
+networks:
+  zipperoo_network:
+    driver: bridge

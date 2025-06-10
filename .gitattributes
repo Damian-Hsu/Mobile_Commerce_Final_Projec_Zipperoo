@@ -1,0 +1,13 @@
+# 自動將所有文字檔轉為 LF 儲存，保持一致
+* text=auto
+
+# 對於明確檔案類型，強制指定換行符號
+*.ts     text eol=lf
+*.js     text eol=lf
+*.json   text eol=lf
+*.sh     text eol=lf
+*.yml    text eol=lf
+*.html   text eol=lf
+*.css    text eol=lf
+*.md     text eol=lf
+*.env    text eol=lf
