@@ -182,6 +182,16 @@ export class ProductController {
   })
   @ApiResponse({ status: 404, description: '商品不存在' })
   async getProduct(@Param('id', ParseIntPipe) productId: number) {
+    console.log(`=== Debug: 載入商品 ID ${productId} ===`);
+    
+    // 檢查資料庫中是否有任何 variants 資料
+    const allVariants = await this.prisma.productVariant.findMany({
+      where: { productId },
+    });
+    console.log(`=== Debug: 商品 ${productId} 的 variants 檢查 ===`);
+    console.log('直接查詢 ProductVariant 表結果:', allVariants);
+    console.log('variants 數量:', allVariants.length);
+    
     const product = await this.prisma.product.findFirst({
       where: {
         id: productId,
@@ -196,6 +206,15 @@ export class ProductController {
             username: true,
             shopName: true,
             description: true,
+          },
+        },
+        variants: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            stock: true,
+            attributes: true,
           },
         },
         reviews: {
@@ -221,6 +240,11 @@ export class ProductController {
       },
     });
 
+    console.log('=== Debug: 原始資料庫查詢結果 ===');
+    console.log('商品存在:', !!product);
+    console.log('variants 陣列:', product?.variants);
+    console.log('variants 數量:', product?.variants?.length || 0);
+
     if (!product) {
       return ResponseDto.error('商品不存在', 404);
     }
@@ -236,10 +260,25 @@ export class ProductController {
       },
     });
 
-    return ResponseDto.success({
+    // Calculate price range from variants
+    const productWithPriceRange = {
       ...product,
       avgRating: avgRating._avg.score || 0,
-    }, '獲取商品詳情成功');
+      minPrice: product.variants.length > 0 
+        ? Math.min(...product.variants.map(v => v.price))
+        : null,
+      maxPrice: product.variants.length > 0 
+        ? Math.max(...product.variants.map(v => v.price))
+        : null,
+    };
+
+    console.log('=== Debug: 最終回應資料 ===');
+    console.log('包含 variants:', !!productWithPriceRange.variants);
+    console.log('variants 內容:', productWithPriceRange.variants);
+    console.log('minPrice:', productWithPriceRange.minPrice);
+    console.log('maxPrice:', productWithPriceRange.maxPrice);
+
+    return ResponseDto.success(productWithPriceRange, '獲取商品詳情成功');
   }
 
   @Public()
@@ -349,6 +388,15 @@ export class ProductController {
               id: true,
               username: true,
               shopName: true,
+            },
+          },
+          variants: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              stock: true,
+              attributes: true,
             },
           },
           _count: {

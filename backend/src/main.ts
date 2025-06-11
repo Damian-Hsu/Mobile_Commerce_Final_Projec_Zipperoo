@@ -23,8 +23,17 @@ async function bootstrap(): Promise<void> {
   );
 
   // CORS configuration
+  const corsOrigin = configService.get('CORS_ORIGIN', '*');
+  const originArray = corsOrigin.split(',').map(item => item.trim());
+  
   app.enableCors({
-    origin: configService.get('CORS_ORIGIN', '*'),
+    origin: (origin, callback) => {
+      if (!origin || originArray.indexOf(origin) !== -1 || originArray.includes('*')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
 

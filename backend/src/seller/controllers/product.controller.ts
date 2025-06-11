@@ -25,7 +25,7 @@ export class ProductController {
   @ApiResponse({ status: 200, description: '獲取商品列表成功' })
   @ApiResponse({ status: 401, description: '未認證用戶' })
   @ApiResponse({ status: 403, description: '權限不足' })
-  async getProducts(@CurrentUser() user: any, @Query() paginationDto: PaginationDto) {
+  async getSellerProducts(@CurrentUser() user: any, @Query() paginationDto: PaginationDto) {
     const result = await this.productService.getProducts(
       user.id,
       paginationDto.page,
@@ -44,21 +44,6 @@ export class ProductController {
   async createProduct(@CurrentUser() user: any, @Body() createProductDto: CreateProductDto) {
     const result = await this.productService.createProduct(user.id, createProductDto);
     return ResponseDto.created(result, '商品創建成功');
-  }
-
-  @Get('products/:id')
-  @ApiOperation({ summary: '獲取商品詳情', description: '獲取指定商品的詳細資訊' })
-  @ApiParam({ name: 'id', type: 'number', description: '商品ID' })
-  @ApiResponse({ status: 200, description: '獲取商品詳情成功' })
-  @ApiResponse({ status: 401, description: '未認證用戶' })
-  @ApiResponse({ status: 403, description: '權限不足' })
-  @ApiResponse({ status: 404, description: '商品不存在' })
-  async getProduct(
-    @CurrentUser() user: any,
-    @Param('id', ParseIntPipe) productId: number,
-  ) {
-    const result = await this.productService.getProduct(user.id, productId);
-    return ResponseDto.success(result, '獲取商品詳情成功');
   }
 
   @Put('products/:id')

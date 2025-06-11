@@ -20,6 +20,7 @@ import { VariantModule } from './variant/variant.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
     PrismaModule,
     CommonModule,

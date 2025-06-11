@@ -940,7 +940,7 @@
     "/api/v1/seller/products": {
       "get": {
         "description": "獲取當前賣家的所有商品列表",
-        "operationId": "ProductController_getProducts",
+        "operationId": "ProductController_getSellerProducts",
         "parameters": [
           {
             "name": "pageSize",
@@ -1022,44 +1022,6 @@
       }
     },
     "/api/v1/seller/products/{id}": {
-      "get": {
-        "description": "獲取指定商品的詳細資訊",
-        "operationId": "ProductController_getProduct",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "商品ID",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "獲取商品詳情成功"
-          },
-          "401": {
-            "description": "未認證用戶"
-          },
-          "403": {
-            "description": "權限不足"
-          },
-          "404": {
-            "description": "商品不存在"
-          }
-        },
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "獲取商品詳情",
-        "tags": [
-          "賣家商品管理"
-        ]
-      },
       "put": {
         "description": "更新指定商品的資訊",
         "operationId": "ProductController_updateProduct",
