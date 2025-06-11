@@ -2,7 +2,7 @@ import { IsOptional, IsString, IsIn, IsNumber, Min, IsInt } from 'class-validato
 import { Type } from 'class-transformer';
 import { PaginationDto } from './pagination.dto';
 
-const allowedSortBy = ['createdAt', 'price', 'name'];
+const allowedSortBy = ['createdAt', 'name'];
 const allowedSortOrder = ['asc', 'desc'];
 
 export class GetProductsQueryDto extends PaginationDto {

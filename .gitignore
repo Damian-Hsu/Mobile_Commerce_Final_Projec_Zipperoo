@@ -17,3 +17,6 @@ data/
 # Prisma 或 DB 檔案
 *.sqlite
 *.db
+
+#dev中資料夾
+frontend/

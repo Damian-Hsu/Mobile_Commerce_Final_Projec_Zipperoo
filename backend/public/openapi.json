@@ -1,0 +1,2726 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "檢查系統運行狀態",
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "系統運行正常",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "系統健康"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "ok"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "example": "2023-01-01T00:00:00.000Z"
+                        },
+                        "service": {
+                          "type": "string",
+                          "example": "Zipperoo Backend"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "健康檢查",
+        "tags": [
+          "系統健康檢查"
+        ]
+      }
+    },
+    "/api/v1/products": {
+      "get": {
+        "description": "獲取所有上架商品列表，支援搜尋、分類篩選、價格篩選和排序",
+        "operationId": "ProductController_getProducts",
+        "parameters": [
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "排序方向",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "排序欄位",
+            "schema": {
+              "enum": [
+                "createdAt",
+                "name"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "description": "最高價格",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "description": "最低價格",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "分類ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "搜尋關鍵字（商品名稱或描述）",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量，預設為10",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼，預設為1",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取商品列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "獲取商品列表成功"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "number"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "number"
+                              },
+                              "category": {
+                                "type": "object"
+                              },
+                              "seller": {
+                                "type": "object"
+                              },
+                              "images": {
+                                "type": "array"
+                              }
+                            }
+                          }
+                        },
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "number"
+                            },
+                            "pageSize": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "獲取商品列表",
+        "tags": [
+          "公開商品瀏覽"
+        ]
+      }
+    },
+    "/api/v1/products/{id}": {
+      "get": {
+        "description": "獲取指定商品的詳細資訊，包含評論和平均評分",
+        "operationId": "ProductController_getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取商品詳情成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "獲取商品詳情成功"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "price": {
+                          "type": "number"
+                        },
+                        "avgRating": {
+                          "type": "number"
+                        },
+                        "category": {
+                          "type": "object"
+                        },
+                        "seller": {
+                          "type": "object"
+                        },
+                        "images": {
+                          "type": "array"
+                        },
+                        "reviews": {
+                          "type": "array"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "summary": "獲取商品詳情",
+        "tags": [
+          "公開商品瀏覽"
+        ]
+      }
+    },
+    "/api/v1/categories": {
+      "get": {
+        "description": "獲取所有商品分類列表",
+        "operationId": "CategoryController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "獲取分類列表成功"
+          }
+        },
+        "summary": "獲取所有分類",
+        "tags": [
+          "商品分類管理"
+        ]
+      },
+      "post": {
+        "description": "創建新的商品分類（僅限賣家和管理員）",
+        "operationId": "CategoryController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "分類創建成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "創建商品分類",
+        "tags": [
+          "商品分類管理"
+        ]
+      }
+    },
+    "/api/v1/categories/{id}/products": {
+      "get": {
+        "description": "獲取指定分類下的所有商品",
+        "operationId": "ProductController_getCategoryProducts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "分類ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取分類商品成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "獲取分類商品成功"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array"
+                        },
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "number"
+                            },
+                            "pageSize": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "分類不存在"
+          }
+        },
+        "summary": "獲取分類商品",
+        "tags": [
+          "公開商品瀏覽"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "description": "註冊新用戶賬號",
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "註冊成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "409": {
+            "description": "用戶已存在"
+          }
+        },
+        "summary": "用戶註冊",
+        "tags": [
+          "認證系統"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "用戶登入系統",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "登入成功"
+          },
+          "401": {
+            "description": "用戶名或密碼錯誤"
+          }
+        },
+        "summary": "用戶登入",
+        "tags": [
+          "認證系統"
+        ]
+      }
+    },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "description": "發送密碼重置郵件",
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "密碼重置郵件已發送"
+          },
+          "404": {
+            "description": "用戶不存在"
+          }
+        },
+        "summary": "忘記密碼",
+        "tags": [
+          "認證系統"
+        ]
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "description": "使用重置令牌重置密碼",
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "密碼重置成功"
+          },
+          "400": {
+            "description": "重置令牌無效或已過期"
+          }
+        },
+        "summary": "重置密碼",
+        "tags": [
+          "認證系統"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "用戶登出系統",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "登出成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "用戶登出",
+        "tags": [
+          "認證系統"
+        ]
+      }
+    },
+    "/api/v1/auth/profile": {
+      "get": {
+        "description": "獲取當前用戶的個人資料",
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "獲取個人資料成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取個人資料",
+        "tags": [
+          "認證系統"
+        ]
+      }
+    },
+    "/api/v1/buyers/me/cart": {
+      "get": {
+        "description": "獲取當前用戶的購物車內容",
+        "operationId": "CartController_getCart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "獲取購物車成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取購物車",
+        "tags": [
+          "購物車管理"
+        ]
+      }
+    },
+    "/api/v1/buyers/me/cart/items": {
+      "post": {
+        "description": "將商品添加到購物車中",
+        "operationId": "CartController_addItem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCartItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "商品已加入購物車"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "添加商品到購物車",
+        "tags": [
+          "購物車管理"
+        ]
+      }
+    },
+    "/api/v1/buyers/me/cart/items/{itemId}": {
+      "patch": {
+        "description": "更新購物車中指定項目的數量或其他屬性",
+        "operationId": "CartController_updateItem",
+        "parameters": [
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "description": "購物車項目ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCartItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "購物車項目已更新"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "購物車項目不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新購物車項目",
+        "tags": [
+          "購物車管理"
+        ]
+      },
+      "delete": {
+        "description": "從購物車中移除指定項目",
+        "operationId": "CartController_removeItem",
+        "parameters": [
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "description": "購物車項目ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "項目已移除"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "購物車項目不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "移除購物車項目",
+        "tags": [
+          "購物車管理"
+        ]
+      }
+    },
+    "/api/v1/buyers/me/checkout": {
+      "post": {
+        "description": "將購物車中的商品進行結帳，創建訂單",
+        "operationId": "OrderController_checkout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "結帳成功"
+          },
+          "400": {
+            "description": "請求參數錯誤或購物車為空"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "購物車項目不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "結帳",
+        "tags": [
+          "買家訂單管理"
+        ]
+      }
+    },
+    "/api/v1/buyers/me/orders": {
+      "get": {
+        "description": "獲取當前用戶的所有訂單列表",
+        "operationId": "OrderController_getOrders",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取訂單列表成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取訂單列表",
+        "tags": [
+          "買家訂單管理"
+        ]
+      }
+    },
+    "/api/v1/buyers/me/orders/{orderId}": {
+      "get": {
+        "description": "獲取指定訂單的詳細資訊",
+        "operationId": "OrderController_getOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "description": "訂單ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取訂單詳情成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "訂單不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取訂單詳情",
+        "tags": [
+          "買家訂單管理"
+        ]
+      }
+    },
+    "/api/v1/buyers/me/orders/{orderId}/cancel": {
+      "patch": {
+        "description": "取消指定的訂單（僅限未處理狀態）",
+        "operationId": "OrderController_cancelOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "description": "訂單ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "訂單已取消"
+          },
+          "400": {
+            "description": "訂單狀態不允許取消"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "訂單不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "取消訂單",
+        "tags": [
+          "買家訂單管理"
+        ]
+      }
+    },
+    "/api/v1/seller/products": {
+      "get": {
+        "description": "獲取當前賣家的所有商品列表",
+        "operationId": "ProductController_getProducts",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取商品列表成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取賣家商品列表",
+        "tags": [
+          "賣家商品管理"
+        ]
+      },
+      "post": {
+        "description": "賣家創建新商品",
+        "operationId": "ProductController_createProduct",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "商品創建成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "創建商品",
+        "tags": [
+          "賣家商品管理"
+        ]
+      }
+    },
+    "/api/v1/seller/products/{id}": {
+      "get": {
+        "description": "獲取指定商品的詳細資訊",
+        "operationId": "ProductController_getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取商品詳情成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取商品詳情",
+        "tags": [
+          "賣家商品管理"
+        ]
+      },
+      "put": {
+        "description": "更新指定商品的資訊",
+        "operationId": "ProductController_updateProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "商品更新成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新商品",
+        "tags": [
+          "賣家商品管理"
+        ]
+      },
+      "delete": {
+        "description": "刪除指定的商品",
+        "operationId": "ProductController_deleteProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "商品刪除成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "刪除商品",
+        "tags": [
+          "賣家商品管理"
+        ]
+      }
+    },
+    "/api/v1/seller/orders": {
+      "get": {
+        "description": "獲取賣家相關的所有訂單",
+        "operationId": "ProductController_getOrders",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取訂單列表成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取訂單列表",
+        "tags": [
+          "賣家商品管理"
+        ]
+      }
+    },
+    "/api/v1/seller/orders/{orderId}/ship": {
+      "patch": {
+        "description": "將訂單狀態更新為已出貨",
+        "operationId": "ProductController_shipOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "description": "訂單ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "訂單已出貨"
+          },
+          "400": {
+            "description": "訂單狀態不允許出貨"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "訂單不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "訂單出貨",
+        "tags": [
+          "賣家商品管理"
+        ]
+      }
+    },
+    "/api/v1/seller/orders/{orderId}/complete": {
+      "patch": {
+        "description": "將訂單狀態更新為已完成",
+        "operationId": "ProductController_completeOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "description": "訂單ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "訂單已完成"
+          },
+          "400": {
+            "description": "訂單狀態不允許完成"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "訂單不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "完成訂單",
+        "tags": [
+          "賣家商品管理"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{userId}": {
+      "delete": {
+        "description": "管理員刪除指定用戶",
+        "operationId": "AdminController_deleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "用戶ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "用戶已刪除"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "用戶不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "刪除用戶",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{userId}/block": {
+      "patch": {
+        "description": "管理員封鎖指定用戶",
+        "operationId": "AdminController_blockUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "用戶ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "用戶已封鎖"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "用戶不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "封鎖用戶",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{userId}/unblock": {
+      "patch": {
+        "description": "管理員解除指定用戶的封鎖",
+        "operationId": "AdminController_unblockUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "用戶ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "用戶已解除封鎖"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "用戶不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "解除封鎖用戶",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/products/{productId}": {
+      "delete": {
+        "description": "管理員刪除指定商品",
+        "operationId": "AdminController_deleteProduct",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "商品已刪除"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "刪除商品",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/logs": {
+      "get": {
+        "description": "管理員獲取系統操作日誌",
+        "operationId": "AdminController_getLogs",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取日誌成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取系統日誌",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "description": "管理員獲取所有用戶列表",
+        "operationId": "AdminController_getUsers",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取用戶列表成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取用戶列表",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/products": {
+      "get": {
+        "description": "管理員獲取所有商品列表",
+        "operationId": "AdminController_getProducts",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取商品列表成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取商品列表",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/orders": {
+      "get": {
+        "description": "管理員獲取所有訂單列表",
+        "operationId": "AdminController_getOrders",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取訂單列表成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取訂單列表",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/orders/{id}": {
+      "get": {
+        "description": "管理員獲取指定訂單詳情",
+        "operationId": "AdminController_getOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "訂單ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取訂單詳情成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "訂單不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取訂單詳情",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/orders/{id}/status": {
+      "patch": {
+        "description": "管理員更新指定訂單的狀態",
+        "operationId": "AdminController_updateOrderStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "訂單ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "訂單狀態更新成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "訂單不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新訂單狀態",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/chat/rooms": {
+      "post": {
+        "description": "買家和賣家之間創建或獲取聊天室",
+        "operationId": "ChatController_createOrGetRoom",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "buyerId": {
+                    "type": "number",
+                    "description": "買家ID（賣家提供）"
+                  },
+                  "sellerId": {
+                    "type": "number",
+                    "description": "賣家ID（買家提供）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "聊天室創建/獲取成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "創建或獲取聊天室",
+        "tags": [
+          "聊天系統"
+        ]
+      },
+      "get": {
+        "description": "獲取當前用戶的所有聊天室",
+        "operationId": "ChatController_getUserRooms",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取聊天室列表成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取聊天室列表",
+        "tags": [
+          "聊天系統"
+        ]
+      }
+    },
+    "/api/v1/chat/rooms/{roomId}/messages": {
+      "get": {
+        "description": "獲取指定聊天室的訊息記錄",
+        "operationId": "ChatController_getMessages",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "description": "聊天室ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取訊息成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或無聊天室訪問權限"
+          },
+          "404": {
+            "description": "聊天室不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取聊天訊息",
+        "tags": [
+          "聊天系統"
+        ]
+      },
+      "post": {
+        "description": "在指定聊天室中發送訊息",
+        "operationId": "ChatController_sendMessage",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "description": "聊天室ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "訊息內容"
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "訊息發送成功"
+          },
+          "400": {
+            "description": "請求參數錯誤或訊息內容為空"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或無聊天室訪問權限"
+          },
+          "404": {
+            "description": "聊天室不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "發送訊息",
+        "tags": [
+          "聊天系統"
+        ]
+      }
+    },
+    "/api/v1/products/{productId}/reviews": {
+      "post": {
+        "description": "買家對購買的商品進行評論",
+        "operationId": "ReviewController_createReview",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "評論創建成功"
+          },
+          "400": {
+            "description": "請求參數錯誤或尚未購買該商品"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          },
+          "409": {
+            "description": "已評論過該商品"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "創建商品評論",
+        "tags": [
+          "商品評論"
+        ]
+      },
+      "get": {
+        "description": "獲取指定商品的所有評論",
+        "operationId": "ReviewController_getProductReviews",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "每頁數量",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "頁碼",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取商品評論成功"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "summary": "獲取商品評論",
+        "tags": [
+          "商品評論"
+        ]
+      }
+    },
+    "/api/v1/reviews/{reviewId}": {
+      "patch": {
+        "description": "更新用戶自己的評論內容",
+        "operationId": "ReviewController_updateReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "required": true,
+            "in": "path",
+            "description": "評論ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "評論更新成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或不是評論作者"
+          },
+          "404": {
+            "description": "評論不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新評論",
+        "tags": [
+          "商品評論"
+        ]
+      },
+      "delete": {
+        "description": "刪除用戶自己的評論或管理員刪除任意評論",
+        "operationId": "ReviewController_deleteReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "required": true,
+            "in": "path",
+            "description": "評論ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "評論刪除成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或不是評論作者"
+          },
+          "404": {
+            "description": "評論不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "刪除評論",
+        "tags": [
+          "商品評論"
+        ]
+      }
+    },
+    "/api/v1/products/{productId}/images": {
+      "post": {
+        "description": "為指定商品上傳圖片（最多8張）",
+        "operationId": "ImageController_uploadImages",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "圖片上傳成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Images uploaded successfully."
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "filename": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "沒有上傳檔案或檔案格式錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "上傳商品圖片",
+        "tags": [
+          "圖片管理"
+        ]
+      }
+    },
+    "/api/v1/images/{imageId}": {
+      "delete": {
+        "description": "刪除指定的商品圖片",
+        "operationId": "ImageController_deleteImage",
+        "parameters": [
+          {
+            "name": "imageId",
+            "required": true,
+            "in": "path",
+            "description": "圖片ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "圖片刪除成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或不是圖片擁有者"
+          },
+          "404": {
+            "description": "圖片不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "刪除圖片",
+        "tags": [
+          "圖片管理"
+        ]
+      }
+    },
+    "/api/v1/imagesFromName/{imgName}": {
+      "get": {
+        "description": "根據檔案名稱獲取圖片資訊",
+        "operationId": "ImageController_getImageByFilename",
+        "parameters": [
+          {
+            "name": "imgName",
+            "required": true,
+            "in": "path",
+            "description": "圖片檔案名稱",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "圖片獲取成功"
+          },
+          "404": {
+            "description": "圖片不存在"
+          }
+        },
+        "summary": "根據檔名獲取圖片",
+        "tags": [
+          "圖片管理"
+        ]
+      }
+    },
+    "/api/v1/imagesFromID/{imageId}": {
+      "get": {
+        "description": "根據圖片ID獲取圖片資訊",
+        "operationId": "ImageController_getImageById",
+        "parameters": [
+          {
+            "name": "imageId",
+            "required": true,
+            "in": "path",
+            "description": "圖片ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "圖片獲取成功"
+          },
+          "404": {
+            "description": "圖片不存在"
+          }
+        },
+        "summary": "根據ID獲取圖片",
+        "tags": [
+          "圖片管理"
+        ]
+      }
+    },
+    "/api/v1/categories/{id}": {
+      "get": {
+        "description": "根據ID獲取指定商品分類",
+        "operationId": "CategoryController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "分類ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取分類成功"
+          },
+          "404": {
+            "description": "分類不存在"
+          }
+        },
+        "summary": "獲取單個分類",
+        "tags": [
+          "商品分類管理"
+        ]
+      },
+      "patch": {
+        "description": "更新指定商品分類（僅限賣家和管理員）",
+        "operationId": "CategoryController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "分類ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "分類更新成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "分類不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新分類",
+        "tags": [
+          "商品分類管理"
+        ]
+      },
+      "delete": {
+        "description": "刪除指定商品分類（僅限賣家和管理員）",
+        "operationId": "CategoryController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "分類ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "分類刪除成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "分類不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "刪除分類",
+        "tags": [
+          "商品分類管理"
+        ]
+      }
+    },
+    "/api/v1/seller/products/{productId}/variants": {
+      "post": {
+        "description": "為指定商品新增款式選項（如尺寸、顏色等）",
+        "operationId": "VariantController_addVariants",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVariantsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "商品款式新增成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或不是商品擁有者"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "新增商品款式",
+        "tags": [
+          "商品款式管理"
+        ]
+      }
+    },
+    "/api/v1/seller/variants/{variantId}": {
+      "put": {
+        "description": "更新指定商品款式的資訊",
+        "operationId": "VariantController_updateVariant",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "款式ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVariantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "商品款式更新成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或不是款式擁有者"
+          },
+          "404": {
+            "description": "款式不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新商品款式",
+        "tags": [
+          "商品款式管理"
+        ]
+      },
+      "delete": {
+        "description": "刪除指定的商品款式",
+        "operationId": "VariantController_deleteVariant",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "款式ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "商品款式已成功刪除"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或不是款式擁有者"
+          },
+          "404": {
+            "description": "款式不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "刪除商品款式",
+        "tags": [
+          "商品款式管理"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Zipperoo 電商平台 API",
+    "description": "Zipperoo 電商平台後端 API 文檔",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "電商平台",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "JWT",
+        "description": "Enter JWT token",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string",
+            "description": "用戶帳號",
+            "example": "john_doe",
+            "minLength": 3
+          },
+          "password": {
+            "type": "string",
+            "description": "用戶密碼",
+            "example": "password123",
+            "minLength": 6
+          },
+          "username": {
+            "type": "string",
+            "description": "用戶名稱",
+            "example": "John Doe",
+            "minLength": 2
+          },
+          "email": {
+            "type": "string",
+            "description": "電子郵件地址",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "手機號碼",
+            "example": "+886912345678"
+          },
+          "role": {
+            "type": "string",
+            "description": "用戶角色",
+            "enum": [
+              "BUYER",
+              "SELLER"
+            ],
+            "example": "BUYER"
+          },
+          "shopName": {
+            "type": "string",
+            "description": "商店名稱（僅限賣家）",
+            "example": "John's Shop"
+          },
+          "description": {
+            "type": "string",
+            "description": "商店描述（僅限賣家）",
+            "example": "專營電子產品的優質商店"
+          }
+        },
+        "required": [
+          "account",
+          "password",
+          "username",
+          "role"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "type": "string",
+            "description": "用戶帳號",
+            "example": "john_doe",
+            "minLength": 3
+          },
+          "password": {
+            "type": "string",
+            "description": "用戶密碼",
+            "example": "password123",
+            "minLength": 6
+          }
+        },
+        "required": [
+          "account",
+          "password"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AddCartItemDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateCartItemDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CheckoutDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateProductDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateOrderStatusDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateReviewDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateReviewDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateVariantsDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateVariantDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}
