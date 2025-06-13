@@ -283,7 +283,7 @@ export class Header {
         // 修改購物車按鈕為賣家中心
         if (this.cartIcon) {
             this.cartIcon.href = '/seller/dashboard';
-            this.cartIcon.innerHTML = '賣家中心';
+            this.cartIcon.innerHTML = '<i class="bi bi-shop text-muted"> </i>';
             this.cartIcon.style.display = 'inline-block';
         }
         if (this.mobileCartIcon) {

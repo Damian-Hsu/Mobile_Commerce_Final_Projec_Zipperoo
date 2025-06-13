@@ -202,7 +202,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 新增：固定寬度認證容器，防止登入/登出切換時的佈局跳動 */
 .auth-container {
-  width: 260px;
+  width: 100px;
   display: flex;
   justify-content: flex-end;
   align-items: center;

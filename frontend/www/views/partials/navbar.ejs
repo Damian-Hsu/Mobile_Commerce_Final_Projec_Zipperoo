@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-  <div class="container">
+  <div class="container-fluid px-3">
     <!-- Brand -->
     <a class="navbar-brand fw-bold fs-4" href="/">
       <i class="bi bi-bag-heart-fill text-primary me-2"></i>
@@ -71,16 +71,20 @@
         </form>
       </div>
       <div class="auth-container">
-        <div class="d-flex align-items-center me-2">
+
+          <div class="d-flex align-items-center me-2"></div>
+          
+          
+
+          
           <!-- Chat - Dynamic content managed by frontend JS -->
-          <a href="/chat" class="btn btn-outline-secondary me-2" id="chat-icon" style="display: none;">
-            <i class="bi bi-chat-dots me-1"></i>
+          <a href="/chat" class="btn btn-outline-light me-2" id="chat-icon" style="display: none;">
+            <i class="bi bi-chat-dots text-muted"></i>
             
           </a>
-          
           <!-- Cart - Dynamic content managed by frontend JS -->
-          <a href="/cart" class="btn btn-outline-primary position-relative" id="cart-icon" style="display: none;">
-            <i class="bi bi-cart me-1"></i>
+          <a href="/cart" class="btn btn-outline-light position-relative me-2" id="cart-icon" style="display: none;">
+            <i class="bi bi-cart text-muted"></i>
             <!-- 購物車 -->
             <span class="position-absolute cart-badge" id="cart-count" style="display: none;">0</span>
           </a>
@@ -91,8 +95,8 @@
         <!-- Server-side rendered cart (fallback for non-JS users) -->
         <noscript>
           <% if (user && user.role === 'BUYER') { %>
-            <a href="/cart" class="btn btn-outline-primary position-relative me-3">
-              <i class="bi bi-cart me-1"></i>
+            <a href="/cart" class="btn btn-outline-light position-relative me-2">
+              <i class="bi bi-cart text-muted"></i>
               
               <span class="position-absolute cart-badge" style="display: none;">0</span>
             </a>
@@ -103,9 +107,9 @@
         
           <!-- User Menu (Dynamic content managed by frontend JS) -->
           <div id="user-dropdown" class="dropdown" style="display: none;">
-            <button class="btn btn-outline-secondary" type="button">
-              <i class="bi bi-person-circle me-1"></i>
-              <span id="user-greeting">用戶</span>
+            <button class="btn btn-outline-light" type="button">
+              <i class="bi bi-person-circle me-1 text-muted"></i>
+              <span id="user-greeting" class="text-muted d-none d-md-inline">用戶</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end" id="user-dropdown-menu">
               <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>個人資料</a></li>
@@ -120,10 +124,16 @@
           <!-- Auth Links (shown when not logged in) -->
           <div class="auth-buttons" id="auth-buttons">
             <div class="btn-group" id="auth-links">
-              <a href="/login" class="btn btn-outline-primary">登入</a>
+                              <a href="/login" class="btn btn-outline-light">
+                  <span class="text-muted d-none d-md-inline">登入</span>
+                  <i class="bi bi-box-arrow-in-right d-md-none text-muted"></i>
+                </a>
             </div>
             <div class="btn-group ms-2" id="auth-links-register">
-              <a href="/register" class="btn btn-primary">註冊</a>
+              <a href="/register" class="btn btn-outline-light">
+                <span class="text-muted d-none d-md-inline">註冊</span>
+                <i class="bi bi-person-plus d-md-none text-muted"></i>
+              </a>
             </div>
           </div>
 
@@ -131,9 +141,9 @@
           <noscript>
             <% if (user) { %>
               <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                  <i class="bi bi-person-circle me-1"></i>
-                  <%= user.username || user.account || '用戶' %>
+                <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-person-circle me-1 text-muted"></i>
+                  <span class="text-muted d-none d-md-inline"><%= user.username || user.account || '用戶' %></span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>個人資料</a></li>
@@ -156,8 +166,14 @@
               </div>
             <% } else { %>
               <div class="btn-group">
-                <a href="/login" class="btn btn-outline-primary">登入</a>
-                <a href="/register" class="btn btn-primary">註冊</a>
+                                  <a href="/login" class="btn btn-outline-light">
+                    <span class="text-muted d-none d-md-inline">登入</span>
+                    <i class="bi bi-box-arrow-in-right d-md-none text-muted"></i>
+                  </a>
+                  <a href="/register" class="btn btn-outline-light ms-2">
+                    <span class="text-muted d-none d-md-inline">註冊</span>
+                    <i class="bi bi-person-plus d-md-none text-muted"></i>
+                  </a>
               </div>
             <% } %>
           </noscript>
@@ -269,7 +285,7 @@
         <% if (user.role === 'SELLER') { %>
           <hr>
           <li class="nav-item">
-            <a class="nav-link py-3" href="/seller/dashboard"><i class="bi bi-speedometer2 me-3"></i>賣家中心</a>
+            <a class="nav-link py-3" href="/seller/dashboard"><i class="bi bi-speedometer2 me-3"></i></a>
           </li>
         <% } %>
         <% if (user.role === 'ADMIN') { %>
