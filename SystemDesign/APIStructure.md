@@ -457,7 +457,7 @@ Zipperoo 是一個功能完整的電商平台，支援：
 ### 9.2 結帳系統
 
 #### 結帳（支援指定項目ID）
-- **端點**: `POST /buyers/me/checkout`
+- **端點**: `POST /buyers/me/image.png`
 - **權限**: Buyer
 - **請求體**:
 ```json

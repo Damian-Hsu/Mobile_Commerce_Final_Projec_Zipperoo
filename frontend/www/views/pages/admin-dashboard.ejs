@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <%- include('../partials/head', { 
+        title: '管理後台 - Zipperoo', 
+        description: '系統管理、用戶管理和數據統計'
+    }) %>
+    <link rel="stylesheet" href="/css/pages/admin-dashboard.css">
+</head>
+<body>
+    <%- include('../partials/navbar', { user: locals.user }) %>
+    
+    <main class="admin-dashboard-main">
+        <div class="admin-container">
+            <!-- 頁面標題 -->
+            <div class="dashboard-header">
+                <div class="breadcrumb">
+                    <a href="/">首頁</a>
+                    <span>/</span>
+                    <span>管理後台</span>
+                </div>
+                <div class="header-content">
+                    <h1 class="header-h1">管理後台</h1>
+                    <p class="subtitle">系統總覽與管理控制台</p>
+                </div>
+            </div>
+
+            <!-- 統計卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card users">
+                    <div class="stat-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-users">-</div>
+                        <div class="stat-label">註冊用戶</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card products">
+                    <div class="stat-icon">
+                        <i class="bi bi-box"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-products">-</div>
+                        <div class="stat-label">商品總數</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card categories">
+                    <div class="stat-icon">
+                        <i class="bi bi-tags"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-categories">-</div>
+                        <div class="stat-label">商品類別</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card orders">
+                    <div class="stat-icon">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-orders">-</div>
+                        <div class="stat-label">訂單總數</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card logs">
+                    <div class="stat-icon">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-logs">-</div>
+                        <div class="stat-label">系統日誌</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快捷管理功能 -->
+            <div class="quick-actions">
+                <h2>快捷管理</h2>
+                <div class="actions-grid">
+                    <div class="action-card" onclick="window.adminDashboard?.showSection('users')">
+                        <div class="action-icon users">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3>用戶管理</h3>
+                        <p>查看、編輯用戶資訊和權限</p>
+                    </div>
+                    
+                    <div class="action-card" onclick="window.adminDashboard?.showSection('products')">
+                        <div class="action-icon products">
+                            <i class="bi bi-box"></i>
+                        </div>
+                        <h3>商品管理</h3>
+                        <p>審核和管理平台商品</p>
+                    </div>
+                    
+                    <div class="action-card" onclick="window.adminDashboard?.showSection('categories')">
+                        <div class="action-icon categories">
+                            <i class="bi bi-tags"></i>
+                        </div>
+                        <h3>類別管理</h3>
+                        <p>新增、編輯和刪除商品類別</p>
+                    </div>
+                    
+                    <div class="action-card" onclick="window.adminDashboard?.showSection('orders')">
+                        <div class="action-icon orders">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <h3>訂單管理</h3>
+                        <p>處理退款和糾紛訂單</p>
+                    </div>
+                    
+                    <div class="action-card" onclick="window.adminDashboard?.showSection('logs')">
+                        <div class="action-icon logs">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <h3>系統日誌</h3>
+                        <p>查看系統操作記錄</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 數據管理區塊 -->
+            <div class="management-sections">
+                <!-- 用戶管理 -->
+                <div class="section-container" id="users-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="bi bi-people"></i>
+                            用戶管理
+                        </h2>
+                        <div class="section-controls">
+                            <button class="btn btn-refresh" onclick="window.adminDashboard?.refreshUsers()">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                重新載入
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="data-table-container">
+                        <div class="loading-container" id="users-loading">
+                            <div class="loading-spinner"></div>
+                            <p>載入用戶資料中...</p>
+                        </div>
+                        
+                        <table class="data-table" id="users-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用戶名</th>
+                                    <th>帳號</th>
+                                    <th>信箱</th>
+                                    <th>角色</th>
+                                    <th>商店名稱</th>
+                                    <th>商品數</th>
+                                    <th>狀態</th>
+                                    <th>註冊時間</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <!-- 數據將由JavaScript填充 -->
+                            </tbody>
+                        </table>
+                        
+                        <div class="pagination-container" id="users-pagination" style="display: none;">
+                            <!-- 分頁控制將由JavaScript生成 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 其他管理區塊會在需要時動態載入 -->
+                <div class="section-container" id="products-section" style="display: none;">
+                    <!-- 商品管理區塊 -->
+                </div>
+
+                <div class="section-container" id="categories-section" style="display: none;">
+                    <!-- 類別管理區塊 -->
+                </div>
+
+                <div class="section-container" id="orders-section" style="display: none;">
+                    <!-- 訂單管理區塊 -->
+                </div>
+
+                <div class="section-container" id="logs-section" style="display: none;">
+                    <!-- 系統日誌區塊 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+    <script>
+        // 等待 App 初始化完成後再載入 admin-dashboard
+        function loadAdminDashboard() {
+            console.log('⚡ 開始載入管理後台模組...');
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = '/js/pages/admin-dashboard.js';
+            script.onload = function() {
+                console.log('✅ 管理後台模組載入成功');
+            };
+            script.onerror = function() {
+                console.error('❌ 管理後台模組載入失敗');
+            };
+            document.head.appendChild(script);
+        }
+        
+        window.addEventListener('appInitialized', function() {
+            console.log('📱 收到 appInitialized 事件，載入管理後台');
+            loadAdminDashboard();
+        });
+        
+        // 如果 App 已經初始化，直接載入
+        if (window.App && window.App.initialized) {
+            console.log('📱 App 已初始化，直接載入管理後台');
+            loadAdminDashboard();
+        }
+        
+        // 備用：延遲載入
+        setTimeout(function() {
+            if (!document.querySelector('script[src="/js/pages/admin-dashboard.js"]')) {
+                console.log('⏰ 延遲載入管理後台模組');
+                loadAdminDashboard();
+            }
+        }, 1000);
+    </script>
+</body>
+</html> 

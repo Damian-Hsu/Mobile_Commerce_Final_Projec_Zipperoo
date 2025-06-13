@@ -1,0 +1,715 @@
+/* 賣家訂單頁面樣式 */
+.seller-orders-main {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+/* 頁面標題 */
+.page-header {
+    margin-bottom: 30px;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.breadcrumb a {
+    color: #bb9571;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb span {
+    color: #666;
+}
+
+.header-content h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2d3436;
+    margin: 0 0 8px 0;
+}
+
+.subtitle {
+    color: #636e72;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* 工具列 */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-box input {
+    width: 250px;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 統計列 */
+.stats-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background: #faf8f5;
+    border: 1px solid #d4c4a8;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.stat-item:hover {
+    border-color: #c4a484;
+    box-shadow: 0 0 0 0.25rem rgba(196, 164, 132, 0.25);
+    background-color: #f5f0e8;
+}
+
+.stat-item.active {
+    border-color: #a67c52;
+    background-color: #f0e6d6;
+    box-shadow: 0 0 0 0.25rem rgba(166, 124, 82, 0.25);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+    line-height: 1.2;
+}
+
+/* 訂單列表區域 */
+.orders-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.table {
+    margin: 0;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.table th {
+    background: #f8f9fa;
+    border: none;
+    padding: 15px;
+    font-weight: 600;
+    color: #2d3436;
+    white-space: nowrap;
+}
+
+/* 桌面版欄位寬度 */
+.table th:nth-child(1) { width: 15%; } /* 訂單編號 */
+.table th:nth-child(2) { width: 15%; } /* 客戶 */
+.table th:nth-child(3) { width: 25%; } /* 商品 */
+.table th:nth-child(4) { width: 12%; } /* 金額 */
+.table th:nth-child(5) { width: 12%; } /* 狀態 */
+.table th:nth-child(6) { width: 15%; } /* 下單時間 */
+.table th:nth-child(7) { width: 6%; }  /* 操作 */
+
+/* 大螢幕版本 (≥1200px) 顯示下單時間時的寬度 */
+@media (min-width: 1200px) {
+    .table th:nth-child(1) { width: 12%; } /* 訂單編號 */
+    .table th:nth-child(2) { width: 12%; } /* 客戶 */
+    .table th:nth-child(3) { width: 20%; } /* 商品 */
+    .table th:nth-child(4) { width: 10%; } /* 金額 */
+    .table th:nth-child(5) { width: 10%; } /* 狀態 */
+    .table th:nth-child(6) { width: 15%; } /* 下單時間 */
+    .table th:nth-child(7) { width: 11%; } /* 操作 */
+}
+
+.table td {
+    padding: 12px 15px;
+    border-top: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* 訂單編號 */
+.order-id {
+    font-weight: 600;
+    color: #bb9571;
+    cursor: pointer;
+}
+
+.order-id:hover {
+    text-decoration: underline;
+}
+
+/* 客戶資訊 */
+.customer-info {
+    font-weight: 500;
+    color: #2d3436;
+}
+
+/* 商品資訊 */
+.product-summary {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 金額顯示 */
+.order-amount {
+    font-weight: 600;
+    color: #00b894;
+    font-size: 16px;
+}
+
+/* 訂單狀態 */
+.order-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.order-status.uncompleted {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.order-status.shipped {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.order-status.completed {
+    background: #d1f2eb;
+    color: #155724;
+}
+
+.order-status.canceled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* 時間顯示 */
+.order-date {
+    color: #636e72;
+    font-size: 14px;
+}
+
+/* 中等螢幕隱藏下單時間 */
+@media (max-width: 1199.98px) {
+    .table th:nth-child(1) { width: 15%; } /* 訂單編號 */
+    .table th:nth-child(2) { width: 15%; } /* 客戶 */
+    .table th:nth-child(3) { width: 25%; } /* 商品 */
+    .table th:nth-child(4) { width: 12%; } /* 金額 */
+    .table th:nth-child(5) { width: 12%; } /* 狀態 */
+    .table th:nth-child(7) { width: 21%; } /* 操作 */
+    
+    .table th:nth-child(6), /* 下單時間 */
+    .table td:nth-child(6) {
+        display: none;
+    }
+}
+
+/* 小螢幕只顯示核心欄位 */
+@media (max-width: 767.98px) {
+    .table th:nth-child(1) { width: 20%; } /* 訂單編號 */
+    .table th:nth-child(2) { width: 25%; } /* 客戶 */
+    .table th:nth-child(5) { width: 25%; } /* 狀態 */
+    .table th:nth-child(7) { width: 30%; } /* 操作 */
+    
+    .table th:nth-child(3), /* 商品 */
+    .table td:nth-child(3),
+    .table th:nth-child(4), /* 金額 */
+    .table td:nth-child(4),
+    .table th:nth-child(6), /* 下單時間 */
+    .table td:nth-child(6) {
+        display: none;
+    }
+}
+
+/* 操作按鈕 */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+/* 圖標按鈕樣式 */
+.btn-icon {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background: white;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin: 0 2px;
+}
+
+.btn-icon:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-icon.btn-primary {
+    background: #bb9571;
+    border-color: #bb9571;
+    color: white;
+}
+
+.btn-icon.btn-primary:hover {
+    background: #a08660;
+    border-color: #a08660;
+}
+
+.btn-icon.btn-success {
+    background: #00b894;
+    border-color: #00b894;
+    color: white;
+}
+
+.btn-icon.btn-success:hover {
+    background: #00a085;
+    border-color: #00a085;
+}
+
+.btn-icon.btn-outline-secondary {
+    background: white;
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.btn-icon.btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: #bb9571;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #a08660;
+}
+
+.btn-success {
+    background: #00b894;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #00a085;
+}
+
+.btn-info {
+    background: #74b9ff;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #0984e3;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    color: #636e72;
+    border: 1px solid #dee2e6;
+}
+
+.btn-outline-secondary:hover {
+    background: #f8f9fa;
+}
+
+/* 載入狀態 */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #bb9571;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 空狀態 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #636e72;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: #2d3436;
+    margin: 0 0 12px 0;
+    font-size: 24px;
+}
+
+.empty-state p {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+}
+
+/* 錯誤狀態 */
+.error-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #636e72;
+}
+
+.error-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.error-state h3 {
+    color: #e74c3c;
+    margin: 0 0 12px 0;
+    font-size: 24px;
+}
+
+.error-state p {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+}
+
+/* 分頁 */
+.pagination-container {
+    padding: 20px;
+    background: white;
+    border-top: 1px solid #dee2e6;
+}
+
+.pagination .page-link {
+    color: #bb9571;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #bb9571;
+    border-color: #bb9571;
+}
+
+.pagination .page-link:hover {
+    color: #a08660;
+    background-color: #f8f9fa;
+}
+
+/* 訂單詳情模態框 */
+.modal-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    color: #2d3436;
+    font-weight: 600;
+}
+
+.order-detail-section {
+    margin-bottom: 20px;
+}
+
+.order-detail-section h6 {
+    color: #2d3436;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-label {
+    color: #636e72;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #2d3436;
+    font-weight: 600;
+}
+
+.order-items {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.item-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #dee2e6;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: 600;
+    color: #2d3436;
+    margin-bottom: 4px;
+}
+
+.item-variant {
+    font-size: 12px;
+    color: #636e72;
+    margin-bottom: 4px;
+}
+
+.item-price {
+    font-size: 13px;
+    color: #bb9571;
+    margin-bottom: 2px;
+}
+
+.item-quantity {
+    font-size: 13px;
+    color: #636e72;
+}
+
+.item-subtotal {
+    text-align: right;
+    min-width: 80px;
+}
+
+.subtotal-label {
+    font-size: 12px;
+    color: #636e72;
+    margin-bottom: 2px;
+}
+
+.subtotal-amount {
+    font-weight: 600;
+    color: #00b894;
+    font-size: 14px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .seller-orders-main {
+        padding: 15px 0;
+    }
+
+    .container {
+        padding: 0 15px;
+    }
+
+    .header-content h1 {
+        font-size: 24px;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .toolbar-left {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    .stats-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        min-width: 100%;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+
+    .action-buttons {
+        justify-content: center;
+        gap: 4px;
+    }
+    
+    /* 手機版圖標按鈕樣式 */
+    .btn-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+        border-radius: 3px;
+    }
+
+    .modal-dialog {
+        margin: 10px;
+    }
+
+    .order-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .item-image {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-content h1 {
+        font-size: 20px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+    }
+
+    .toolbar {
+        padding: 15px;
+    }
+
+    .stat-item {
+        padding: 6px;
+    }
+
+    .stat-value {
+        font-size: 20px;
+    }
+
+    .empty-icon,
+    .error-icon {
+        font-size: 48px;
+    }
+
+    .empty-state h3,
+    .error-state h3 {
+        font-size: 20px;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+} 

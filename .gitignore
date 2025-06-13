@@ -18,5 +18,5 @@ data/
 *.sqlite
 *.db
 
-#dev中資料夾
-frontend/
+# #dev中資料夾
+# frontend/

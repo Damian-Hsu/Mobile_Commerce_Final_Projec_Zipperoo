@@ -1,0 +1,26 @@
+{
+  "name": "zipperoo-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Zipperoo 時尚購物平台",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "dev:windows": "powershell -ExecutionPolicy Bypass -File ./start-server.ps1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "zipperoo",
+    "frontend",
+    "ecommerce",
+    "fashion"
+  ],
+  "author": "Zipperoo Team",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^3.0.5"
+  }
+}

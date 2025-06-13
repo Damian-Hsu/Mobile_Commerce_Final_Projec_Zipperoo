@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: '商品詳情 - Zipperoo', 
+    description: '查看商品詳細資訊'
+  }) %>
+</head>
+<body>
+  <!-- Navigation -->
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <!-- Product Detail Content -->
+  <div class="container py-4">
+    <!-- Loading State -->
+    <div id="product-loading" class="text-center py-5">
+      <div class="loading"></div>
+      <p class="mt-3 text-muted">載入商品詳情中...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="product-error" class="text-center py-5 d-none">
+      <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+      <h4 class="mt-3">載入失敗</h4>
+      <p class="text-muted mb-4" id="error-message">無法載入商品詳情</p>
+      <a href="/products" class="btn btn-primary">
+        <i class="bi bi-arrow-left me-2"></i>返回商品列表
+      </a>
+    </div>
+
+    <!-- Product Content -->
+    <div id="product-content" class="d-none">
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">首頁</a></li>
+          <li class="breadcrumb-item"><a href="/products">商品</a></li>
+          <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-product-name">商品詳情</li>
+        </ol>
+      </nav>
+
+      <div class="row">
+        <!-- Product Images -->
+        <div class="col-lg-6 mb-4">
+          <div class="product-images">
+            <!-- Main Image Display -->
+            <div class="main-image-container mb-3">
+              <img id="main-image" src="" alt="" class="img-fluid rounded shadow-sm" style="width: 100%; max-height: 500px; object-fit: contain; background-color: #f8f9fa;">
+            </div>
+            
+            <!-- Thumbnail Images -->
+            <div class="thumbnail-container">
+              <div class="row g-2" id="thumbnail-images">
+                <!-- Thumbnails will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="col-lg-6">
+          <div class="product-info">
+            <!-- Product Title and Basic Info -->
+            <h1 class="h2 mb-3" id="product-name">載入中...</h1>
+            
+            <!-- Price -->
+            <div class="price-section mb-4">
+              <div class="price-display">
+                <span class="current-price fs-2 fw-bold text-primary" id="product-price">NT$ 0</span>
+                <span class="price-range text-muted ms-2" id="price-range" style="display: none;"></span>
+              </div>
+            </div>
+
+            <!-- Rating and Reviews -->
+            <div class="rating-section mb-4">
+              <div class="d-flex align-items-center">
+                <div class="stars me-2" id="product-stars"></div>
+                <span class="rating-text me-3" id="rating-text">0</span>
+                <a href="#reviews-section" class="text-decoration-none" id="reviews-link">
+                  (<span id="review-count">0</span> 則評價)
+                </a>
+              </div>
+            </div>
+
+            <!-- Product Description -->
+            <!-- <div class="description-section mb-4">
+              <h5>商品說明</h5>
+              <p class="text-muted" id="product-description">載入中...</p>
+            </div> -->
+
+            <!-- Seller Information -->
+            <div class="seller-section mb-4">
+              <h6>賣家資訊</h6>
+              <div class="d-flex align-items-center justify-content-start">
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-shop me-2"></i>
+                  <span id="seller-name">載入中...</span>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm  mx-2" id="contact-seller-btn" style="display: none;">
+                  <i class="bi bi-chat-dots"></i>聯繫賣家
+                </button>
+              </div>
+            </div>
+
+            <!-- Product Variants Selection -->
+            <div class="variants-section mb-4" id="variants-section">
+              <h5>選擇規格</h5>
+              <div id="variants-container">
+                <!-- Variants will be loaded here -->
+              </div>
+            </div>
+
+            <!-- Stock Information -->
+            <div class="stock-section mb-4">
+              <span class="badge bg-success" id="stock-badge">有庫存</span>
+              <span class="text-muted ms-2" id="stock-text">庫存充足</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <button class="btn btn-outline-primary w-100" id="add-to-wishlist-btn">
+                    <i class="bi bi-heart me-2"></i>加入收藏
+                  </button>
+                </div>
+                <div class="col-sm-6">
+                  <button class="btn btn-primary w-100" id="add-to-cart-btn" disabled>
+                    <i class="bi bi-cart-plus me-2"></i>加入購物車
+                  </button>
+                </div>
+              </div>
+              <div class="row g-2 mt-2">
+                <div class="col-12">
+                  <button class="btn btn-success w-100" id="buy-now-btn" disabled>
+                    <i class="bi bi-lightning me-2"></i>立即購買
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Details Tabs -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <ul class="nav nav-tabs" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
+                詳細說明
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+                商品評價
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">
+                運送資訊
+              </button>
+            </li>
+          </ul>
+          
+          <div class="tab-content mt-4" id="productTabsContent">
+            <!-- Description Tab -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel">
+              <div class="p-4">
+                <h5>商品詳細說明</h5>
+                <div id="detailed-description">
+                  <p id="full-description">載入中...</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Reviews Tab -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel">
+              <div class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <h5>商品評價</h5>
+                  <button class="btn btn-primary btn-sm" id="write-review-btn">
+                    <i class="bi bi-pencil me-1"></i>撰寫評價
+                  </button>
+                </div>
+                
+                <!-- Reviews Loading -->
+                <div id="reviews-loading" class="text-center py-3">
+                  <div class="spinner-border spinner-border-sm" role="status"></div>
+                  <span class="ms-2">載入評價中...</span>
+                </div>
+                
+                <!-- Reviews Container -->
+                <div id="reviews-container">
+                  <!-- Reviews will be loaded here -->
+                </div>
+                
+                <!-- No Reviews -->
+                <div id="no-reviews" class="text-center py-4 d-none">
+                  <i class="bi bi-chat-square-text fs-1 text-muted"></i>
+                  <p class="mt-2 text-muted">暫無評價</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Shipping Tab -->
+            <div class="tab-pane fade" id="shipping" role="tabpanel">
+              <div class="p-4">
+                <h5>運送資訊</h5>
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6><i class="bi bi-truck me-2"></i>配送方式</h6>
+                    <ul class="list-unstyled">
+                      <li><i class="bi bi-check text-success me-2"></i>7-11 取貨付款</li>
+                      <li><i class="bi bi-check text-success me-2"></i>全家取貨付款</li>
+                      <li><i class="bi bi-check text-success me-2"></i>宅配到府</li>
+                    </ul>
+                  </div>
+                  <div class="col-md-6">
+                    <h6><i class="bi bi-clock me-2"></i>配送時間</h6>
+                    <ul class="list-unstyled">
+                      <li><i class="bi bi-check text-success me-2"></i>1-3 個工作天</li>
+                      <li><i class="bi bi-check text-success me-2"></i>週末及國定假日不配送</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Products -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <h4 class="mb-4">相關商品</h4>
+          <div class="row" id="related-products">
+            <!-- Related products will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reviewModalLabel">撰寫評價</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Review Form -->
+          <form id="review-form">
+            <!-- Product Info -->
+            <div class="product-info-section mb-4">
+              <div class="d-flex align-items-center">
+                <img id="review-product-image" src="" alt="" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                <div>
+                  <h6 id="review-product-name" class="mb-1">商品名稱</h6>
+                  <small class="text-muted" id="review-product-variant">規格資訊</small>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rating Section -->
+            <div class="rating-section mb-4">
+              <label class="form-label fw-bold">評分 <span class="text-danger">*</span></label>
+              <div class="rating-stars-input d-flex align-items-center">
+                <div class="star-rating me-3">
+                  <input type="radio" name="rating" value="5" id="star5" required>
+                  <label for="star5" class="star">★</label>
+                  <input type="radio" name="rating" value="4" id="star4">
+                  <label for="star4" class="star">★</label>
+                  <input type="radio" name="rating" value="3" id="star3">
+                  <label for="star3" class="star">★</label>
+                  <input type="radio" name="rating" value="2" id="star2">
+                  <label for="star2" class="star">★</label>
+                  <input type="radio" name="rating" value="1" id="star1">
+                  <label for="star1" class="star">★</label>
+                </div>
+                <span id="rating-text" class="text-muted">請選擇評分</span>
+              </div>
+            </div>
+            
+            <!-- Comment Section -->
+            <div class="comment-section mb-4">
+              <label for="review-comment" class="form-label fw-bold">評價內容</label>
+              <textarea 
+                class="form-control" 
+                id="review-comment" 
+                name="comment" 
+                rows="4" 
+                placeholder="分享您對這個商品的使用心得...（選填）"
+                maxlength="500"></textarea>
+              <div class="form-text">最多500字</div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary" id="submit-review-btn">
+                <i class="bi bi-send me-2"></i>提交評價
+              </button>
+            </div>
+          </form>
+          
+          <!-- Login Required Message -->
+          <div id="login-required-message" class="text-center py-4 d-none">
+            <i class="bi bi-person-x fs-1 text-muted"></i>
+            <h6 class="mt-3">需要登入才能評價</h6>
+            <p class="text-muted">請先登入您的帳戶</p>
+            <a href="/login" class="btn btn-primary">前往登入</a>
+          </div>
+          
+          <!-- Not Purchased Message -->
+          <div id="not-purchased-message" class="text-center py-4 d-none">
+            <i class="bi bi-cart-x fs-1 text-muted"></i>
+            <h6 class="mt-3">尚未購買此商品</h6>
+            <p class="text-muted">只有購買過此商品的用戶才能撰寫評價</p>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+  
+  <!-- Hidden data for JavaScript -->
+  <script>
+    window.productId = '<%= productId %>';
+  </script>
+</body>
+</html> 

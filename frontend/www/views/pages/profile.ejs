@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <%- include('../partials/head', { 
+        title: '個人資料 - Zipperoo', 
+        description: '查看和管理您的個人資料'
+    }) %>
+    <link rel="stylesheet" href="/css/pages/profile.css">
+</head>
+<body>
+    <%- include('../partials/navbar', { user: locals.user }) %>
+    
+    <main class="profile-main">
+        <div class="container">
+            <!-- 頁面標題 -->
+            <div class="profile-header">
+                <div class="breadcrumb">
+                    <a href="/">首頁</a>
+                    <span>/</span>
+                    <span>個人資料</span>
+                </div>
+                <div class="header-content">
+                    <h1>個人資料</h1>
+                    <p class="subtitle">查看您的帳戶資訊</p>
+                </div>
+            </div>
+
+            <!-- 個人資料內容 -->
+            <div class="profile-content">
+                <!-- 載入狀態 -->
+                <div id="profile-loading" class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>載入個人資料中...</p>
+                </div>
+
+                <!-- 錯誤狀態 -->
+                <div id="profile-error" class="error-container" style="display: none;">
+                    <div class="error-message">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <h4>載入失敗</h4>
+                        <p>無法載入個人資料，請稍後再試。</p>
+                        <button class="btn btn-primary" onclick="profilePage.loadProfile()">重新載入</button>
+                    </div>
+                </div>
+
+                <!-- 個人資料卡片 -->
+                <div id="profile-card" class="profile-card" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="avatar-section">
+                                <div class="avatar-container">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <div class="user-info">
+                                    <h3 id="profile-username">載入中...</h3>
+                                    <span id="profile-role" class="role-badge">載入中...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="profile-section">
+                                <h5>基本資訊</h5>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="bi bi-person-badge"></i>
+                                            <span>帳號</span>
+                                        </div>
+                                        <div class="info-value" id="profile-account">載入中...</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="bi bi-person"></i>
+                                            <span>使用者名稱</span>
+                                        </div>
+                                        <div class="info-value" id="profile-username-display">載入中...</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="bi bi-envelope"></i>
+                                            <span>電子郵件</span>
+                                        </div>
+                                        <div class="info-value" id="profile-email">載入中...</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="bi bi-telephone"></i>
+                                            <span>電話號碼</span>
+                                        </div>
+                                        <div class="info-value" id="profile-phone">載入中...</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="bi bi-shield-check"></i>
+                                            <span>角色</span>
+                                        </div>
+                                        <div class="info-value" id="profile-role-display">載入中...</div>
+                                    </div>
+
+                                    <div class="info-item" id="shop-name-section" style="display: none;">
+                                        <div class="info-label">
+                                            <i class="bi bi-shop"></i>
+                                            <span>商店名稱</span>
+                                        </div>
+                                        <div class="info-value" id="profile-shop-name">載入中...</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">
+                                            <i class="bi bi-calendar"></i>
+                                            <span>註冊時間</span>
+                                        </div>
+                                        <div class="info-value" id="profile-created-at">載入中...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="profile-section" id="description-section" style="display: none;">
+                                <h5>個人簡介</h5>
+                                <div class="description-content">
+                                    <p id="profile-description">載入中...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="action-buttons">
+                                <button class="btn btn-outline-secondary" onclick="history.back()">
+                                    <i class="bi bi-arrow-left"></i>
+                                    返回
+                                </button>
+                                <button class="btn btn-primary" onclick="profilePage.loadProfile()">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    重新整理
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+    <script>
+        // 等待 App 初始化完成後再載入 profile 頁面
+        window.addEventListener('appInitialized', () => {
+            if (window.profilePage) {
+                window.profilePage.init();
+            }
+        });
+
+        // 如果 App 已經初始化，直接初始化
+        if (window.App && window.App.initialized) {
+            if (window.profilePage) {
+                window.profilePage.init();
+            }
+        }
+    </script>
+</body>
+</html> 

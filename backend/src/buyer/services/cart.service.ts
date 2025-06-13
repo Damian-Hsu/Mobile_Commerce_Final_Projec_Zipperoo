@@ -177,16 +177,33 @@ export class CartService {
         id: itemId,
         cart: { buyerId },
       },
+      include: {
+        productVariant: {
+          include: {
+            product: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!cartItem) {
       throw new NotFoundException('購物車項目不存在');
     }
 
-    await this.logService.record('CART_ITEM_REMOVED', buyerId, {
-      cartItemId: itemId,
-      productVariantId: cartItem.productVariantId,
-    });
+    await this.logService.record(
+      'CART_ITEM_REMOVED', 
+      buyerId, 
+      `購物車移除商品 ${cartItem.productVariant.product.name}`,
+      undefined, // ipAddress
+      {
+        cartItemId: itemId,
+        productVariantId: cartItem.productVariantId,
+      }
+    );
 
     return this.prisma.cartItem.delete({
       where: { id: itemId },

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: '結帳 - Zipperoo', 
+    description: '完成您的訂單'
+  }) %>
+</head>
+<body>
+  <!-- Navigation -->
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <!-- Checkout Page Content -->
+  <div class="container py-4">
+    <!-- Progress Steps -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <div class="step-circle active me-3">1</div>
+                <span class="fw-bold">確認訂單</span>
+              </div>
+              <div class="flex-fill mx-3">
+                <hr class="border-primary">
+              </div>
+              <div class="d-flex align-items-center">
+                <div class="step-circle me-3">2</div>
+                <span class="text-muted">付款資訊</span>
+              </div>
+              <div class="flex-fill mx-3">
+                <hr>
+              </div>
+              <div class="d-flex align-items-center">
+                <div class="step-circle me-3">3</div>
+                <span class="text-muted">完成訂單</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Order Details -->
+      <div class="col-lg-8">
+        <!-- Shipping Address -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">配送地址</h5>
+          </div>
+          <div class="card-body">
+            <form id="shipping-form">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="recipientName" class="form-label">收件人姓名 *</label>
+                  <input type="text" class="form-control" id="recipientName" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="recipientPhone" class="form-label">聯絡電話 *</label>
+                  <input type="tel" class="form-control" id="recipientPhone" required>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="city" class="form-label">城市 *</label>
+                  <select class="form-select" id="city" required>
+                    <option value="">選擇城市</option>
+                    <option value="台北市">台北市</option>
+                    <option value="新北市">新北市</option>
+                    <option value="桃園市">桃園市</option>
+                    <option value="台中市">台中市</option>
+                    <option value="台南市">台南市</option>
+                    <option value="高雄市">高雄市</option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="district" class="form-label">區域 *</label>
+                  <select class="form-select" id="district" required>
+                    <option value="">選擇區域</option>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="postalCode" class="form-label">郵遞區號 *</label>
+                  <input type="text" class="form-control" id="postalCode" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="address" class="form-label">詳細地址 *</label>
+                <input type="text" class="form-control" id="address" placeholder="路/街巷弄號樓" required>
+              </div>
+              <div class="mb-3">
+                <label for="notes" class="form-label">備註 (選填)</label>
+                <textarea class="form-control" id="notes" rows="2" placeholder="特殊配送需求..."></textarea>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">付款方式</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="form-check border rounded p-3">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD" checked>
+                  <label class="form-check-label w-100" for="cod">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <i class="bi bi-cash me-2"></i>
+                        <strong>貨到付款</strong>
+                      </div>
+                      <small class="text-muted">免費</small>
+                    </div>
+                    <small class="text-muted d-block mt-1">商品送達時以現金付款</small>
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-check border rounded p-3">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" value="CREDIT_CARD">
+                  <label class="form-check-label w-100" for="creditCard">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <i class="bi bi-credit-card me-2"></i>
+                        <strong>信用卡</strong>
+                      </div>
+                      <small class="text-success">安全</small>
+                    </div>
+                    <small class="text-muted d-block mt-1">線上安全付款</small>
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-check border rounded p-3">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="bankTransfer" value="BANK_TRANSFER">
+                  <label class="form-check-label w-100" for="bankTransfer">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <i class="bi bi-bank me-2"></i>
+                        <strong>銀行轉帳</strong>
+                      </div>
+                      <small class="text-muted">3-5天</small>
+                    </div>
+                    <small class="text-muted d-block mt-1">ATM或網銀轉帳</small>
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-check border rounded p-3">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="linePay" value="LINE_PAY">
+                  <label class="form-check-label w-100" for="linePay">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <i class="bi bi-phone me-2"></i>
+                        <strong>LINE Pay</strong>
+                      </div>
+                      <small class="text-info">快速</small>
+                    </div>
+                    <small class="text-muted d-block mt-1">使用LINE Pay付款</small>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">訂單商品</h5>
+          </div>
+          <div class="card-body">
+            <!-- Items Loading -->
+            <div id="checkout-loading" class="text-center py-3">
+              <div class="loading"></div>
+              <p class="mt-3 text-muted">載入訂單商品中...</p>
+            </div>
+
+            <!-- Order Items Container -->
+            <div id="checkout-items-container">
+              <!-- Items will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 100px;">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">訂單摘要</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span>商品小計</span>
+              <span id="order-subtotal">NT$ 0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>運費</span>
+              <span id="order-shipping">免費</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-success">優惠折扣</span>
+              <span class="text-success" id="order-discount">-NT$ 0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>服務費</span>
+              <span id="order-service-fee">NT$ 0</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between mb-3">
+              <strong>總計</strong>
+              <strong class="text-primary fs-5" id="order-total">NT$ 0</strong>
+            </div>
+
+            <!-- Terms -->
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+              <label class="form-check-label small" for="agreeTerms">
+                我已閱讀並同意 <a href="#" class="text-decoration-none">服務條款</a> 和 <a href="#" class="text-decoration-none">隱私政策</a>
+              </label>
+            </div>
+
+            <!-- Place Order Button -->
+            <button class="btn btn-primary w-100 btn-lg" id="place-order-btn" disabled>
+              <i class="bi bi-check-circle me-2"></i>確認下單
+            </button>
+
+            <!-- Security Info -->
+            <div class="text-center mt-3">
+              <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                您的付款資訊已加密保護
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+  
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <strong class="me-auto">Zipperoo</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body"></div>
+    </div>
+  </div>
+
+  <style>
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #6c757d;
+      font-size: 16px;
+      line-height: 1;
+    }
+    
+    .step-circle.active {
+      background-color: #0d6efd;
+      color: white;
+    }
+    
+    .form-check.selected {
+      background-color: #f8f9fa !important;
+      border-color: #0d6efd !important;
+    }
+  </style>
+</body>
+</html> 

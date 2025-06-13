@@ -1,0 +1,371 @@
+/* 個人資料頁面樣式 */
+.profile-main {
+    padding: 20px 0;
+    min-height: calc(100vh - 140px);
+    background: #f8f9fa;
+}
+
+.profile-header {
+    margin-bottom: 30px;
+}
+
+.breadcrumb {
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.breadcrumb a {
+    color: #bb9571;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb span {
+    margin: 0 8px;
+}
+
+.header-content h1 {
+    color: #2d3436;
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #636e72;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* 個人資料內容 */
+.profile-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* 載入狀態 */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #D2B48C;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 16px;
+}
+
+/* 錯誤狀態 */
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.error-message {
+    text-align: center;
+    max-width: 400px;
+}
+
+.error-message i {
+    font-size: 48px;
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.error-message h4 {
+    color: #2d3436;
+    margin-bottom: 10px;
+}
+
+.error-message p {
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+/* 個人資料卡片 */
+.profile-card .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: none;
+    overflow: hidden;
+}
+
+.profile-card .card-header {
+    background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 100%);
+    padding: 30px;
+    border-bottom: none;
+}
+
+.avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar-container {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-container i {
+    font-size: 48px;
+    color: white;
+}
+
+.user-info h3 {
+    color: white;
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.role-badge {
+    background: rgba(255, 255, 255, 0.9);
+    color: #8B4513;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.role-badge.buyer {
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+}
+
+.role-badge.seller {
+    background: rgba(255, 193, 7, 0.9);
+    color: #8B4513;
+}
+
+.role-badge.admin {
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+}
+
+/* 卡片內容 */
+.card-body {
+    padding: 30px;
+}
+
+.profile-section {
+    margin-bottom: 30px;
+}
+
+.profile-section:last-child {
+    margin-bottom: 0;
+}
+
+.profile-section h5 {
+    color: #2d3436;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.info-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.info-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.info-label i {
+    font-size: 16px;
+    color: #D2B48C;
+}
+
+.info-value {
+    flex: 1;
+    color: #2d3436;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.info-value.empty {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+/* 個人簡介區塊 */
+.description-content {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #D2B48C;
+}
+
+.description-content p {
+    margin: 0;
+    color: #2d3436;
+    line-height: 1.6;
+}
+
+/* 卡片底部 */
+.card-footer {
+    background: #f8f9fa;
+    padding: 20px 30px;
+    border-top: 1px solid #e9ecef;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.action-buttons .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.action-buttons .btn-outline-secondary {
+    border-color: #adb5bd;
+    color: #6c757d;
+}
+
+.action-buttons .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.action-buttons .btn-primary {
+    background-color: #D2B48C;
+    border-color: #D2B48C;
+    color: #8B4513;
+}
+
+.action-buttons .btn-primary:hover {
+    background-color: #C8A882;
+    border-color: #C8A882;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(210, 180, 140, 0.3);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .profile-main {
+        padding: 15px 0;
+    }
+    
+    .profile-header {
+        margin-bottom: 20px;
+    }
+    
+    .header-content h1 {
+        font-size: 24px;
+    }
+    
+    .card-header {
+        padding: 20px !important;
+    }
+    
+    .avatar-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .avatar-container {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto;
+    }
+    
+    .avatar-container i {
+        font-size: 36px;
+    }
+    
+    .card-body {
+        padding: 20px !important;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .info-label {
+        min-width: auto;
+        font-size: 13px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .profile-card .card {
+        margin: 0 10px;
+    }
+} 

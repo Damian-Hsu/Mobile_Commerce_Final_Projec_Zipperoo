@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <%- include('../partials/head', { 
+        title: '我的商品 - Zipperoo', 
+        description: '管理您的商品庫存和資訊'
+    }) %>
+    <link rel="stylesheet" href="/css/pages/seller-products.css">
+</head>
+<body>
+    <%- include('../partials/navbar', { user: locals.user }) %>
+
+    <main class="seller-products-main">
+        <div class="container">
+            <!-- 頁面標題 -->
+            <div class="page-header">
+                <nav class="breadcrumb">
+                    <a href="/seller/dashboard">賣家中心</a>
+                    <span>/</span>
+                    <span>我的商品</span>
+                </nav>
+                
+                <div class="header-content">
+                    <h1>我的商品</h1>
+                    <p class="subtitle">管理您的商品庫存和資訊</p>
+                </div>
+            </div>
+
+            <!-- 工具列 -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="搜尋商品名稱..." class="form-control">
+                        <button type="button" id="search-btn" class="btn btn-outline-secondary">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <select id="status-filter" class="form-select">
+                        <option value="">所有狀態</option>
+                        <option value="ON_SHELF">上架中</option>
+                        <option value="OFF_SHELF">已下架</option>
+                        <option value="OUT_OF_STOCK">缺貨</option>
+                    </select>
+                </div>
+                <div class="toolbar-right">
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/seller/products/new'">
+                        <i class="bi bi-plus"></i> 新增商品
+                    </button>
+                </div>
+            </div>
+
+            <!-- 商品統計 -->
+            <div class="stats-row">
+                <div class="stat-item active" data-filter="" onclick="sellerProducts.filterByStatus('')">
+                    <div class="stat-label">總商品數</div>
+                    <div class="stat-value" id="seller-total-products">0</div>
+                </div>
+                <div class="stat-item" data-filter="ON_SHELF" onclick="sellerProducts.filterByStatus('ON_SHELF')">
+                    <div class="stat-label">上架中</div>
+                    <div class="stat-value" id="on-shelf-products">0</div>
+                </div>
+                <div class="stat-item" data-filter="OFF_SHELF" onclick="sellerProducts.filterByStatus('OFF_SHELF')">
+                    <div class="stat-label">已下架</div>
+                    <div class="stat-value" id="off-shelf-products">0</div>
+                </div>
+                <div class="stat-item" data-filter="OUT_OF_STOCK" onclick="sellerProducts.filterByStatus('OUT_OF_STOCK')">
+                    <div class="stat-label">缺貨</div>
+                    <div class="stat-value" id="out-of-stock-products">0</div>
+                </div>
+            </div>
+
+            <!-- 商品列表 -->
+            <div class="products-section">
+                <!-- 載入中狀態 -->
+                <div id="products-loading" class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>載入商品中...</p>
+                </div>
+
+                <!-- 商品表格 -->
+                <div id="products-table" class="table-container" style="display: none;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>商品</th>
+                                <th>價格範圍</th>
+                                <th>庫存</th>
+                                <th>狀態</th>
+                                <th>評分</th>
+                                <th>銷量</th>
+                                <th>建立時間</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-tbody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 空狀態 -->
+                <div id="products-empty" class="empty-state" style="display: none;">
+                    <div class="empty-icon">📦</div>
+                    <h3>暫無商品</h3>
+                    <p>開始新增您的第一個商品吧！</p>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/seller/products/new'">
+                        新增商品
+                    </button>
+                </div>
+
+                <!-- 錯誤狀態 -->
+                <div id="products-error" class="error-state" style="display: none;">
+                    <div class="error-icon">❌</div>
+                    <h3>載入失敗</h3>
+                    <p>無法載入商品列表，請稍後再試</p>
+                    <button type="button" class="btn btn-outline-primary" onclick="sellerProducts.loadProducts()">
+                        重新載入
+                    </button>
+                </div>
+            </div>
+
+            <!-- 分頁 -->
+            <div id="pagination" class="pagination-container" style="display: none;">
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" id="prev-page">
+                            <a class="page-link" href="#" onclick="sellerProducts.previousPage()">上一頁</a>
+                        </li>
+                        <li class="page-item active">
+                            <span class="page-link" id="current-page">1</span>
+                        </li>
+                        <li class="page-item" id="next-page">
+                            <a class="page-link" href="#" onclick="sellerProducts.nextPage()">下一頁</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <!-- 商品編輯模態框 -->
+    <div class="modal fade" id="productEditModal" tabindex="-1" aria-labelledby="productEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color: #fefcf9; border: 1px solid #e8dcc6;">
+                <div class="modal-header" style="background-color: #f8f2e8; border-bottom: 1px solid #e8dcc6;">
+                    <h5 class="modal-title" id="productEditModalLabel" style="color: #8b4513;">編輯商品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+                </div>
+                <div class="modal-body" id="productEditModalContent">
+                    <!-- 動態載入商品編輯表單 -->
+                </div>
+                <div class="modal-footer" style="background-color: #faf6f0; border-top: 1px solid #e8dcc6;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color: #9e8a78; border-color: #9e8a78; color: white;">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveProductBtn" style="background-color: #a67c52; border-color: #a67c52; color: white;">儲存變更</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <%- include('../partials/scripts') %>
+    <script>
+        // 等待 App 初始化完成後再載入 seller-products
+        window.addEventListener('appInitialized', function() {
+            const script = document.createElement('script');
+            script.src = '/js/pages/seller-products.js';
+            document.head.appendChild(script);
+        });
+        
+        // 如果 App 已經初始化，直接載入
+        if (window.App && window.App.initialized) {
+            const script = document.createElement('script');
+            script.src = '/js/pages/seller-products.js';
+            document.head.appendChild(script);
+        }
+    </script>
+</body>
+</html> 

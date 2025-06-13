@@ -9,7 +9,7 @@ export class OrderService {
     private readonly logService: LogService,
   ) {}
 
-  async checkout(buyerId: number, cartItemIds?: number[]) {
+  async checkout(buyerId: number, checkoutData: { cartItemIds?: number[], shippingAddress?: any, paymentMethod?: string }) {
     return await this.prisma.$transaction(async (tx) => {
       // Get cart with items, including variant and product details
       const cart = await tx.cart.findUnique({
@@ -33,15 +33,15 @@ export class OrderService {
 
       // Filter items based on specified cartItemIds or selected items
       let itemsToCheckout;
-      if (cartItemIds && cartItemIds.length > 0) {
+      if (checkoutData.cartItemIds && checkoutData.cartItemIds.length > 0) {
         // Use specified cart item IDs
-        itemsToCheckout = cart.items.filter(item => cartItemIds.includes(item.id));
+        itemsToCheckout = cart.items.filter(item => checkoutData.cartItemIds.includes(item.id));
         
         if (itemsToCheckout.length === 0) {
           throw new BadRequestException('指定的購物車項目不存在');
         }
         
-        if (itemsToCheckout.length !== cartItemIds.length) {
+        if (itemsToCheckout.length !== checkoutData.cartItemIds.length) {
           throw new BadRequestException('部分指定的購物車項目不存在');
         }
       } else {
@@ -87,7 +87,17 @@ export class OrderService {
             sellerId: parseInt(sellerId),
             totalAmount,
             status: 'UNCOMPLETED',
-          },
+            // Shipping Information - use dummy values for now since they were removed
+            recipientName: checkoutData.shippingAddress?.recipientName || '待填寫',
+            recipientPhone: checkoutData.shippingAddress?.recipientPhone || '待填寫',
+            city: checkoutData.shippingAddress?.city || '待填寫',
+            district: checkoutData.shippingAddress?.district || '待填寫',
+            postalCode: checkoutData.shippingAddress?.postalCode || '00000',
+            address: checkoutData.shippingAddress?.address || '待填寫',
+            notes: checkoutData.shippingAddress?.notes || null,
+            // Payment Information
+            paymentMethod: (checkoutData.paymentMethod as any) || 'CASH_ON_DELIVERY',
+          }as any,
         });
 
         // Create order items and update stock
@@ -116,10 +126,16 @@ export class OrderService {
         });
       }
 
-      await this.logService.record('ORDER_CREATED', buyerId, {
-        orderIds: orders.map(o => o.id),
-        cartItemIds: itemsToCheckout.map(item => item.id),
-      });
+      await this.logService.record(
+        'ORDER_CREATED', 
+        buyerId, 
+        `創建 ${orders.length} 個訂單`,
+        undefined, // ipAddress
+        {
+          orderIds: orders.map(o => o.id),
+          cartItemIds: itemsToCheckout.map(item => item.id),
+        }
+      );
 
       return orders;
     });
@@ -141,7 +157,7 @@ export class OrderService {
               },
             },
           },
-          review: true,
+
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -167,7 +183,7 @@ export class OrderService {
             },
           },
         },
-        review: true,
+
       },
     });
     if (!order) throw new NotFoundException('訂單不存在');
@@ -197,7 +213,13 @@ export class OrderService {
         });
       }
 
-      await this.logService.record('ORDER_CANCELED', buyerId, { orderId });
+      await this.logService.record(
+        'ORDER_CANCELED', 
+        buyerId, 
+        `取消訂單 ${orderId}`,
+        undefined, // ipAddress
+        { orderId }
+      );
       return { message: '訂單已取消' };
     });
   }

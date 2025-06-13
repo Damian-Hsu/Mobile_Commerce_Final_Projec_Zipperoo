@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test</title>
+</head>
+<body>
+    <h1>Login API Test</h1>
+    <div>
+        <label>Account: <input type="text" id="account" value="s11114020"></label><br><br>
+        <label>Password: <input type="password" id="password" value="123456"></label><br><br>
+        <button onclick="testLogin()">Test Login (Through Nginx Proxy)</button><br><br>
+        <button onclick="testDirectLogin()">Test Direct Backend</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        async function testLogin() {
+            const account = document.getElementById('account').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.innerHTML = '<p>Testing login through nginx proxy...</p>';
+                
+                const response = await fetch('http://localhost/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ account, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '<p style="color: green;">✅ Login successful through proxy!</p><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    resultDiv.innerHTML = '<p style="color: red;">❌ Login failed through proxy!</p><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<p style="color: red;">❌ Network error (proxy): ' + error.message + '</p>';
+            }
+        }
+
+        async function testDirectLogin() {
+            const account = document.getElementById('account').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.innerHTML = '<p>Testing direct backend connection...</p>';
+                
+                const response = await fetch('http://localhost:3001/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ account, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '<p style="color: green;">✅ Direct backend login successful!</p><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    resultDiv.innerHTML = '<p style="color: red;">❌ Direct backend login failed!</p><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<p style="color: red;">❌ Network error (direct): ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html> 

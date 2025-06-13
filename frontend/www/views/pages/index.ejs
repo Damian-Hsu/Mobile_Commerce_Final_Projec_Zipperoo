@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: 'Zipperoo - 時尚購物平台', 
+    description: '發現最新時尚趨勢，打造您的獨特風格。Zipperoo 提供優質服飾、鞋類、配件，讓您輕鬆購物。'
+  }) %>
+  <link rel="stylesheet" href="/css/pages/index.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <!-- Debug Section -->
+  <!-- <section class="bg-warning py-3" id="debug-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <div class="alert alert-dark mb-0">
+            <h6 class="mb-2"><i class="bi bi-bug"></i> 調試信息</h6>
+            <div class="row text-sm">
+              <div class="col-md-6">
+                <strong>當前訪問:</strong> <span id="debug-current-url">loading...</span><br>
+                <strong>API 基本 URL:</strong> <span id="debug-api-base">loading...</span><br>
+                <strong>完整 API URL:</strong> <span id="debug-api-full">loading...</span>
+              </div>
+              <div class="col-md-6">
+                <strong>最近的 API 請求:</strong><br>
+                <div id="debug-last-request" class="font-monospace small bg-light p-2 rounded">
+                  尚無請求
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline-dark mt-2" onclick="document.getElementById('debug-section').style.display='none'">
+              隱藏調試區塊
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section> -->
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <div class="hero-content">
+            <h1 class="display-4 fw-bold mb-4">
+              打造您的
+              <span class="text-gradient">獨特風格</span>
+            </h1>
+            <p class="lead mb-4">
+              在 Zipperoo 發現最新時尚趨勢，從經典款式到前衛設計，找到最適合您的完美單品。
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+              <a href="/products" class="btn btn-primary btn-lg px-4">
+                <i class="bi bi-bag me-2"></i>立即購物
+              </a>
+              <a href="/products?featured=true" class="btn btn-outline-light btn-lg px-4">
+                <i class="bi bi-star me-2"></i>新品上市
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 d-none d-lg-block">
+          <div class="hero-image text-center">
+            <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+                 alt="時尚模特兒" class="img-fluid rounded-4" style="max-height: 500px;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="py-5">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="h1 fw-bold mb-3">探索商品分類</h2>
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <p class="lead text-muted">
+              從女裝到男裝，從休閒到正式，Zipperoo 為您提供全方位的時尚選擇
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Loading -->
+      <div id="categories-loading" class="text-center my-5" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">正在載入商品分類...</p>
+      </div>
+
+      <!-- Categories Container -->
+      <div class="categories-container row g-4">
+        <!-- Categories will be dynamically inserted here -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Hot Products Section -->
+  <section class="py-5 bg-light">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="h1 fw-bold mb-3">熱門商品</h2>
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <p class="lead text-muted">
+              精選人氣商品，深受顧客喜愛的時尚單品
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Loading -->
+      <div id="hot-products-loading" class="text-center my-5" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">正在加載熱門商品...</p>
+      </div>
+
+      <!-- Products Container -->
+      <div id="hot-products-container" class="row">
+        <!-- Products will be dynamically inserted here -->
+      </div>
+
+      <!-- No Products Message -->
+      <div id="no-products" class="text-center my-5 d-none">
+        <p>目前沒有熱門商品。</p>
+      </div>
+
+      <!-- View All Button -->
+      <div class="text-center mt-5">
+        <a href="/products" class="btn btn-outline-primary btn-lg">
+          <i class="bi bi-grid me-2"></i>查看所有商品
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-truck"></i>
+            </div>
+            <h6 class="fw-bold">免費運送</h6>
+            <p class="text-muted mb-0">滿額免運，快速到貨</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-arrow-return-left"></i>
+            </div>
+            <h6 class="fw-bold">七天退換</h6>
+            <p class="text-muted mb-0">不滿意可退換貨</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <h6 class="fw-bold">安全付款</h6>
+            <p class="text-muted mb-0">多種付款方式保障</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-headset"></i>
+            </div>
+            <h6 class="fw-bold">客服支援</h6>
+            <p class="text-muted mb-0">24/7 專業客服服務</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter Section -->
+  <section class="newsletter-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+          <h3 class="fw-bold mb-3">訂閱電子報</h3>
+          <p class="text-muted mb-4">
+            搶先獲得最新優惠資訊、時尚趨勢與新品上市通知
+          </p>
+          
+          <form id="newsletter-form" class="newsletter-form">
+            <div class="input-group input-group-lg">
+              <input type="email" class="form-control border-0 sub-input" style="background-color: #ffffff85;" placeholder="請輸入您的電子郵件" required>
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-envelope me-2"></i>訂閱
+              </button>
+            </div>
+          </form>
+          
+          <small class="text-muted mt-2 d-block">
+            我們尊重您的隱私，不會向第三方分享您的資訊
+          </small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+</body>
+</html> 

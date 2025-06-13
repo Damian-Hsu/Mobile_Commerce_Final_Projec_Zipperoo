@@ -34,6 +34,13 @@ enum OrderStatus {
   CANCELED
 }
 
+enum PaymentMethod {
+  COD
+  CREDIT_CARD
+  BANK_TRANSFER
+  LINE_PAY
+}
+
 //============= Core Models ===================
 model User {
   id Int @id @default(autoincrement())
@@ -153,7 +160,7 @@ model CartItem {
 
   // Relations
   cart             Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
 
   @@unique([cartId, productVariantId])
   @@map("cart_items")
@@ -165,6 +172,19 @@ model Order {
   sellerId Int @map("seller_id")
   totalAmount Int @map("total_amount") // stored in cents
   status OrderStatus @default(UNCOMPLETED)
+  
+  // Shipping Information
+  recipientName String @map("recipient_name")
+  recipientPhone String @map("recipient_phone")
+  city String
+  district String
+  postalCode String @map("postal_code")
+  address String
+  notes String?
+  
+  // Payment Information
+  paymentMethod PaymentMethod @map("payment_method")
+  
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -172,7 +192,7 @@ model Order {
   buyer User @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
   seller User @relation("SellerOrders", fields: [sellerId], references: [id], onDelete: Cascade)
   items OrderItem[]
-  review Review?
+  reviews Review[]
 
   @@map("orders")
 }
@@ -188,7 +208,7 @@ model OrderItem {
 
   // Relations
   order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
 
   @@map("order_items")
 }
@@ -196,7 +216,7 @@ model OrderItem {
 model Review {
   id Int @id @default(autoincrement())
   productId Int @map("product_id")
-  orderId Int @unique @map("order_id")
+  orderId Int @map("order_id")
   buyerId Int @map("buyer_id")
   score Int // 1-5 rating
   comment String?
@@ -210,6 +230,7 @@ model Review {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
   buyer User @relation(fields: [buyerId], references: [id], onDelete: Cascade)
 
+  @@unique([productId, buyerId])
   @@map("reviews")
 }
 
@@ -246,11 +267,13 @@ model ChatMessage {
 }
 
 model LogEntry {
-  id Int @id @default(autoincrement())
-  event String
-  actorId Int?     @map("actor_id")
-  meta Json?
-  createdAt DateTime @default(now()) @map("created_at")
+  id          Int      @id @default(autoincrement())
+  event       String
+  actorId     Int?     @map("actor_id")
+  description String?  // 描述字段
+  ipAddress   String?  @map("ip_address") // IP地址字段
+  meta        Json?
+  createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
   actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: '伺服器錯誤 - Zipperoo', 
+    description: '發生了內部伺服器錯誤。'
+  }) %>
+</head>
+<body>
+  <!-- Navigation -->
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <!-- 500 Content -->
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6 text-center">
+        <div class="py-5">
+          <i class="bi bi-exclamation-octagon display-1 text-danger"></i>
+          <h1 class="display-4 fw-bold mt-4">500</h1>
+          <h2 class="h4 mb-4">內部伺服器錯誤</h2>
+          <p class="text-muted mb-4">
+            我們的伺服器發生了問題。我們正在努力儘快修復。
+          </p>
+          <% if (locals.error) { %>
+            <div class="alert alert-danger text-start mb-4">
+              <small><strong>錯誤詳情：</strong> <%= error %></small>
+            </div>
+          <% } %>
+          <div class="d-flex justify-content-center gap-3">
+            <a href="/" class="btn btn-primary">
+              <i class="bi bi-house me-2"></i>回到首頁
+            </a>
+            <button onclick="window.location.reload()" class="btn btn-outline-primary">
+              <i class="bi bi-arrow-clockwise me-2"></i>重新嘗試
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+  
+  <!-- Additional JS for error pages -->
+  <script type="module">
+    try {
+      console.log('Loading 500 page modules...');
+      
+      const authManager = (await import('/js/services/auth-manager.js')).default;
+      const { Header } = await import('/js/components/header.js');
+
+      console.log('Modules loaded, initializing...');
+      
+      // Initialize authentication
+      await authManager.validateSession();
+      
+      // Initialize header
+      const header = new Header();
+      header.init();
+      
+      console.log('500 page initialized successfully');
+    } catch (error) {
+      console.error('Error initializing 500 page:', error);
+      // 即使 JS 失敗，頁面仍然可用（伺服器端渲染作為後備）
+    }
+  </script>
+</body>
+</html> 

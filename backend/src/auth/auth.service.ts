@@ -62,10 +62,16 @@ export class AuthService {
     }
 
     // Log registration
-    await this.logService.record('USER_REGISTERED', user.id, {
-      account: user.account,
-      role: user.role,
-    });
+    await this.logService.record(
+      'USER_REGISTERED', 
+      user.id, 
+      `新用戶註冊：${user.account} (${user.role})`,
+      undefined, // ipAddress - 可以從controller傳入
+      {
+        account: user.account,
+        role: user.role,
+      }
+    );
 
     // Generate tokens
     const tokens = await this.generateTokens(user.id);
@@ -106,9 +112,15 @@ export class AuthService {
     }
 
     // Log login
-    await this.logService.record('USER_LOGIN', user.id, {
-      account: user.account,
-    });
+    await this.logService.record(
+      'USER_LOGIN', 
+      user.id, 
+      `用戶登入：${user.account}`,
+      undefined, // ipAddress - 可以從controller傳入
+      {
+        account: user.account,
+      }
+    );
 
     // Generate tokens
     const tokens = await this.generateTokens(user.id);
@@ -135,9 +147,15 @@ export class AuthService {
     });
   
     if (user) {
-      await this.logService.record('USER_LOGOUT', userId, {
-        account: user.account,
-      });
+      await this.logService.record(
+        'USER_LOGOUT', 
+        userId, 
+        `用戶登出：${user.account}`,
+        undefined, // ipAddress
+        {
+          account: user.account,
+        }
+      );
     }
   }
 

@@ -1,0 +1,231 @@
+/* 首頁樣式 */
+
+/* 商品卡片樣式 */
+.product-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.product-image {
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.product-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover .product-overlay {
+    opacity: 1;
+}
+
+.product-card .card-body {
+    padding: 1rem;
+}
+
+.product-card .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #2d3436;
+}
+
+.product-card .price {
+    font-size: 1.1rem;
+    color: #D2B48C;
+}
+
+/* 分類卡片樣式 */
+.category-card {
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+}
+
+.category-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.1);
+}
+
+.category-icon i {
+    font-size: 1.5rem;
+    color: white !important;
+    line-height: 1;
+    display: block !important;
+    font-style: normal !important;
+    font-family: "bootstrap-icons" !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-weight: normal !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    word-wrap: normal !important;
+    white-space: nowrap !important;
+    direction: ltr !important;
+    font-variant: normal !important;
+}
+.sub-input{
+    background-color: #ffffff95;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+.sub-input::placeholder{
+    color: #2d3436 !important;
+    font-weight: 500 !important;
+    opacity: 1 !important;
+}
+.sub-input:focus::placeholder{
+    color: #6c757d !important;
+}
+.category-card .card-title {
+    color: #2d3436;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.category-card .card-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.category-card:hover .card-title {
+    color: #D2B48C;
+}
+
+/* 載入狀態 */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* 修復圖標顯示問題 */
+.category-icon i[class^="bi-"]::before,
+.category-icon i[class*=" bi-"]::before {
+    font-family: "bootstrap-icons" !important;
+}
+
+/* 強制顯示特定圖標 */
+.category-icon .bi-person-standing-dress::before { content: "\f8f8" !important; }
+.category-icon .bi-people::before { content: "\f4d0" !important; }
+.category-icon .bi-boot::before { content: "\f17b" !important; }
+.category-icon .bi-bag::before { content: "\f179" !important; }
+.category-icon .bi-bicycle::before { content: "\f178" !important; }
+.category-icon .bi-grid::before { content: "\f2a6" !important; }
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .product-image {
+        height: 180px;
+    }
+    
+    .category-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .category-icon i {
+        font-size: 1.2rem;
+    }
+    
+    .product-card .card-body {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-image {
+        height: 160px;
+    }
+    
+    .category-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .category-icon i {
+        font-size: 1rem;
+    }
+}
+
+/* 電子報訂閱區域樣式 */
+.newsletter-section {
+    background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 100%);
+    padding: 4rem 0;
+}
+
+.newsletter-form .input-group {
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.newsletter-form .form-control {
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 50px 0 0 50px !important;
+}
+
+.newsletter-form .btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0 50px 50px 0 !important;
+    background: linear-gradient(135deg, #bb9571 0%, #bb9571 100%);
+    border: none;
+}
+
+.newsletter-form .btn:hover {
+    background: linear-gradient(135deg, #9d7957 0%, #9a7553 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}

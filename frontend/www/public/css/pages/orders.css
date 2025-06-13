@@ -1,0 +1,468 @@
+/* 訂單列表頁面樣式 */
+.orders-main {
+    padding: 20px 0;
+    min-height: calc(100vh - 140px);
+    background: #f8f9fa;
+}
+
+.orders-header {
+    margin-bottom: 30px;
+}
+
+.breadcrumb {
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.breadcrumb a {
+    color: #bb9571;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb span {
+    margin: 0 8px;
+}
+
+.orders-header h1 {
+    color: #2d3436;
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* 狀態篩選器 */
+.status-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    padding: 5px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.filter-btn {
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    color: #636e72;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.filter-btn:hover {
+    background: #f8f9fa;
+    color: #2d3436;
+}
+
+.filter-btn.active {
+    background: #007bff;
+    color: white;
+}
+
+/* 訂單列表 */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.order-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.order-info h3 {
+    color: #2d3436;
+    margin: 0 0 5px 0;
+    font-size: 18px;
+}
+
+.order-info .order-date {
+    color: #636e72;
+    font-size: 14px;
+    margin: 0;
+}
+
+.order-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.order-status.uncompleted {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.order-status.completed {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.order-status.canceled {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* 賣家資訊 */
+.seller-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.seller-info .shop-name {
+    font-weight: 600;
+    color: #2d3436;
+    margin: 0;
+}
+
+.seller-info .username {
+    color: #636e72;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* 商品預覽 */
+.order-items-preview {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.item-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+    flex-shrink: 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.item-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #e9ecef;
+}
+
+.item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-name {
+    font-weight: 600;
+    color: #2d3436;
+    margin: 0 0 2px 0;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-variant {
+    color: #636e72;
+    font-size: 12px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.items-count {
+    color: #636e72;
+    font-size: 12px;
+    font-style: italic;
+    padding: 10px;
+    text-align: center;
+}
+
+/* 訂單總計 */
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+    margin-top: 15px;
+}
+
+.total-label {
+    color: #636e72;
+    font-size: 14px;
+}
+
+.total-amount {
+    font-weight: 700;
+    color: #e17055;
+    font-size: 18px;
+}
+
+/* 載入狀態 */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 60px 20px;
+    color: #636e72;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 空狀態 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #636e72;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: #2d3436;
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.empty-state p {
+    margin-bottom: 25px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* 分頁 */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    padding: 20px;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.pagination-btn {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #bb9571;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.pagination-btn:hover {
+    background: #bb9571;
+    color: white;
+    border-color: #bb9571;
+}
+
+.pagination-btn.active {
+    background: #bb9571;
+    color: white;
+    border-color: #bb9571;
+}
+
+.pagination-btn:disabled {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+}
+
+.pagination-btn:disabled:hover {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+/* 按鈕樣式 */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.btn-primary {
+    background: #bb9571;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #9f754f;
+    transform: translateY(-1px);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .orders-main {
+        padding: 15px 0;
+    }
+    
+    .container {
+        padding: 0 15px;
+    }
+    
+    .orders-header h1 {
+        font-size: 24px;
+    }
+    
+    .status-filter {
+        margin-bottom: 20px;
+        padding: 3px;
+    }
+    
+    .filter-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .order-card {
+        padding: 15px;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .order-info h3 {
+        font-size: 16px;
+    }
+    
+    .order-items-preview {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .item-preview {
+        min-width: auto;
+    }
+    
+    .order-total {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .total-amount {
+        font-size: 20px;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .orders-main {
+        padding: 10px 0;
+    }
+    
+    .order-card {
+        padding: 12px;
+    }
+    
+    .orders-header h1 {
+        font-size: 20px;
+    }
+    
+    .breadcrumb {
+        font-size: 12px;
+    }
+    
+    .filter-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .empty-state {
+        padding: 40px 15px;
+    }
+    
+    .empty-icon {
+        font-size: 48px;
+    }
+    
+    .empty-state h3 {
+        font-size: 20px;
+    }
+} 

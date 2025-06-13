@@ -1,0 +1,125 @@
+<div class="col">
+  <div class="card product-card h-100 border-0 shadow-sm">
+    <!-- Product Image -->
+    <div class="position-relative overflow-hidden">
+      <% if (product.images && product.images.length > 0) { %>
+        <% 
+          let imageUrl = product.images[0].url;
+          if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+            imageUrl = 'http://localhost:3001' + imageUrl;
+          }
+        %>
+        <img src="<%= imageUrl %>" class="card-img-top product-image" alt="<%= product.name %>" loading="lazy">
+      <% } else { %>
+        <img src="/images/placeholder-product.jpg" class="card-img-top product-image" alt="<%= product.name %>" loading="lazy">
+      <% } %>
+      
+      <!-- Wishlist Button -->
+      <button class="btn btn-light btn-sm position-absolute top-0 end-0 m-2 rounded-circle wishlist-btn" 
+              data-product-id="<%= product.id %>" 
+              title="Add to Wishlist">
+        <i class="bi bi-heart"></i>
+      </button>
+
+      <!-- Sale Badge -->
+      <% if (product.sale) { %>
+        <span class="badge bg-danger position-absolute top-0 start-0 m-2">Sale</span>
+      <% } %>
+
+      <!-- New Badge -->
+      <% if (product.isNew) { %>
+        <span class="badge bg-success position-absolute top-0 start-0 m-2">New</span>
+      <% } %>
+
+      <!-- Quick View Overlay -->
+      <div class="product-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+        <button class="btn btn-primary btn-sm me-2 quick-view-btn" data-product-id="<%= product.id %>">
+          <i class="bi bi-eye me-1"></i>Quick View
+        </button>
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="card-body p-3 d-flex flex-column">
+      <!-- Category -->
+      <% if (product.category) { %>
+        <small class="text-muted text-uppercase mb-1"><%= product.category.name %></small>
+      <% } %>
+
+      <!-- Product Name -->
+      <h6 class="card-title mb-2 flex-grow-1">
+        <a href="/products/<%= product.id %>" class="text-decoration-none text-dark stretched-link">
+          <%= product.name %>
+        </a>
+      </h6>
+
+      <!-- Seller Info -->
+      <% if (product.seller && product.seller.shopName) { %>
+        <small class="text-muted mb-2">
+          <i class="bi bi-shop me-1"></i><%= product.seller.shopName %>
+        </small>
+      <% } %>
+
+      <!-- Rating -->
+      <% if (product.avgRating) { %>
+        <div class="d-flex align-items-center mb-2">
+          <div class="stars me-2">
+            <% for (let i = 1; i <= 5; i++) { %>
+              <% if (i <= Math.floor(product.avgRating)) { %>
+                <i class="bi bi-star-fill text-warning"></i>
+              <% } else if (i === Math.ceil(product.avgRating) && product.avgRating % 1 !== 0) { %>
+                <i class="bi bi-star-half text-warning"></i>
+              <% } else { %>
+                <i class="bi bi-star text-muted"></i>
+              <% } %>
+            <% } %>
+          </div>
+          <small class="text-muted">(<%= product._count?.reviews || 0 %>)</small>
+        </div>
+      <% } %>
+
+      <!-- Price -->
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="price">
+          <% if (product.minPrice && product.maxPrice) { %>
+            <% if (product.minPrice === product.maxPrice) { %>
+              <span class="fw-bold text-primary fs-6">NT$<%= product.minPrice %></span>
+            <% } else { %>
+              <span class="fw-bold text-primary fs-6">NT$<%= product.minPrice %> - NT$<%= product.maxPrice %></span>
+            <% } %>
+          <% } else if (product.price) { %>
+            <span class="fw-bold text-primary fs-6">NT$<%= product.price %></span>
+          <% } %>
+          
+          <% if (product.originalPrice && product.originalPrice > (product.minPrice || product.price)) { %>
+            <small class="text-muted text-decoration-line-through ms-2">NT$<%= product.originalPrice %></small>
+          <% } %>
+        </div>
+
+        <!-- Add to Cart Button -->
+        <button class="btn btn-outline-primary btn-sm add-to-cart-btn position-relative" 
+                data-product-id="<%= product.id %>"
+                style="z-index: 2;"
+                onclick="event.preventDefault(); event.stopPropagation();">
+          <i class="bi bi-bag-plus"></i>
+        </button>
+      </div>
+
+      <!-- Stock Status -->
+      <% if (product.variants && product.variants.length > 0) { %>
+        <% 
+          const totalStock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
+          if (totalStock === 0) {
+        %>
+          <small class="text-danger mt-2">
+            <i class="bi bi-exclamation-circle me-1"></i>Out of Stock
+          </small>
+        <% } else if (totalStock < 10) { %>
+          <small class="text-warning mt-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>Only <%= totalStock %> left
+          </small>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+</div> 

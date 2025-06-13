@@ -34,6 +34,18 @@ export class ProductController {
     return ResponseDto.success(result, '獲取商品列表成功');
   }
 
+  @Get('products/:id')
+  @ApiOperation({ summary: '獲取單個商品', description: '獲取賣家的指定商品詳情' })
+  @ApiParam({ name: 'id', type: 'number', description: '商品ID' })
+  @ApiResponse({ status: 200, description: '獲取商品成功' })
+  @ApiResponse({ status: 401, description: '未認證用戶' })
+  @ApiResponse({ status: 403, description: '權限不足' })
+  @ApiResponse({ status: 404, description: '商品不存在' })
+  async getProduct(@CurrentUser() user: any, @Param('id', ParseIntPipe) productId: number) {
+    const result = await this.productService.getProduct(user.id, productId);
+    return ResponseDto.success(result, '獲取商品成功');
+  }
+
   @Post('products')
   @ApiOperation({ summary: '創建商品', description: '賣家創建新商品' })
   @ApiBody({ type: CreateProductDto })
@@ -46,7 +58,7 @@ export class ProductController {
     return ResponseDto.created(result, '商品創建成功');
   }
 
-  @Put('products/:id')
+  @Patch('products/:id')
   @ApiOperation({ summary: '更新商品', description: '更新指定商品的資訊' })
   @ApiParam({ name: 'id', type: 'number', description: '商品ID' })
   @ApiBody({ type: UpdateProductDto })

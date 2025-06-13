@@ -44,10 +44,14 @@ export class ProductController {
                   id: { type: 'number' },
                   name: { type: 'string' },
                   description: { type: 'string' },
-                  price: { type: 'number' },
+                  avgRating: { type: 'number', description: '平均評分 (0-5)' },
+                  minPrice: { type: 'number', description: '最低價格' },
+                  maxPrice: { type: 'number', description: '最高價格' },
                   category: { type: 'object' },
                   seller: { type: 'object' },
-                  images: { type: 'array' }
+                  images: { type: 'array' },
+                  variants: { type: 'array' },
+                  _count: { type: 'object' }
                 }
               }
             },
@@ -127,18 +131,35 @@ export class ProductController {
       this.prisma.product.count({ where }),
     ]);
 
-    const productsWithPrice = products.map(product => ({
-      ...product,
-      minPrice: product.variants.length > 0 
-        ? Math.min(...product.variants.map(v => v.price))
-        : null,
-      maxPrice: product.variants.length > 0 
-        ? Math.max(...product.variants.map(v => v.price))
-        : null,
-    }));
+    // Calculate price range and average rating for each product
+    const productsWithData = await Promise.all(
+      products.map(async (product) => {
+        // Calculate average rating
+        const avgRating = await this.prisma.review.aggregate({
+          where: {
+            productId: product.id,
+            isDeleted: false,
+          },
+          _avg: {
+            score: true,
+          },
+        });
+
+        return {
+          ...product,
+          avgRating: avgRating._avg.score || 0,
+          minPrice: product.variants.length > 0 
+            ? Math.min(...product.variants.map(v => v.price))
+            : null,
+          maxPrice: product.variants.length > 0 
+            ? Math.max(...product.variants.map(v => v.price))
+            : null,
+        };
+      })
+    );
 
     return ResponseDto.success({
-      data: productsWithPrice,
+      data: productsWithData,
       meta: {
         page: page || 1,
         pageSize: pageSize || 10,
@@ -417,8 +438,35 @@ export class ProductController {
       }),
     ]);
 
+    // Calculate price range and average rating for each product
+    const productsWithData = await Promise.all(
+      products.map(async (product) => {
+        // Calculate average rating
+        const avgRating = await this.prisma.review.aggregate({
+          where: {
+            productId: product.id,
+            isDeleted: false,
+          },
+          _avg: {
+            score: true,
+          },
+        });
+
+        return {
+          ...product,
+          avgRating: avgRating._avg.score || 0,
+          minPrice: product.variants.length > 0 
+            ? Math.min(...product.variants.map(v => v.price))
+            : null,
+          maxPrice: product.variants.length > 0 
+            ? Math.max(...product.variants.map(v => v.price))
+            : null,
+        };
+      })
+    );
+
     return ResponseDto.success({
-      data: products,
+      data: productsWithData,
       meta: {
         page: paginationDto.page || 1,
         pageSize: paginationDto.pageSize || 10,

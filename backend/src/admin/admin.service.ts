@@ -26,10 +26,16 @@ export class AdminService {
       data: { isBlocked: true },
     });
 
-    await this.logService.record('USER_DELETED_BY_ADMIN', adminId, {
-      deletedUserId: userId,
-      deletedUserAccount: user.account,
-    });
+    await this.logService.record(
+      'USER_DELETED_BY_ADMIN', 
+      adminId, 
+      `管理員刪除用戶 ${user.account}`,
+      undefined, // ipAddress
+      {
+        deletedUserId: userId,
+        deletedUserAccount: user.account,
+      }
+    );
 
     return { message: '用戶已刪除' };
   }
@@ -48,10 +54,16 @@ export class AdminService {
       data: { isBlocked: true },
     });
 
-    await this.logService.record('USER_BLOCKED', adminId, {
-      blockedUserId: userId,
-      blockedUserAccount: user.account,
-    });
+    await this.logService.record(
+      'USER_BLOCKED', 
+      adminId, 
+      `管理員封鎖用戶 ${user.account}`,
+      undefined, // ipAddress
+      {
+        blockedUserId: userId,
+        blockedUserAccount: user.account,
+      }
+    );
 
     return { message: '用戶已封鎖' };
   }
@@ -70,10 +82,16 @@ export class AdminService {
       data: { isBlocked: false },
     });
 
-    await this.logService.record('USER_UNBLOCKED', adminId, {
-      unblockedUserId: userId,
-      unblockedUserAccount: user.account,
-    });
+    await this.logService.record(
+      'USER_UNBLOCKED', 
+      adminId, 
+      `管理員解除封鎖用戶 ${user.account}`,
+      undefined, // ipAddress
+      {
+        unblockedUserId: userId,
+        unblockedUserAccount: user.account,
+      }
+    );
 
     return { message: '用戶已解除封鎖' };
   }
@@ -100,30 +118,37 @@ export class AdminService {
       data: { status: 'DELETED' },
     });
 
-    await this.logService.record('PRODUCT_DELETED_BY_ADMIN', adminId, {
-      productId,
-      productName: product.name,
-      sellerId: product.sellerId,
-      sellerName: product.seller.username,
-    });
+    await this.logService.record(
+      'PRODUCT_DELETED_BY_ADMIN', 
+      adminId, 
+      `管理員刪除商品 ${product.name}`,
+      undefined, // ipAddress
+      {
+        productId,
+        productName: product.name,
+        sellerId: product.sellerId,
+        sellerName: product.seller.username,
+      }
+    );
 
     return { message: '商品已刪除' };
   }
 
-  async getLogs(criteria: any, page: number = 1, pageSize: number = 50) {
+  async getLogs(logsQuery: any) {
+    const { page = 1, pageSize = 20, sortBy = '-createdAt', ...criteria } = logsQuery;
+    
     const logs = await this.logService.query({
       ...criteria,
+      sortBy,
       limit: pageSize,
       offset: (page - 1) * pageSize,
     });
 
-    const total = await this.prisma.logEntry.count({
-      where: criteria.event ? { event: { contains: criteria.event } } : {},
-    });
+    const total = await this.logService.count(criteria);
 
     return {
-      data: logs,
-      meta: {
+      logs: logs,
+      pagination: {
         page,
         pageSize,
         total,
@@ -162,8 +187,8 @@ export class AdminService {
     ]);
 
     return {
-      data: users,
-      meta: {
+      users: users,
+      pagination: {
         page,
         pageSize,
         total,
@@ -202,8 +227,8 @@ export class AdminService {
     ]);
 
     return {
-      data: products,
-      meta: {
+      products: products,
+      pagination: {
         page,
         pageSize,
         total,
@@ -238,8 +263,8 @@ export class AdminService {
     ]);
 
     return {
-      data: orders,
-      meta: {
+      orders: orders,
+      pagination: {
         page,
         pageSize,
         total,
@@ -284,11 +309,17 @@ export class AdminService {
       data: { status },
     });
     
-    await this.logService.record('ORDER_STATUS_UPDATED_BY_ADMIN', adminId, {
-      orderId,
-      previousStatus: order.status,
-      newStatus: status,
-    });
+    await this.logService.record(
+      'ORDER_STATUS_UPDATED_BY_ADMIN', 
+      adminId, 
+      `管理員更新訂單 ${orderId} 狀態：${order.status} → ${status}`,
+      undefined, // ipAddress
+      {
+        orderId,
+        previousStatus: order.status,
+        newStatus: status,
+      }
+    );
 
     return updatedOrder;
   }

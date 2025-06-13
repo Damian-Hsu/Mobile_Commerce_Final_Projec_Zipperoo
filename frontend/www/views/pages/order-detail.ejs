@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <link rel="stylesheet" href="/css/pages/order-detail.css">
+    <%- include('../partials/head', { 
+        title: '訂單詳情 - Zipperoo', 
+        description: '查看訂單詳細資訊，包含商品、配送和付款資訊'
+    }) %>
+    
+</head>
+<body>
+    <%- include('../partials/navbar', { user: locals.user }) %>
+    
+    <main class="order-detail-main">
+        <div class="container">
+            <!-- 訂單狀態頁首 -->
+            <div class="order-header">
+                <div class="breadcrumb">
+                    <a href="/">首頁</a>
+                    <span>/</span>
+                    <a href="/orders">我的訂單</a>
+                    <span>/</span>
+                    <span>訂單詳情</span>
+                </div>
+                <h1>訂單詳情</h1>
+            </div>
+
+            <!-- 訂單狀態卡片 -->
+            <div class="order-status-card">
+                <div class="status-info">
+                    <div class="status-badge" id="order-status">
+                        <span class="status-text">載入中...</span>
+                    </div>
+                    <div class="order-basic-info">
+                        <h2>訂單編號：<span id="order-id">-</span></h2>
+                        <p>下單時間：<span id="order-date">-</span></p>
+                        <p>總金額：<span id="order-total">-</span></p>
+                    </div>
+                </div>
+                <div class="order-actions">
+                    <button id="cancel-order-btn" class="btn btn-outline" style="display: none;">取消訂單</button>
+                    <button id="track-order-btn" class="btn btn-primary" style="display: none;">追蹤訂單</button>
+                </div>
+            </div>
+
+            <!-- 配送資訊 -->
+            <div class="order-section">
+                <h3>配送資訊</h3>
+                <div class="info-card">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>收件人</label>
+                            <span id="recipient-name">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>聯絡電話</label>
+                            <span id="recipient-phone">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>配送地址</label>
+                            <span id="shipping-address">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>備註</label>
+                            <span id="shipping-notes">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 付款資訊 -->
+            <div class="order-section">
+                <h3>付款資訊</h3>
+                <div class="info-card">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>付款方式</label>
+                            <span id="payment-method">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>付款狀態</label>
+                            <span id="payment-status">待付款</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 賣家資訊 -->
+            <div class="order-section">
+                <h3>賣家資訊</h3>
+                <div class="info-card">
+                    <div class="seller-info">
+                        <div class="seller-details">
+                            <h4 id="seller-shop-name">-</h4>
+                            <p id="seller-username">-</p>
+                        </div>
+                        <div class="seller-actions">
+                            <button class="btn btn-outline btn-sm" id="contact-seller-btn">聯絡賣家</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 商品列表 -->
+            <div class="order-section">
+                <h3>商品列表</h3>
+                <div class="items-card">
+                    <div id="order-items" class="order-items-list">
+                        <!-- 商品項目將由JavaScript動態載入 -->
+                        <div class="loading-placeholder">
+                            <div class="loading-spinner"></div>
+                            <p>載入商品資訊中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 金額明細 -->
+            <div class="order-section">
+                <h3>金額明細</h3>
+                <div class="info-card">
+                    <div class="amount-breakdown">
+                        <div class="amount-row">
+                            <span>商品小計</span>
+                            <span id="subtotal">-</span>
+                        </div>
+                        <div class="amount-row">
+                            <span>運費</span>
+                            <span id="shipping-fee">免運費</span>
+                        </div>
+                        <div class="amount-row total">
+                            <span>訂單總額</span>
+                            <span id="final-total">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 評價區域 -->
+            <div class="order-section" id="review-section" style="display: none;">
+                <h3>商品評價</h3>
+                <div class="info-card">
+                    <div class="review-info">
+                        <p class="text-muted mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            您可以在商品頁面對購買過的商品進行評價
+                        </p>
+                        
+                        <!-- 商品列表 -->
+                        <div id="order-products-list">
+                            <!-- 商品項目將由JavaScript動態載入 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 取消訂單確認Modal -->
+    <div id="cancel-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>確認取消訂單</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>您確定要取消這個訂單嗎？取消後將無法恢復。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-modal-close">取消</button>
+                <button class="btn btn-danger" id="confirm-cancel-order">確認取消</button>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+    <script src="/js/pages/order-detail.js"></script>
+</body>
+</html> 

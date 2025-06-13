@@ -1,4 +1,19 @@
-import { IsString, IsInt, IsPositive, IsOptional, MinLength, IsArray, IsIn } from 'class-validator';
+import { IsString, IsInt, IsPositive, IsOptional, MinLength, IsArray, IsIn, ValidateNested, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class ProductVariantDto {
+  @IsString()
+  @MinLength(1)
+  name: string;
+
+  @IsNumber()
+  @IsPositive()
+  price: number;
+
+  @IsInt()
+  @IsPositive()
+  stock: number;
+}
 
 export class UpdateProductDto {
   @IsOptional()
@@ -13,22 +28,18 @@ export class UpdateProductDto {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  price?: number; // in cents
-
-  @IsOptional()
-  @IsInt()
-  @IsPositive()
-  stock?: number;
-
-  @IsOptional()
-  @IsInt()
-  @IsPositive()
   categoryId?: number;
 
   @IsOptional()
   @IsString()
-  @IsIn(['ON_SHELF', 'OFF_SHELF'])
-  status?: 'ON_SHELF' | 'OFF_SHELF';
+  @IsIn(['ON_SHELF', 'OFF_SHELF', 'OUT_OF_STOCK'])
+  status?: 'ON_SHELF' | 'OFF_SHELF' | 'OUT_OF_STOCK';
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductVariantDto)
+  variants?: ProductVariantDto[];
 
   @IsOptional()
   @IsArray()

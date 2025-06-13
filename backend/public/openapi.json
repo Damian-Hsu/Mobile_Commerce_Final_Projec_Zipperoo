@@ -170,8 +170,17 @@
                               "description": {
                                 "type": "string"
                               },
-                              "price": {
-                                "type": "number"
+                              "avgRating": {
+                                "type": "number",
+                                "description": "平均評分 (0-5)"
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "最低價格"
+                              },
+                              "maxPrice": {
+                                "type": "number",
+                                "description": "最高價格"
                               },
                               "category": {
                                 "type": "object"
@@ -181,6 +190,12 @@
                               },
                               "images": {
                                 "type": "array"
+                              },
+                              "variants": {
+                                "type": "array"
+                              },
+                              "_count": {
+                                "type": "object"
                               }
                             }
                           }
@@ -1022,7 +1037,45 @@
       }
     },
     "/api/v1/seller/products/{id}": {
-      "put": {
+      "get": {
+        "description": "獲取賣家的指定商品詳情",
+        "operationId": "ProductController_getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "獲取商品成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取單個商品",
+        "tags": [
+          "賣家商品管理"
+        ]
+      },
+      "patch": {
         "description": "更新指定商品的資訊",
         "operationId": "ProductController_updateProduct",
         "parameters": [
@@ -1409,6 +1462,69 @@
         "description": "管理員獲取系統操作日誌",
         "operationId": "AdminController_getLogs",
         "parameters": [
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "排序方式：id, createdAt, -id, -createdAt",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "結束日期",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "開始日期",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ip",
+            "required": false,
+            "in": "query",
+            "description": "IP地址",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "username",
+            "required": false,
+            "in": "query",
+            "description": "用戶名",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "event",
+            "required": false,
+            "in": "query",
+            "description": "事件類型",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "搜尋關鍵字",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "pageSize",
             "required": false,

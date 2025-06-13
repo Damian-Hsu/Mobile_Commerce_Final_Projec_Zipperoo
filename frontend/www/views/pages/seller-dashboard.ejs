@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <%- include('../partials/head', { 
+        title: '賣家中心 - Zipperoo', 
+        description: '管理您的商品、訂單和銷售數據'
+    }) %>
+    <link rel="stylesheet" href="/css/pages/seller-dashboard.css">
+</head>
+<body>
+    <%- include('../partials/navbar', { user: locals.user }) %>
+    
+    <main class="seller-dashboard-main">
+        <div class="container">
+            <!-- 頁面標題 -->
+            <div class="dashboard-header">
+                <div class="breadcrumb">
+                    <a href="/">首頁</a>
+                    <span>/</span>
+                    <span>賣家中心</span>
+                </div>
+                <div class="header-content">
+                    <h1>賣家中心</h1>
+                    <p class="subtitle">管理您的商品和訂單</p>
+                </div>
+            </div>
+
+            <!-- 統計卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon products">
+                        <i class="bi bi-box"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-products">-</div>
+                        <div class="stat-label">商品總數</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon orders">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-orders">-</div>
+                        <div class="stat-label">訂單總數</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon revenue">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="total-revenue">-</div>
+                        <div class="stat-label">總收入</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon pending">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="pending-orders">-</div>
+                        <div class="stat-label">待處理訂單</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快捷操作 -->
+            <div class="quick-actions">
+                <h2>快捷操作</h2>
+                <div class="actions-grid">
+                    <a href="/seller/products" class="action-card">
+                        <div class="action-icon">
+                            <i class="bi bi-plus-circle"></i>
+                        </div>
+                        <h3>管理商品</h3>
+                        <p>新增、編輯或刪除您的商品</p>
+                    </a>
+                    
+                    <a href="/seller/orders" class="action-card">
+                        <div class="action-icon">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <h3>處理訂單</h3>
+                        <p>查看和處理客戶訂單</p>
+                    </a>
+                    
+                    <a href="/seller/analytics" class="action-card">
+                        <div class="action-icon">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3>銷售分析</h3>
+                        <p>查看銷售統計和趨勢</p>
+                    </a>
+                    
+                    <a href="/seller/settings" class="action-card">
+                        <div class="action-icon">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        <h3>帳戶設定</h3>
+                        <p>管理您的賣家資訊</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 最近訂單 -->
+            <div class="recent-section">
+                <div class="section-header">
+                    <h2>最近訂單</h2>
+                    <a href="/seller/orders" class="view-all-link">查看全部</a>
+                </div>
+                <div class="orders-table-container">
+                    <div class="loading-container" id="orders-loading">
+                        <div class="loading-spinner"></div>
+                        <p>載入訂單中...</p>
+                    </div>
+                    
+                    <table class="orders-table" id="orders-table" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>訂單編號</th>
+                                <th>客戶</th>
+                                <th>商品</th>
+                                <th>金額</th>
+                                <th>狀態</th>
+                                <th>下單時間</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <!-- 訂單數據將由JavaScript填充 -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="empty-state" id="orders-empty" style="display: none;">
+                        <div class="empty-icon">📋</div>
+                        <h3>暫無訂單</h3>
+                        <p>還沒有客戶下單，繼續推廣您的商品吧！</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 熱門商品 -->
+            <div class="recent-section">
+                <div class="section-header">
+                    <h2>熱門商品</h2>
+                    <a href="/seller/products" class="view-all-link">查看全部</a>
+                </div>
+                <div class="products-grid" id="popular-products">
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <p>載入商品中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+    <script>
+        // 等待 App 初始化完成後再載入 seller-dashboard
+        window.addEventListener('appInitialized', function() {
+            const script = document.createElement('script');
+            script.src = '/js/pages/seller-dashboard.js';
+            document.head.appendChild(script);
+        });
+        
+        // 如果 App 已經初始化，直接載入
+        if (window.App && window.App.initialized) {
+            const script = document.createElement('script');
+            script.src = '/js/pages/seller-dashboard.js';
+            document.head.appendChild(script);
+        }
+    </script>
+</body>
+</html> 

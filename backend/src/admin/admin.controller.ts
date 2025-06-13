@@ -6,6 +6,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ResponseDto } from '../common/dto/response.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { LogsQueryDto } from './dto/logs-query.dto';
 
 @ApiTags('系統管理')
 @Controller('admin')
@@ -79,15 +80,18 @@ export class AdminController {
   @ApiOperation({ summary: '獲取系統日誌', description: '管理員獲取系統操作日誌' })
   @ApiQuery({ name: 'page', type: 'number', required: false, description: '頁碼' })
   @ApiQuery({ name: 'pageSize', type: 'number', required: false, description: '每頁數量' })
+  @ApiQuery({ name: 'search', type: 'string', required: false, description: '搜尋關鍵字' })
+  @ApiQuery({ name: 'event', type: 'string', required: false, description: '事件類型' })
+  @ApiQuery({ name: 'username', type: 'string', required: false, description: '用戶名' })
+  @ApiQuery({ name: 'ip', type: 'string', required: false, description: 'IP地址' })
+  @ApiQuery({ name: 'startDate', type: 'string', required: false, description: '開始日期' })
+  @ApiQuery({ name: 'endDate', type: 'string', required: false, description: '結束日期' })
+  @ApiQuery({ name: 'sortBy', type: 'string', required: false, description: '排序方式：id, createdAt, -id, -createdAt' })
   @ApiResponse({ status: 200, description: '獲取日誌成功' })
   @ApiResponse({ status: 401, description: '未認證用戶' })
   @ApiResponse({ status: 403, description: '權限不足' })
-  async getLogs(@Query() query: any, @Query() paginationDto: PaginationDto) {
-    const result = await this.adminService.getLogs(
-      query,
-      paginationDto.page,
-      paginationDto.pageSize,
-    );
+  async getLogs(@Query() logsQuery: LogsQueryDto) {
+    const result = await this.adminService.getLogs(logsQuery);
     return ResponseDto.success(result, '獲取日誌成功');
   }
 

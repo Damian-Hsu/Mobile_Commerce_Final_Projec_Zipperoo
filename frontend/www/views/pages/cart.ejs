@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: '購物車 - Zipperoo', 
+    description: '管理您的購物車商品'
+  }) %>
+</head>
+<body>
+  <!-- Navigation -->
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <!-- Cart Page Content -->
+  <div class="container py-4">
+    <div class="row">
+      <div class="col-12">
+        <h2 class="mb-4">
+          <i class="bi bi-bag me-2"></i>我的購物車
+        </h2>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Cart Items -->
+      <div class="col-lg-8">
+        <!-- Cart Loading -->
+        <div id="cart-loading" class="text-center py-5">
+          <div class="loading"></div>
+          <p class="mt-3 text-muted">載入購物車中...</p>
+        </div>
+
+        <!-- Empty Cart -->
+        <div id="empty-cart" class="text-center py-5 d-none">
+          <i class="bi bi-bag-x fs-1 text-muted"></i>
+          <h4 class="mt-3">購物車是空的</h4>
+          <p class="text-muted">去挑選一些喜歡的商品吧！</p>
+          <a href="/products" class="btn btn-primary">
+            <i class="bi bi-bag-plus me-2"></i>開始購物
+          </a>
+        </div>
+
+        <!-- Cart Items Container -->
+        <div id="cart-items-container">
+          <!-- Cart items will be loaded here -->
+        </div>
+
+        <!-- Select All & Actions -->
+        <div id="cart-actions" class="card border-0 shadow-sm mt-3 d-none">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll">
+                <label class="form-check-label" for="selectAll">
+                  <strong>全選</strong>
+                </label>
+              </div>
+              <div>
+                <button class="btn btn-outline-danger btn-sm" id="deleteSelected">
+                  <i class="bi bi-trash me-1"></i>刪除所選
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-2" id="saveForLater">
+                  <i class="bi bi-bookmark me-1"></i>稍後再買
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Summary -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 100px;" id="cart-summary">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">訂單摘要</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span>商品總計</span>
+              <span id="subtotal-amount">NT$ 0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>運費</span>
+              <span id="shipping-amount">免費</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-success">優惠折扣</span>
+              <span class="text-success" id="discount-amount">-NT$ 0</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between mb-3">
+              <strong>總計</strong>
+              <strong class="text-primary" id="total-amount">NT$ 0</strong>
+            </div>
+
+            <!-- Promo Code -->
+            <div class="mb-3">
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="優惠代碼" id="promoCode">
+                <button class="btn btn-outline-secondary" type="button" id="applyPromo">
+                  套用
+                </button>
+              </div>
+            </div>
+
+            <!-- Checkout Button -->
+            <button class="btn btn-primary w-100 btn-lg" id="checkout-btn" disabled>
+              <i class="bi bi-credit-card me-2"></i>前往結帳
+            </button>
+
+            <!-- Continue Shopping -->
+            <a href="/products" class="btn btn-outline-primary w-100 mt-2">
+              <i class="bi bi-arrow-left me-2"></i>繼續購物
+            </a>
+          </div>
+        </div>
+
+        <!-- Recently Viewed -->
+        <div class="card border-0 shadow-sm mt-4">
+          <div class="card-header bg-white">
+            <h6 class="mb-0">最近瀏覽</h6>
+          </div>
+          <div class="card-body">
+            <div id="recently-viewed">
+              <p class="text-muted small">暫無瀏覽記錄</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+  
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header">
+        <strong class="me-auto">Zipperoo</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body"></div>
+    </div>
+  </div>
+</body>
+</html> 

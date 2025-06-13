@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: '頁面未找到 - Zipperoo', 
+    description: '您正在尋找的頁面無法找到。'
+  }) %>
+</head>
+<body>
+  <!-- Navigation -->
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <!-- 404 Content -->
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6 text-center">
+        <div class="py-5">
+          <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+          <h1 class="display-4 fw-bold mt-4">404</h1>
+          <h2 class="h4 mb-4">頁面未找到</h2>
+          <p class="text-muted mb-4">
+            您正在尋找的頁面可能已被移除、更名或暫時無法使用。
+          </p>
+          <div class="d-flex justify-content-center gap-3">
+            <a href="/" class="btn btn-primary">
+              <i class="bi bi-house me-2"></i>回到首頁
+            </a>
+            <a href="/products" class="btn btn-outline-primary">
+              <i class="bi bi-bag me-2"></i>瀏覽商品
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+  
+  <!-- Additional JS for error pages -->
+  <script type="module">
+    try {
+      console.log('Loading 404 page modules...');
+      
+      const authManager = (await import('/js/services/auth-manager.js')).default;
+      const { Header } = await import('/js/components/header.js');
+
+      console.log('Modules loaded, initializing...');
+      
+      // Initialize authentication
+      await authManager.validateSession();
+      
+      // Initialize header
+      const header = new Header();
+      header.init();
+      
+      console.log('404 page initialized successfully');
+    } catch (error) {
+      console.error('Error initializing 404 page:', error);
+      // 即使 JS 失敗，頁面仍然可用（伺服器端渲染作為後備）
+    }
+  </script>
+</body>
+</html> 

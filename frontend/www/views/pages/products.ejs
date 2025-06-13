@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: 'Products - StyleHub', 
+    description: 'Browse our collection of fashion items'
+  }) %>
+</head>
+<body>
+  <!-- Navigation -->
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <!-- Products Page Content -->
+  <div class="container py-4">
+    <div class="row">
+      <!-- Filters Sidebar -->
+      <div class="col-lg-3 col-md-4 mb-4 filters-sidebar">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">商品篩選</h5>
+            <button class="btn btn-link p-0 d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="true" aria-controls="filtersCollapse" id="filtersToggle">
+              <i class="bi bi-chevron-up" id="filtersToggleIcon"></i>
+            </button>
+          </div>
+          <div class="collapse show" id="filtersCollapse">
+            <div class="card-body">
+            <!-- Category Filter -->
+            <div class="mb-4">
+              <h6 class="fw-bold">商品分類</h6>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="category" value="" id="categoryAll" checked>
+                <label class="form-check-label" for="categoryAll">所有分類</label>
+              </div>
+              <div id="categories-container">
+                <!-- Categories will be loaded dynamically -->
+                <div class="text-center py-2">
+                  <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Price Range -->
+            <div class="mb-4">
+              <h6 class="fw-bold">價格範圍</h6>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" placeholder="最低價" id="minPrice">
+                </div>
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" placeholder="最高價" id="maxPrice">
+                </div>
+              </div>
+            </div>
+
+            <!-- Sort By -->
+            <div class="mb-4">
+              <h6 class="fw-bold">排序方式</h6>
+              <select class="form-select form-select-sm" id="sortBy">
+                <option value="createdAt">最新上架</option>
+                <option value="name">名稱 A-Z</option>
+                <option value="price">價格由低到高</option>
+                <option value="price-desc">價格由高到低</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary w-100" id="applyFilters">套用篩選</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="col-lg-9 col-md-8">
+        <!-- Search Results Info -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div id="resultsInfo">
+            <span class="text-muted">載入商品中...</span>
+          </div>
+          <div class="d-flex align-items-center">
+            <label class="me-2 text-muted">檢視模式:</label>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-secondary active" id="gridView">
+                <i class="bi bi-grid"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" id="listView">
+                <i class="bi bi-list"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Loading -->
+        <div id="products-loading" class="text-center py-5">
+          <div class="loading"></div>
+          <p class="mt-3 text-muted">載入商品中...</p>
+        </div>
+
+        <!-- Products Container -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="products-container">
+          <!-- Products will be loaded here -->
+        </div>
+
+        <!-- No Products Message -->
+        <div id="no-products" class="text-center py-5 d-none">
+          <i class="bi bi-bag-x fs-1 text-muted"></i>
+          <h4 class="mt-3">找不到商品</h4>
+          <p class="text-muted">請嘗試調整您的篩選條件或搜尋關鍵字</p>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Products pagination" class="mt-5" id="pagination-container">
+          <!-- Pagination will be loaded here -->
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+</body>
+</html> 

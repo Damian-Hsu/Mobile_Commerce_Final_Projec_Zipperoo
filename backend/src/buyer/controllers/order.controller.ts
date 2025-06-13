@@ -26,7 +26,7 @@ export class OrderController {
   @ApiResponse({ status: 403, description: '權限不足' })
   @ApiResponse({ status: 404, description: '購物車項目不存在' })
   async checkout(@CurrentUser() user: any, @Body() checkoutDto: CheckoutDto) {
-    const result = await this.orderService.checkout(user.id, checkoutDto.cartItemIds);
+    const result = await this.orderService.checkout(user.id, checkoutDto);
     return ResponseDto.created(result, '結帳成功');
   }
 

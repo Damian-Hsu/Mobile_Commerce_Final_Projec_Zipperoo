@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <%- include('../partials/head', { 
+        title: '新增商品 - Zipperoo', 
+        description: '新增您的商品到平台'
+    }) %>
+    <link rel="stylesheet" href="/css/pages/seller-product-form.css">
+</head>
+<body>
+    <%- include('../partials/navbar', { user: locals.user }) %>
+
+    <main class="seller-product-form-main">
+        <div class="container">
+            <!-- 頁面標題 -->
+            <div class="page-header">
+                <nav class="breadcrumb">
+                    <a href="/seller/dashboard">賣家中心</a>
+                    <span>/</span>
+                    <a href="/seller/products">我的商品</a>
+                    <span>/</span>
+                    <span>新增商品</span>
+                </nav>
+                <div class="header-content">
+                    <h1>新增商品</h1>
+                    <p class="subtitle">填寫商品資訊並上架到平台</p>
+                </div>
+            </div>
+
+            <!-- 商品表單 -->
+            <div class="form-container">
+                <form id="product-form" class="product-form">
+                    <!-- 基本資訊 -->
+                    <div class="form-section">
+                        <h3>基本資訊</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="name">商品名稱 *</label>
+                                <input type="text" id="name" name="name" required maxlength="100">
+                                <small>最多100個字元</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="categoryId">商品分類 *</label>
+                                <select id="categoryId" name="categoryId" required>
+                                    <option value="">請選擇分類</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label for="description">商品描述 *</label>
+                                <textarea id="description" name="description" required rows="4" maxlength="1000"></textarea>
+                                <small>最多1000個字元</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品圖片 -->
+                    <div class="form-section">
+                        <h3>商品圖片</h3>
+                        <div class="image-upload-container">
+                            <div class="image-upload-area" id="image-upload-area">
+                                <div class="upload-placeholder">
+                                    <i class="bi bi-cloud-upload"></i>
+                                    <p>點擊或拖拽上傳圖片</p>
+                                    <small>支援 JPG、PNG 格式，最多5張</small>
+                                </div>
+                                <input type="file" id="image-input" multiple accept="image/*" style="display: none;">
+                            </div>
+                            <div class="image-preview-container" id="image-preview-container">
+                                <!-- 圖片預覽將在這裡顯示 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品規格 -->
+                    <div class="form-section">
+                        <h3>商品規格</h3>
+                        <div class="variants-container">
+                            <div class="variant-item" data-index="0">
+                                <div class="variant-header">
+                                    <h4>規格 1</h4>
+                                    <button type="button" class="btn-remove-variant" style="display: none;">刪除</button>
+                                </div>
+                                <div class="variant-form">
+                                    <div class="form-group">
+                                        <label>規格名稱</label>
+                                        <input type="text" name="variants[0][name]" placeholder="例如：紅色-M" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>價格 *</label>
+                                        <input type="number" name="variants[0][price]" min="0" step="1" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>庫存 *</label>
+                                        <input type="number" name="variants[0][stock]" min="0" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="add-variant-btn" class="btn btn-outline-primary">
+                            <i class="bi bi-plus"></i> 新增規格
+                        </button>
+                    </div>
+
+                    <!-- 商品狀態 -->
+                    <div class="form-section">
+                        <h3>商品狀態</h3>
+                        <div class="form-group">
+                            <label for="status">上架狀態</label>
+                            <select id="status" name="status">
+                                <option value="ON_SHELF">立即上架</option>
+                                <option value="OFF_SHELF">暫不上架</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 提交按鈕 -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="history.back()">取消</button>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <span class="btn-text">新增商品</span>
+                            <span class="btn-loading" style="display: none;">
+                                <i class="bi bi-arrow-clockwise spin"></i> 處理中...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+    <script>
+        // 等待 App 初始化完成後再載入 seller-product-new
+        window.addEventListener('appInitialized', function() {
+            const script = document.createElement('script');
+            script.src = '/js/pages/seller-product-new.js';
+            document.head.appendChild(script);
+        });
+        
+        // 如果 App 已經初始化，直接載入
+        if (window.App && window.App.initialized) {
+            const script = document.createElement('script');
+            script.src = '/js/pages/seller-product-new.js';
+            document.head.appendChild(script);
+        }
+    </script>
+</body>
+</html> 

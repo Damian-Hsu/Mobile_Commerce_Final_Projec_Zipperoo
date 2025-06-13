@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <link rel="stylesheet" href="/css/pages/orders.css">
+    <%- include('../partials/head', { 
+        title: '我的訂單 - Zipperoo', 
+        description: '管理您的訂單，查看訂單狀態和歷史記錄'
+    }) %>
+    
+</head>
+<body>
+    <%- include('../partials/navbar', { user: locals.user }) %>
+    
+    <main class="orders-main">
+        <div class="container">
+            <!-- 頁面標題 -->
+            <div class="orders-header">
+                <div class="breadcrumb">
+                    <a href="/">首頁</a>
+                    <span>/</span>
+                    <span>我的訂單</span>
+                </div>
+                <h1>我的訂單</h1>
+            </div>
+
+            <!-- 狀態篩選器 -->
+            <div class="status-filter">
+                <button class="filter-btn active" data-status="all">全部</button>
+                <button class="filter-btn" data-status="UNCOMPLETED">處理中</button>
+                <button class="filter-btn" data-status="COMPLETED">已完成</button>
+                <button class="filter-btn" data-status="CANCELED">已取消</button>
+            </div>
+
+            <!-- 訂單列表 -->
+            <div class="orders-list" id="orders-list">
+                <!-- 載入中顯示 -->
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>載入訂單中...</p>
+                </div>
+            </div>
+
+            <!-- 分頁 -->
+            <div class="pagination-container" id="pagination-container" style="display: none;">
+                <!-- 分頁將由JavaScript動態生成 -->
+            </div>
+
+            <!-- 空狀態 -->
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-icon">📦</div>
+                <h3>還沒有訂單</h3>
+                <p>您還沒有任何訂單，開始購物吧！</p>
+                <a href="/products" class="btn btn-primary">開始購物</a>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+    <script src="/js/pages/orders.js"></script>
+</body>
+</html> 

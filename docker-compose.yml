@@ -32,25 +32,24 @@ services:
       - ./data/redis:/data
     networks:
       - zipperoo_network
-  nginx:
-    image: nginx:alpine
-    container_name: zipperoo_nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      # - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./data/uploads:/var/www/uploads
-    depends_on:
-      backend:
-        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zipperoo_frontend
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: "production"
+      VITE_API_BASE: ""
     networks:
       - zipperoo_network
+
   backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: backend/Dockerfile
     container_name: zipperoo_backend
     env_file:
       - .env
@@ -60,12 +59,12 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       REFRESH_JWT_SECRET: ${REFRESH_JWT_SECRET}
       REFRESH_JWT_EXPIRES_IN: ${REFRESH_JWT_EXPIRES_IN}
-      PORT: ${BAKEND_PORT}
+      PORT: ${BACKEND_PORT}
       NODE_ENV: "production"
       CORS_ORIGIN: ${CORS_ORIGIN}
     ports:
-      - "3001:3000"
-      - "5555:5555"
+      - "0.0.0.0:3001:3000"
+      - "0.0.0.0:5555:5555"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
       interval: 15s
@@ -88,7 +87,23 @@ services:
     networks:
       - zipperoo_network
 
-
+  nginx:
+    image: nginx:alpine
+    container_name: zipperoo_nginx
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:80:80"
+      # - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./data/uploads:/var/www/uploads
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    networks:
+      - zipperoo_network
 
 networks:
   zipperoo_network:

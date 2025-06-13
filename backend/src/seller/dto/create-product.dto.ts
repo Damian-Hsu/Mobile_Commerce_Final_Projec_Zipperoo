@@ -7,8 +7,10 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUrl,
   Min,
   ValidateNested,
+  ArrayMaxSize,
 } from 'class-validator';
 
 class VariantDto {
@@ -43,7 +45,8 @@ export class CreateProductDto {
   categoryId?: number;
 
   @IsArray()
-  @IsString({ each: true })
+  @IsUrl({}, { each: true, message: '每個圖片URL必須是有效的網址' })
+  @ArrayMaxSize(10, { message: '最多只能上傳10張圖片' })
   @IsOptional()
   imageUrls?: string[];
   

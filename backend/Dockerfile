@@ -38,7 +38,7 @@
     COPY --from=builder /app/prisma ./prisma
     COPY --from=builder /app/public ./public
     COPY --from=builder /app/package*.json ./
-    COPY ./entrypoint.sh ./entrypoint.sh
+    COPY entrypoint.sh ./entrypoint.sh
     RUN chmod +x ./entrypoint.sh
 
     # 3. NOW, create the non-root user and give it ownership of the entire /app directory.

@@ -1,0 +1,8 @@
+# Images Directory
+This directory contains website images.
+
+For development, you can add images like:
+- hero-model.jpg (Hero section model image)
+- placeholder-product.jpg (Product placeholder image)
+- favicon.ico (Website favicon)
+- og-image.jpg (Open Graph image for social sharing) 

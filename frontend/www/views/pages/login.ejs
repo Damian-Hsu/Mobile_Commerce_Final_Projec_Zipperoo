@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <%- include('../partials/head', { 
+    title: '登入 - Zipperoo', 
+    description: '登入您的 Zipperoo 帳戶'
+  }) %>
+</head>
+<body>
+  <%- include('../partials/navbar', { user: locals.user }) %>
+
+  <main class="container my-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+          <div class="card-body p-4 p-md-5">
+            <h2 class="card-title text-center mb-4">會員登入</h2>
+            <% if (locals.error) { %>
+              <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <%= error %>
+              </div>
+            <% } %>
+            <form id="loginForm" novalidate>
+              <div class="mb-3">
+                <label for="account" class="form-label">帳號或電子郵件</label>
+                <input type="text" class="form-control" id="account" name="account" required minlength="3" autocomplete="username">
+                <div class="invalid-feedback"></div>
+              </div>
+
+              <div class="mb-3">
+                <label for="password" class="form-label">密碼</label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="password" name="password" required minlength="6" autocomplete="current-password">
+                  <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                  </button>
+                  <div class="invalid-feedback"></div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+                  <label class="form-check-label" for="rememberMe">
+                    記住我
+                  </label>
+                </div>
+                <a href="/forgot-password" class="form-text">忘記密碼?</a>
+              </div>
+              
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary" id="submitBtn">登入</button>
+              </div>
+            </form>
+            <hr class="my-4">
+            <p class="text-center">還沒有帳號？ <a href="/register">立即註冊</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('../partials/footer') %>
+
+  <!-- Scripts -->
+  <%- include('../partials/scripts') %>
+</body>
+</html> 

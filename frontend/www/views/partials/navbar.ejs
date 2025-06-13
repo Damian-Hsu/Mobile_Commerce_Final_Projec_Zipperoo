@@ -1,0 +1,317 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+  <div class="container">
+    <!-- Brand -->
+    <a class="navbar-brand fw-bold fs-4" href="/">
+      <i class="bi bi-bag-heart-fill text-primary me-2"></i>
+      Zipperoo
+    </a>
+
+    <!-- Mobile Toggle -->
+    <div class="d-lg-none d-flex align-items-center">
+      <!-- Chat Icon (Mobile) - Dynamic content managed by frontend JS -->
+      <a href="/chat" class="btn btn-outline-light me-2" id="mobile-chat-icon" style="display: none;">
+        <i class="bi bi-chat-dots text-muted"></i>
+      </a>
+      
+      <!-- Cart Icon (Mobile) - Dynamic content managed by frontend JS -->
+      <a href="/cart" class="btn btn-outline-light position-relative me-2" id="mobile-cart-icon" style="display: none;">
+        <i class="bi bi-cart text-muted"></i>
+        <span class="position-absolute cart-badge-mobile" id="cart-count-mobile" style="display: none;">0</span>
+      </a>
+      
+      <!-- Server-side rendered cart (fallback for non-JS users) -->
+      <noscript>
+        <% if (user && user.role === 'BUYER') { %>
+          <a href="/cart" class="btn btn-outline-light position-relative me-2">
+            <i class="bi bi-cart text-muted"></i>
+            <span class="position-absolute cart-badge-mobile" style="display: none;">0</span>
+          </a>
+        <% } %>
+      </noscript>
+
+      <!-- Hamburger Menu -->
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobile-menu">
+        <i class="bi bi-list fs-4"></i>
+      </button>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <div class="collapse navbar-collapse" id="navbar-nav">
+      <!-- Left Navigation -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/">首頁</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link" href="/products" role="button">
+            商品
+          </a>
+          <ul class="dropdown-menu" id="category-dropdown-menu">
+            <li><a class="dropdown-item" href="/products">所有商品</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <!-- Categories will be loaded here dynamically -->
+            <div id="category-loading" class="text-center px-3 py-2">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </ul>
+        </li>
+      </ul>
+
+      <!-- Center Search Bar -->
+      <div class="mx-auto search-center">
+        <form class="d-flex" role="search">
+          <div class="input-group">
+            <input class="form-control search-input" type="search" placeholder="搜尋商品..." id="search-input" autocomplete="off">
+            <button class="btn search-btn" type="submit">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="auth-container">
+        <div class="d-flex align-items-center me-2">
+          <!-- Chat - Dynamic content managed by frontend JS -->
+          <a href="/chat" class="btn btn-outline-secondary me-2" id="chat-icon" style="display: none;">
+            <i class="bi bi-chat-dots me-1"></i>
+            
+          </a>
+          
+          <!-- Cart - Dynamic content managed by frontend JS -->
+          <a href="/cart" class="btn btn-outline-primary position-relative" id="cart-icon" style="display: none;">
+            <i class="bi bi-cart me-1"></i>
+            <!-- 購物車 -->
+            <span class="position-absolute cart-badge" id="cart-count" style="display: none;">0</span>
+          </a>
+        </div>
+      
+      <!-- Right Side -->
+      
+        <!-- Server-side rendered cart (fallback for non-JS users) -->
+        <noscript>
+          <% if (user && user.role === 'BUYER') { %>
+            <a href="/cart" class="btn btn-outline-primary position-relative me-3">
+              <i class="bi bi-cart me-1"></i>
+              
+              <span class="position-absolute cart-badge" style="display: none;">0</span>
+            </a>
+          <% } %>
+        </noscript>
+
+        <!-- 固定寬度的用戶認證容器 -->
+        
+          <!-- User Menu (Dynamic content managed by frontend JS) -->
+          <div id="user-dropdown" class="dropdown" style="display: none;">
+            <button class="btn btn-outline-secondary" type="button">
+              <i class="bi bi-person-circle me-1"></i>
+              <span id="user-greeting">用戶</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" id="user-dropdown-menu">
+              <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>個人資料</a></li>
+              <li id="buyer-orders-link"><a class="dropdown-item" href="/orders"><i class="bi bi-box-seam me-2"></i>我的訂單</a></li>
+              <li id="seller-dashboard-link" style="display: none;"><a class="dropdown-item" href="/seller/dashboard"><i class="bi bi-speedometer2 me-2"></i>賣家中心</a></li>
+              <li id="admin-dashboard-link" style="display: none;"><a class="dropdown-item" href="/admin/dashboard"><i class="bi bi-gear me-2"></i>管理後台</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/logout" id="logout-btn"><i class="bi bi-box-arrow-right me-2"></i>登出</a></li>
+            </ul>
+          </div>
+          
+          <!-- Auth Links (shown when not logged in) -->
+          <div class="auth-buttons" id="auth-buttons">
+            <div class="btn-group" id="auth-links">
+              <a href="/login" class="btn btn-outline-primary">登入</a>
+            </div>
+            <div class="btn-group ms-2" id="auth-links-register">
+              <a href="/register" class="btn btn-primary">註冊</a>
+            </div>
+          </div>
+
+          <!-- Server-side rendered content (fallback for non-JS users) -->
+          <noscript>
+            <% if (user) { %>
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-person-circle me-1"></i>
+                  <%= user.username || user.account || '用戶' %>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>個人資料</a></li>
+                  <% if (user.role === 'BUYER') { %>
+                    <li><a class="dropdown-item" href="/orders"><i class="bi bi-box-seam me-2"></i>我的訂單</a></li>
+                  <% } %>
+                  <% if (user.role === 'SELLER') { %>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/seller/dashboard"><i class="bi bi-speedometer2 me-2"></i>賣家中心</a></li>
+                    <li><a class="dropdown-item" href="/seller/products"><i class="bi bi-box me-2"></i>我的商品</a></li>
+                    <li><a class="dropdown-item" href="/seller/orders"><i class="bi bi-receipt me-2"></i>賣家訂單</a></li>
+                  <% } %>
+                  <% if (user.role === 'ADMIN') { %>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/admin/dashboard"><i class="bi bi-gear me-2"></i>管理後台</a></li>
+                  <% } %>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>登出</a></li>
+                </ul>
+              </div>
+            <% } else { %>
+              <div class="btn-group">
+                <a href="/login" class="btn btn-outline-primary">登入</a>
+                <a href="/register" class="btn btn-primary">註冊</a>
+              </div>
+            <% } %>
+          </noscript>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  
+</nav>
+
+<!-- Mobile Off-canvas Menu -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="mobile-menu" style="z-index: 2000 !important;">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title">
+      <i class="bi bi-bag-heart-fill text-primary me-2"></i>
+      Zipperoo
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <!-- Mobile Search Section -->
+    <div class="mb-4">
+      <form class="d-flex" role="search">
+        <div class="input-group">
+          <input class="form-control search-input" type="search" placeholder="搜尋商品..." autocomplete="off">
+          <button class="btn search-btn" type="submit">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- User Section (Mobile) - Dynamic content managed by frontend JS -->
+    <div id="mobile-user-section">
+      <!-- Logged in user display (Dynamic) -->
+      <div id="mobile-user-info" style="display: none;">
+        <div class="d-flex align-items-center p-3 bg-light rounded mb-3">
+          <i class="bi bi-person-circle fs-3 me-3"></i>
+          <div>
+            <div class="fw-bold" id="mobile-user-greeting">用戶</div>
+            <small class="text-muted" id="mobile-user-email">email</small>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Auth buttons for not logged in users (Dynamic) -->
+      <div id="mobile-auth-buttons">
+        <div class="d-grid gap-2 mb-3">
+          <a href="/login" class="btn btn-outline-primary">登入</a>
+          <a href="/register" class="btn btn-primary">註冊</a>
+        </div>
+        <hr>
+      </div>
+    </div>
+
+    <!-- Server-side rendered content (fallback for non-JS users) -->
+    <noscript>
+      <% if (user) { %>
+        <div class="d-flex align-items-center p-3 bg-light rounded mb-3">
+          <i class="bi bi-person-circle fs-3 me-3"></i>
+          <div>
+            <div class="fw-bold"><%= user.username || user.account || '用戶' %></div>
+            <small class="text-muted"><%= user.email || user.account %></small>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="d-grid gap-2 mb-3">
+          <a href="/login" class="btn btn-outline-primary">登入</a>
+          <a href="/register" class="btn btn-primary">註冊</a>
+        </div>
+        <hr>
+      <% } %>
+    </noscript>
+
+    <!-- Navigation Links -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link py-3" href="/"><i class="bi bi-house me-3"></i>首頁</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link py-3" href="/products"><i class="bi bi-grid me-3"></i>所有商品</a>
+      </li>
+      <!-- Dynamic categories will be loaded here -->
+      <div id="mobile-categories-container">
+        <div id="mobile-category-loading" class="text-center py-2">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="visually-hidden">載入中...</span>
+          </div>
+        </div>
+      </div>
+    </ul>
+
+    <% if (user) { %>
+      <hr>
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link py-3" href="/profile"><i class="bi bi-person me-3"></i>個人資料</a>
+        </li>
+        <% if (user.role === 'BUYER') { %>
+          <li class="nav-item">
+            <a class="nav-link py-3" href="/orders"><i class="bi bi-box-seam me-3"></i>我的訂單</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link py-3" href="/cart"><i class="bi bi-cart me-3"></i>聊天室</a>
+          </li>
+        <% } %>
+        <% if (user.role === 'SELLER') { %>
+          <hr>
+          <li class="nav-item">
+            <a class="nav-link py-3" href="/seller/dashboard"><i class="bi bi-speedometer2 me-3"></i>賣家中心</a>
+          </li>
+        <% } %>
+        <% if (user.role === 'ADMIN') { %>
+          <hr>
+          <li class="nav-item">
+            <a class="nav-link py-3" href="/admin/dashboard"><i class="bi bi-gear me-3"></i>管理後台</a>
+          </li>
+        <% } %>
+        <hr>
+        <li class="nav-item">
+          <a class="nav-link py-3 text-danger" href="/logout"><i class="bi bi-box-arrow-right me-3"></i>登出</a>
+        </li>
+      </ul>
+    <% } %>
+    
+    <!-- Dynamic mobile user menu (managed by JS) -->
+    <div id="mobile-user-menu" style="display: none;">
+      <hr>
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link py-3" href="/profile"><i class="bi bi-person me-3"></i>個人資料</a>
+        </li>
+        <li class="nav-item" id="mobile-buyer-orders-link">
+          <a class="nav-link py-3" href="/orders"><i class="bi bi-box-seam me-3"></i>我的訂單</a>
+        </li>
+        <li class="nav-item" id="mobile-buyer-cart-link">
+          <a class="nav-link py-3" href="/cart"><i class="bi bi-cart me-3"></i>購物車</a>
+        </li>
+        <li class="nav-item" id="mobile-chat-link">
+          <a class="nav-link py-3" href="/chat"><i class="bi bi-chat-dots me-3"></i>聊天室</a>
+        </li>
+        <li class="nav-item" id="mobile-seller-dashboard-link" style="display: none;">
+          <a class="nav-link py-3" href="/seller/dashboard"><i class="bi bi-speedometer2 me-3"></i>賣家中心</a>
+        </li>
+        <li class="nav-item" id="mobile-admin-dashboard-link" style="display: none;">
+          <a class="nav-link py-3" href="/admin/dashboard"><i class="bi bi-gear me-3"></i>管理後台</a>
+        </li>
+        <hr>
+        <li class="nav-item">
+          <a class="nav-link py-3 text-danger" href="/logout" id="mobile-logout-btn"><i class="bi bi-box-arrow-right me-3"></i>登出</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div> 

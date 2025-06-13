@@ -40,13 +40,17 @@ export class ReviewService {
       throw new BadRequestException('只能對已完成訂單的商品進行評論');
     }
 
-    // Check if review already exists for this order
+    // Check if review already exists for this product by this buyer
     const existingReview = await this.prisma.review.findFirst({
-      where: { orderId: completedOrder.id },
+      where: { 
+        productId: productId,
+        buyerId: buyerId,
+        isDeleted: false
+      },
     });
 
     if (existingReview) {
-      throw new BadRequestException('該訂單已有評論');
+      throw new BadRequestException('您已經評價過此商品');
     }
 
     const review = await this.prisma.review.create({
@@ -73,12 +77,18 @@ export class ReviewService {
       },
     });
 
-    await this.logService.record('REVIEW_CREATED', buyerId, {
-      reviewId: review.id,
-      productId,
-      orderId: completedOrder.id,
-      score: createReviewDto.score,
-    });
+    await this.logService.record(
+      'REVIEW_CREATED', 
+      buyerId, 
+      `創建商品評論`,
+      undefined, // ipAddress
+      {
+        reviewId: review.id,
+        productId,
+        orderId: completedOrder.id,
+        score: createReviewDto.score,
+      }
+    );
 
     return review;
   }
@@ -159,10 +169,16 @@ export class ReviewService {
       },
     });
 
-    await this.logService.record('REVIEW_UPDATED', buyerId, {
-      reviewId,
-      changes: updateReviewDto,
-    });
+    await this.logService.record(
+      'REVIEW_UPDATED', 
+      buyerId, 
+      `更新商品評論`,
+      undefined, // ipAddress
+      {
+        reviewId,
+        changes: updateReviewDto,
+      }
+    );
 
     return updatedReview;
   }
@@ -185,10 +201,16 @@ export class ReviewService {
       data: { isDeleted: true },
     });
 
-    await this.logService.record('REVIEW_DELETED', buyerId, {
-      reviewId,
-      productId: review.productId,
-    });
+    await this.logService.record(
+      'REVIEW_DELETED', 
+      buyerId, 
+      `刪除商品評論`,
+      undefined, // ipAddress
+      {
+        reviewId,
+        productId: review.productId,
+      }
+    );
 
     return { message: '評論已刪除' };
   }

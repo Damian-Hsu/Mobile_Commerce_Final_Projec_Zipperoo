@@ -77,10 +77,16 @@ export class ChatService {
         },
       });
 
-      await this.logService.record('CHAT_ROOM_CREATED', buyerId, {
-        roomId: room.id,
-        sellerId,
-      });
+      await this.logService.record(
+        'CHAT_ROOM_CREATED', 
+        buyerId, 
+        `創建聊天室`,
+        undefined, // ipAddress
+        {
+          roomId: room.id,
+          sellerId,
+        }
+      );
     }
 
     return room;
@@ -184,10 +190,16 @@ export class ChatService {
       },
     });
 
-    await this.logService.record('CHAT_MESSAGE_SENT', fromUserId, {
-      roomId,
-      messageId: message.id,
-    });
+    await this.logService.record(
+      'CHAT_MESSAGE_SENT', 
+      fromUserId, 
+      `發送聊天訊息`,
+      undefined, // ipAddress
+      {
+        roomId,
+        messageId: message.id,
+      }
+    );
 
     return {
       message,
