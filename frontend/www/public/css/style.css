@@ -647,7 +647,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* 確保 Bootstrap Icons 正確載入 */
 .bi::before {
+  font-family: "bootstrap-icons" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  line-height: 1;
   vertical-align: baseline;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 修復分類圖標顯示問題 */

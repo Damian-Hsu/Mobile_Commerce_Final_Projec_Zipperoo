@@ -306,11 +306,11 @@ class AdminDashboard {
 
     initCategoriesSection(section) {
         section.innerHTML = `
-            <div class="section-header">
-                <h2>
-                    <i class="bi bi-tags"></i>
-                    類別管理
-                </h2>
+                                <div class="section-header">
+                        <h2>
+                            <i class="bi bi-tags"></i>
+                            類別管理
+                        </h2>
                 <div class="section-controls">
                     <button class="btn btn-refresh" onclick="window.adminDashboard.refreshCategories()">
                         <i class="bi bi-arrow-clockwise"></i>
@@ -586,13 +586,22 @@ class AdminDashboard {
                     
                     console.log(`商品 ${product.id} (${product.name}): 庫存=${totalStock}, 狀態=${product.status}, 缺貨=${isOutOfStock}`);
                     
+                    // 根據商品狀態統計（不論是否缺貨）
+                    switch (product.status) {
+                        case 'ON_SHELF':
+                            onShelfCount++;
+                            console.log(`✅ 上架商品計數 +1, 當前上架總數: ${onShelfCount}`);
+                            break;
+                        case 'OFF_SHELF':
+                            offShelfCount++;
+                            console.log(`✅ 下架商品計數 +1, 當前下架總數: ${offShelfCount}`);
+                            break;
+                    }
+                    
+                    // 單獨統計缺貨商品（可以與上架/下架狀態並存）
                     if (isOutOfStock) {
                         outOfStockCount++;
                         console.log(`✅ 缺貨商品計數 +1, 當前缺貨總數: ${outOfStockCount}`);
-                    } else if (product.status === 'ON_SHELF') {
-                        onShelfCount++;
-                    } else if (product.status === 'OFF_SHELF') {
-                        offShelfCount++;
                     }
                 });
                 
@@ -988,6 +997,8 @@ class AdminDashboard {
         }
     }
 
+
+
     renderCategoriesTable(categories) {
         const tbody = document.getElementById('categories-tbody');
         
@@ -1352,28 +1363,26 @@ class AdminDashboard {
             return `<span class="badge bg-secondary">已刪除</span>`;
         }
         
-        // 如果缺貨，顯示缺貨警告但保持原有狀態
-        if (isOutOfStock) {
-            return `
-                <div>
-                    <span class="badge bg-warning text-dark mb-1">⚠️ 缺貨</span>
-                    <select class="form-select form-select-sm status-select" 
-                            data-product-id="${product.id}" 
-                            onchange="window.adminDashboard.updateProductStatus(${product.id}, this.value)">
-                        <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
-                        <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>下架</option>
-                    </select>
-                </div>
-            `;
-        }
-        
-        return `
-            <select class="form-select form-select-sm status-select" 
+        // 狀態選擇器（始終顯示，不受庫存影響）
+        const statusSelect = `
+            <select class="form-select form-select-sm status-select mb-1" 
                     data-product-id="${product.id}" 
                     onchange="window.adminDashboard.updateProductStatus(${product.id}, this.value)">
                 <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
                 <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>下架</option>
             </select>
+        `;
+        
+        // 庫存狀態標籤（獨立於上架狀態）
+        const stockBadge = isOutOfStock ? 
+            `<span class="badge bg-warning text-dark d-block mt-1">⚠️ 缺貨</span>` : 
+            '';
+        
+        return `
+            <div class="d-flex flex-column align-items-start">
+                ${statusSelect}
+                ${stockBadge}
+            </div>
         `;
     }
 
@@ -1600,34 +1609,120 @@ class AdminDashboard {
         try {
             console.log(`👁️ 查看商品詳情 ID: ${productId}`);
             
-            // 從當前商品列表中找到商品資訊
-            const productRow = document.querySelector(`tr[data-product-id="${productId}"]`);
-            if (!productRow) {
-                this.showError('找不到商品資訊');
+            // 使用 API 獲取完整的商品資訊而不是從 DOM 獲取
+            const result = await window.apiClient.getProduct(productId);
+            
+            if (result.statusCode !== 200 || !result.data) {
+                this.showError('獲取商品詳情失敗');
                 return;
             }
             
-            const cells = productRow.querySelectorAll('td');
+            const product = result.data;
+            console.log('📊 商品詳細資料:', product); // 調試用
+            
             const productData = {
-                id: productId,
-                name: cells[1]?.textContent || '-',
-                seller: cells[2]?.textContent || '-',
-                category: cells[3]?.textContent || '-',
-                price: cells[4]?.textContent || '-',
-                stock: cells[5]?.textContent || '-',
-                status: cells[6]?.textContent || '-',
-                createdAt: cells[7]?.textContent || '-'
+                id: product.id,
+                name: product.name || '-',
+                seller: product.seller?.username || product.seller?.shopName || '-',
+                category: product.category?.name || '-',
+                price: product.variants && product.variants.length > 0 ? 
+                    `$${Math.min(...product.variants.map(v => v.price))} - $${Math.max(...product.variants.map(v => v.price))}` : 
+                    '-',
+                stock: product.variants ? 
+                    product.variants.reduce((sum, v) => sum + (v.stock || 0), 0) : 0,
+                status: this.getStatusDisplayName(product.status) || '-',
+                createdAt: this.formatDate(product.createdAt) || '-',
+                description: product.description || '-',
+                images: product.images || []
             };
+            
+            console.log('🖼️ 處理後的商品圖片:', productData.images); // 調試用
             
             this.showProductDetailsModal(productData);
             
         } catch (error) {
             console.error('❌ 查看商品詳情失敗:', error);
-            this.showError('查看商品詳情失敗: ' + error.message);
+            
+            // 如果 API 調用失敗，則使用 DOM 資料作為備用方案
+            try {
+                const productRow = document.querySelector(`tr[data-product-id="${productId}"]`);
+                if (!productRow) {
+                    this.showError('找不到商品資訊');
+                    return;
+                }
+                
+                const cells = productRow.querySelectorAll('td');
+                const productData = {
+                    id: productId,
+                    name: cells[1]?.querySelector('div')?.textContent?.trim() || cells[1]?.textContent?.trim() || '-',
+                    seller: cells[2]?.querySelector('div')?.textContent?.trim() || cells[2]?.textContent?.trim() || '-',
+                    category: '-', // 表格中沒有類別資訊
+                    price: cells[3]?.textContent?.trim() || '-',
+                    stock: cells[4]?.querySelector('span')?.textContent?.trim() || cells[4]?.textContent?.trim() || '-',
+                    status: cells[5]?.querySelector('.status-badge')?.textContent?.trim() || cells[5]?.textContent?.trim() || '-',
+                    createdAt: cells[6]?.textContent?.trim() || '-',
+                    description: '-',
+                    images: []
+                };
+                
+                this.showProductDetailsModal(productData);
+                
+            } catch (domError) {
+                console.error('❌ DOM 備用方案也失敗:', domError);
+                this.showError('查看商品詳情失敗: ' + error.message);
+            }
         }
     }
 
     showProductDetailsModal(product) {
+        console.log('🖼️ Modal 顯示商品資料:', product); // 調試用
+        
+        // 確保庫存顯示為數字
+        const stockDisplay = typeof product.stock === 'number' ? 
+            `${product.stock} 個` : 
+            product.stock;
+            
+        // 庫存狀態顯示
+        const stockStatus = typeof product.stock === 'number' && product.stock === 0 ? 
+            '<span class="text-warning ms-2">⚠️ 缺貨</span>' : '';
+            
+        // 圖片顯示 - 支援多種圖片格式
+        let imagesHtml;
+        
+        if (product.images && product.images.length > 0) {
+            imagesHtml = `<div class="d-flex flex-wrap gap-2 mt-2">
+                ${product.images.slice(0, 3).map(img => {
+                    // 處理不同的圖片格式
+                    let imageUrl;
+                    if (typeof img === 'string') {
+                        // 如果是字串，判斷是否為完整 URL
+                        imageUrl = img.startsWith('http') ? img : `/images/products/${img}`;
+                    } else if (img && img.filename) {
+                        // 如果是物件且有 filename 屬性
+                        imageUrl = `/images/products/${img.filename}`;
+                    } else if (img && img.url) {
+                        // 如果是物件且有 url 屬性
+                        imageUrl = img.url;
+                    } else {
+                        // 如果無法識別格式，使用佔位圖
+                        imageUrl = '/images/placeholder.svg';
+                    }
+                    
+                    return `<img src="${imageUrl}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover; border: 1px solid #ddd;" alt="商品圖片" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" onload="this.nextElementSibling.style.display='none';">
+                            <div class="d-flex align-items-center justify-content-center img-thumbnail" style="width: 80px; height: 80px; border: 1px dashed #ccc; display: none; background-color: #f8f9fa;">
+                                <i class="bi bi-image text-muted" style="font-size: 20px;"></i>
+                            </div>`;
+                }).join('')}
+                ${product.images.length > 3 ? `<div class="d-flex align-items-center text-muted ms-2 mt-2">
+                    <span class="badge bg-secondary">+${product.images.length - 3} 張</span>
+                </div>` : ''}
+            </div>`;
+        } else {
+            imagesHtml = `<div class="d-flex align-items-center justify-content-center img-thumbnail" style="width: 80px; height: 80px; border: 1px dashed #ccc; background-color: #f8f9fa;">
+                <i class="bi bi-image text-muted" style="font-size: 24px;"></i>
+            </div>`;
+        }
+            
         const modalContent = `
             <div class="modal-header">
                 <h5 class="modal-title">商品詳情 #${product.id}</h5>
@@ -1653,16 +1748,28 @@ class AdminDashboard {
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">總庫存</label>
-                        <div class="info-display">${product.stock}</div>
+                        <div class="info-display">${stockDisplay}${stockStatus}</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">狀態</label>
                         <div class="info-display">${product.status}</div>
                     </div>
-                    <div class="col-12 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label class="form-label">建立時間</label>
                         <div class="info-display">${product.createdAt}</div>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">商品圖片</label>
+                        <div class="info-display">${imagesHtml}</div>
+                    </div>
+                    ${product.description !== '-' ? `
+                    <div class="col-12 mb-3">
+                        <label class="form-label">商品描述</label>
+                        <div class="info-display" style="white-space: pre-wrap; max-height: 150px; overflow-y: auto;">
+                            ${product.description}
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
             <div class="modal-footer">
@@ -2303,8 +2410,10 @@ class AdminDashboard {
             modal = document.createElement('div');
             modal.id = 'admin-modal';
             modal.className = 'modal fade';
+            modal.setAttribute('tabindex', '-1');
+            modal.setAttribute('aria-hidden', 'true');
             modal.innerHTML = `
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog">
                     <div class="modal-content" id="admin-modal-content">
                     </div>
                 </div>
@@ -2316,8 +2425,26 @@ class AdminDashboard {
         document.getElementById('admin-modal-content').innerHTML = content;
 
         // 顯示模態框
-        const bootstrapModal = new bootstrap.Modal(modal);
+        const bootstrapModal = new bootstrap.Modal(modal, {
+            backdrop: 'static',
+            keyboard: true,
+            focus: true
+        });
         bootstrapModal.show();
+
+        // 確保 Modal 出現在導航欄以下
+        modal.style.zIndex = '1055';
+        
+        // 添加平滑動畫效果
+        modal.addEventListener('shown.bs.modal', function() {
+            const modalDialog = modal.querySelector('.modal-dialog');
+            if (modalDialog) {
+                modalDialog.style.opacity = '1';
+                // 確保位置正確，考慮導覽列高度
+                modalDialog.style.top = 'calc(50% + 35px)';
+                modalDialog.style.transform = 'translate(-50%, -50%)';
+            }
+        });
     }
 }
 

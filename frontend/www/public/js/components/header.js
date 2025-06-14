@@ -407,7 +407,17 @@ export class Header {
 
     async handleLogout(e) {
         e.preventDefault();
-        await authManager.logout();
-        window.location.href = '/';
+        
+        // 防止重複登出
+        if (this._isLoggingOut) return;
+        this._isLoggingOut = true;
+        
+        try {
+            await authManager.logout();
+            window.location.href = '/';
+        } catch (error) {
+            console.error('登出失敗:', error);
+            this._isLoggingOut = false; // 重設狀態以便重試
+        }
     }
 } 

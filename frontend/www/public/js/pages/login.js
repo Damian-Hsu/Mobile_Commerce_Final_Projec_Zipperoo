@@ -77,6 +77,10 @@ export class LoginPage {
         e.preventDefault();
         if (!this.validateForm()) return;
 
+        // 防止重複提交
+        if (this.submitBtn.disabled) return;
+        this.submitBtn.disabled = true;
+
         const account = this.accountInput.value.trim();
         const password = this.passwordInput.value;
         
@@ -103,6 +107,8 @@ export class LoginPage {
             this.passwordInput.focus();
         } finally {
             UIUtils.hideLoading(this.submitBtn);
+            // 重新啟用提交按鈕
+            this.submitBtn.disabled = false;
         }
     }
 
