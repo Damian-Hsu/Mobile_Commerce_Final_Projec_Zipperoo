@@ -1097,7 +1097,20 @@ footer a:hover {
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
 }
+.modal-dialog {
+  margin: 6rem auto;
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - 3.5rem);
+}
 
+.modal.fade .modal-dialog {
+  transform: translateY(-50px);
+}
+
+.modal.show .modal-dialog {
+  transform: none;
+}
 /* Mobile search bar */
 @media (max-width: 991.98px) {
   .mobile-search .form-control {
@@ -1341,9 +1354,7 @@ footer a:hover {
 
 /* 手機版評價模態框優化 */
 @media (max-width: 768px) {
-  .modal-dialog {
-    margin: 1rem 0.5rem;
-  }
+  
   
   .star-rating .star {
     font-size: 1.5rem;
