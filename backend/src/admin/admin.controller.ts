@@ -6,6 +6,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ResponseDto } from '../common/dto/response.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdateProductStatusDto } from './dto/update-product-status.dto';
 import { LogsQueryDto } from './dto/logs-query.dto';
 
 @ApiTags('系統管理')
@@ -168,5 +169,40 @@ export class AdminController {
   ) {
     const result = await this.adminService.updateOrderStatus(id, updateOrderStatusDto.status, user.id);
     return ResponseDto.success(result, '訂單狀態更新成功');
+  }
+
+  @Patch('products/:id')
+  @ApiOperation({ summary: '更新商品', description: '管理員更新指定商品的信息' })
+  @ApiParam({ name: 'id', type: 'number', description: '商品ID' })
+  @ApiResponse({ status: 200, description: '商品更新成功' })
+  @ApiResponse({ status: 400, description: '請求參數錯誤' })
+  @ApiResponse({ status: 401, description: '未認證用戶' })
+  @ApiResponse({ status: 403, description: '權限不足' })
+  @ApiResponse({ status: 404, description: '商品不存在' })
+  async updateProduct(
+    @CurrentUser() user: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateData: any,
+  ) {
+    const result = await this.adminService.updateProduct(user.id, id, updateData);
+    return ResponseDto.success(result, '商品更新成功');
+  }
+
+  @Patch('products/:id/status')
+  @ApiOperation({ summary: '更新商品狀態', description: '管理員更新指定商品的狀態' })
+  @ApiParam({ name: 'id', type: 'number', description: '商品ID' })
+  @ApiBody({ type: UpdateProductStatusDto })
+  @ApiResponse({ status: 200, description: '商品狀態更新成功' })
+  @ApiResponse({ status: 400, description: '請求參數錯誤' })
+  @ApiResponse({ status: 401, description: '未認證用戶' })
+  @ApiResponse({ status: 403, description: '權限不足' })
+  @ApiResponse({ status: 404, description: '商品不存在' })
+  async updateProductStatus(
+    @CurrentUser() user: any,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProductStatusDto: UpdateProductStatusDto,
+  ) {
+    const result = await this.adminService.updateProductStatus(user.id, id, updateProductStatusDto.status);
+    return ResponseDto.success(result, '商品狀態更新成功');
   }
 } 

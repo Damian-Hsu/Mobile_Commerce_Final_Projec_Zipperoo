@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LogService } from '../common/services/log.service';
+import { ProductStatus } from '@prisma/client';
 
 type OrderStatus = 'UNCOMPLETED' | 'COMPLETED' | 'CANCELED';
 
@@ -322,5 +323,101 @@ export class AdminService {
     );
 
     return updatedOrder;
+  }
+
+  async updateProduct(adminId: number, productId: number, updateData: any) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException('商品不存在');
+    }
+
+    const updatedProduct = await this.prisma.product.update({
+      where: { id: productId },
+      data: updateData,
+      include: {
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            shopName: true,
+          },
+        },
+        category: true,
+        images: true,
+        variants: true,
+        _count: {
+          select: {
+            reviews: true,
+          },
+        },
+      },
+    });
+
+    await this.logService.record(
+      'PRODUCT_UPDATED_BY_ADMIN', 
+      adminId, 
+      `管理員更新商品 ${product.name}`,
+      undefined, // ipAddress
+      {
+        productId,
+        productName: product.name,
+        sellerId: product.sellerId,
+        sellerName: product.seller.username,
+        updateData,
+      }
+    );
+
+    return updatedProduct;
+  }
+
+  async updateProductStatus(adminId: number, productId: number, status: ProductStatus) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException('商品不存在');
+    }
+
+    const updatedProduct = await this.prisma.product.update({
+      where: { id: productId },
+      data: { status },
+    });
+
+    await this.logService.record(
+      'PRODUCT_STATUS_UPDATED_BY_ADMIN', 
+      adminId, 
+      `管理員更新商品 ${product.name} 狀態：${product.status} → ${status}`,
+      undefined, // ipAddress
+      {
+        productId,
+        productName: product.name,
+        sellerId: product.sellerId,
+        sellerName: product.seller.username,
+        previousStatus: product.status,
+        newStatus: status,
+      }
+    );
+
+    return { id: productId, status };
   }
 } 

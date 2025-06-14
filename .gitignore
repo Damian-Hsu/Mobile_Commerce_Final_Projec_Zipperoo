@@ -18,5 +18,8 @@ data/
 *.sqlite
 *.db
 
+# ssl 憑證
+ssl/
+
 # #dev中資料夾
 # frontend/

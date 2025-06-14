@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -62,6 +60,7 @@ services:
       PORT: ${BACKEND_PORT}
       NODE_ENV: "production"
       CORS_ORIGIN: ${CORS_ORIGIN}
+      API_URL: "http://localhost:3000"
     ports:
       - "0.0.0.0:3001:3000"
       - "0.0.0.0:5555:5555"

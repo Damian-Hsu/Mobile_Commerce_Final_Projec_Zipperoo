@@ -1,644 +1,1088 @@
-# Zipperoo E-commerce API v1 完整文檔
+# API 結構文件 (v1)
 
-## 目錄
+本文檔詳細描述了 Zipperoo 電商平台的 API 端點、請求/回應格式及認證機制。
 
-1. [系統概覽](#1-系統概覽)
-2. [通用響應格式](#2-通用響應格式)
-3. [認證系統](#3-認證系統)
-4. [系統健康檢查](#4-系統健康檢查)
-5. [公共 API](#5-公共-api)
-6. [分類管理 API](#6-分類管理-api)
-7. [賣家 API](#7-賣家-api)
-8. [商品款式管理 API](#8-商品款式管理-api)
-9. [買家 API](#9-買家-api)
-10. [評價系統 API](#10-評價系統-api)
-11. [聊天系統 API](#11-聊天系統-api)
-12. [圖片管理 API](#12-圖片管理-api)
-13. [管理員 API](#13-管理員-api)
+## 基礎 URL
 
----
+所有 API 端點都基於以下基礎 URL：
 
-## 1. 系統概覽
+-   **後端 API:** `http://localhost:3000` (或其他部署後的主機名稱)
+-   **WebSocket:** `ws://localhost:3000/chat`
 
-Zipperoo 是一個功能完整的電商平台，支援：
-- 多角色權限系統（買家、賣家、管理員）
-- 商品變體管理（顏色、尺寸等）
-- 購物車與結帳系統
-- 評價與評論系統
-- 即時聊天系統
-- 圖片上傳與管理
-- 完整的管理後台
+所有 RESTful API 路徑都以 `/api/v1` 作為前綴。
 
-## 2. 通用響應格式
+## 認證
 
-所有端點回應皆包裝於 `ResponseDto`：
+本系統採用 JSON Web Tokens (JWT) 進行認證。需要認證的端點必須在 HTTP 請求的 `Authorization` 標頭中包含 `Bearer` 權杖。
 
-### 成功響應
+-   **格式:** `Authorization: Bearer <your_jwt_token>`
+
+權杖可透過 `/api/v1/auth/login` 端點取得。部分端點還需要特定的使用者角色 (`BUYER`, `SELLER`, `ADMIN`)。
+
+## 通用回應格式
+
+所有 API 回應都遵循以下標準格式：
+
 ```json
 {
-  "statusCode": 200|201,
-  "message": "操作成功的描述信息",
-  "data": { ... }
-}
-```
-
-### 錯誤響應
-```json
-{
-  "statusCode": 4xx|5xx,
-  "message": "錯誤信息",
-  "data": null
+  "success": true, // 或 false
+  "message": "描述訊息",
+  "data": {
+    // 回應資料
+  },
+  "error": { // (可選) 僅在 success 為 false 時出現
+    "code": "ERROR_CODE",
+    "details": "錯誤詳情"
+  }
 }
 ```
 
 ---
 
-## 3. 認證系統
+## 1. 認證系統 (Auth)
 
-### 3.1 用戶註冊
-- **端點**: `POST /auth/register`
-- **權限**: Public
-- **目的**: 註冊新用戶（買家或賣家）。
-- **請求體** (`RegisterDto`):
+管理使用者註冊、登入、登出及個人資料。
+
+### `POST /api/v1/auth/register`
+註冊新使用者。
+
+- **需要認證:** 否
+- **角色限制:** 無
+
+**請求 Body (`application/json`):**
 ```json
 {
-  "account": "string (3字符以上)",
-  "password": "string (6字符以上)",
-  "username": "string (2字符以上)",
-  "email": "string (可選, 有效email格式)",
-  "phone": "string (可選)",
-  "role": "BUYER | SELLER",
-  "shopName": "string (賣家必填, 當 role 為 SELLER)",
-  "description": "string (可選, 賣家商店描述)"
+  "username": "testuser",
+  "password": "password123",
+  "email": "test@example.com",
+  "role": "BUYER" // 或 "SELLER"
 }
 ```
-- **成功回應** (`ResponseDto<AuthResponseDto>`):
+
+**回應 (201 Created):**
 ```json
 {
-  "statusCode": 201,
+  "success": true,
   "message": "註冊成功",
   "data": {
-    "accessToken": "string (JWT)",
-    "refreshToken": "string (JWT)",
     "user": {
-      "id": "number",
-      "account": "string",
-      "username": "string",
-      "email": "string (可選)",
-      "phone": "string (可選)",
-      "role": "BUYER | SELLER",
-      "shopName": "string (可選)",
-      "description": "string (可選)"
-    }
+      "id": 1,
+      "username": "testuser",
+      "email": "test@example.com",
+      "role": "BUYER"
+    },
+    "accessToken": "ey...",
+    "refreshToken": "ey..."
   }
 }
 ```
 
-### 3.2 用戶登入
-- **端點**: `POST /auth/login`
-- **權限**: Public
-- **目的**: 使用帳號密碼登入系統。
-- **請求體** (`LoginDto`):
+---
+
+### `POST /api/v1/auth/login`
+使用者登入。
+
+- **需要認證:** 否
+- **角色限制:** 無
+
+**請求 Body (`application/json`):**
 ```json
 {
-  "account": "string (3字符以上)",
-  "password": "string (6字符以上)"
+  "account": "testuser", // 可以是 username 或 email
+  "password": "password123"
 }
 ```
-- **成功回應** (`ResponseDto<AuthResponseDto>`):
+
+**回應 (200 OK):**
 ```json
 {
-  "statusCode": 200,
+  "success": true,
   "message": "登入成功",
   "data": {
-    "accessToken": "string (JWT)",
-    "refreshToken": "string (JWT)",
     "user": {
-      "id": "number",
-      "account": "string",
-      "username": "string",
-      "email": "string (可選)",
-      "phone": "string (可選)",
-      "role": "BUYER | SELLER | ADMIN", // Note: Controller returns User model which can be ADMIN
-      "shopName": "string (可選)",
-      "description": "string (可選)"
-    }
+      "id": 1,
+      "username": "testuser",
+      "email": "test@example.com",
+      "role": "BUYER"
+    },
+    "accessToken": "ey...",
+    "refreshToken": "ey..."
   }
 }
 ```
 
-### 3.3 用戶登出
-- **端點**: `POST /auth/logout`
-- **權限**: Buyer | Seller | Admin (需要有效 accessToken)
-- **目的**: 登出當前用戶，使其 accessToken 失效。
-- **成功回應** (`ResponseDto<null>`):
+---
+
+### `POST /api/v1/auth/logout`
+使用者登出。
+
+- **需要認證:** 是
+- **角色限制:** 無
+
+**請求 Body:** 無
+
+**回應 (200 OK):**
 ```json
 {
-  "statusCode": 200,
-  "message": "成功登出",
+  "success": true,
+  "message": "登出成功",
   "data": null
 }
 ```
 
-### 3.4 獲取個人資料
-- **端點**: `GET /auth/profile`
-- **權限**: Buyer | Seller | Admin (需要有效 accessToken)
-- **目的**: 獲取當前登入用戶的詳細資料。
-- **成功回應** (`ResponseDto<User>`):
-```json
-{
-  "statusCode": 200,
-  "message": "成功獲取用戶資料",
-  "data": { // Prisma User Model structure
-    "id": "number",
-    "account": "string",
-    "username": "string",
-    "email": "string (可選)",
-    "phone": "string (可選)",
-    "role": "BUYER | SELLER | ADMIN",
-    "hashedPassword": "string (不會在回應中返回)",
-    "isBlocked": "boolean",
-    "refreshToken": "string (可選, 不會在此回應中返回)",
-    "createdAt": "string (ISO8601 DateTime)",
-    "updatedAt": "string (ISO8601 DateTime)",
-    // Seller specific fields if applicable
-    "shopName": "string (可選)",
-    "description": "string (可選)"
-    // Buyer specific fields if applicable
-    // Admin specific fields if applicable
-  }
-}
-```
-*注意: `hashedPassword` 和 `refreshToken` 欄位不會在實際 API 回應中返回。*
+---
 
-### 3.5 忘記密碼
-- **端點**: `POST /auth/forgot-password`
-- **權限**: Public
-- **目的**: 請求重設密碼，系統將發送重設指令（例如郵件）給用戶。
-- **請求體** (`ForgotPasswordDto`):
+### `GET /api/v1/auth/profile`
+獲取當前使用者資料。
+
+- **需要認證:** 是
+- **角色限制:** 無
+
+**回應 (200 OK):**
 ```json
 {
-  "email": "string (用戶註冊的email)"
-}
-```
-- **成功回應** (`ResponseDto<{ message: string }>`):
-```json
-{
-  "statusCode": 200,
-  "message": "已發送密碼重置郵件", // 或類似的成功訊息
+  "success": true,
+  "message": "獲取個人資料成功",
   "data": {
-    "message": "如果該 Email 存在，您將會收到一封密碼重置郵件。"
+    "id": 1,
+    "username": "testuser",
+    "email": "test@example.com",
+    "role": "BUYER",
+    "shopName": null, // 如果是賣家
+    "description": null // 如果是賣家
   }
 }
 ```
 
-### 3.6 重設密碼
-- **端點**: `POST /auth/reset-password`
-- **權限**: Public (通常需要請求中包含有效的重設token)
-- **目的**: 使用收到的token重設用戶密碼。
-- **請求體** (`ResetPasswordDto`):
+---
+
+### `POST /api/v1/auth/forgot-password`
+請求密碼重設信件。
+
+- **需要認證:** 否
+- **角色限制:** 無
+
+**請求 Body (`application/json`):**
 ```json
 {
-  "token": "string (從忘記密碼流程中獲取的token)",
-  "newPassword": "string (8字符以上)"
+  "email": "test@example.com"
 }
 ```
-- **成功回應** (`ResponseDto<AuthResponseDto>`):
+
+**回應 (200 OK):**
 ```json
 {
-  "statusCode": 200,
-  "message": "密碼重設成功",
+  "success": true,
+  "message": "密碼重置郵件已發送",
   "data": {
-    "accessToken": "string (JWT)",
-    "refreshToken": "string (JWT)",
-    "user": {
-      "id": "number",
-      "account": "string",
-      "username": "string",
-      "email": "string (可選)",
-      "phone": "string (可選)",
-      "role": "BUYER | SELLER | ADMIN",
-      "shopName": "string (可選)",
-      "description": "string (可選)"
+    "message": "密碼重置郵件已發送"
+  }
+}
+```
+
+---
+
+### `POST /api/v1/auth/reset-password`
+使用權杖重設密碼。
+
+- **需要認證:** 否
+- **角色限制:** 無
+
+**請求 Body (`application/json`):**
+```json
+{
+  "token": "reset_token_from_email",
+  "newPassword": "newPassword123"
+}
+```
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "密碼重置成功",
+  "data": {
+    "message": "密碼重置成功"
+  }
+}
+```
+
+---
+
+## 2. 公開瀏覽 (Public Access)
+
+無需登入即可存取的端點。
+
+### `GET /api/v1/products`
+獲取商品列表，支援搜尋、分類篩選、價格篩選和排序。
+
+- **需要認證:** 否
+- **查詢參數:**
+  - `page` (number, optional): 頁碼，預設為 1。
+  - `pageSize` (number, optional): 每頁數量，預設為 10。
+  - `search` (string, optional): 搜尋關鍵字（商品名稱或描述）。
+  - `categoryId` (number, optional): 分類 ID。
+  - `minPrice` (number, optional): 最低價格。
+  - `maxPrice` (number, optional): 最高價格。
+  - `sortBy` (string, optional): 排序欄位，可選值: `createdAt`, `name`。
+  - `sortOrder` (string, optional): 排序方向，可選值: `asc`, `desc`。
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "獲取商品列表成功",
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "name": "範例商品",
+        "description": "這是一個很棒的商品",
+        "avgRating": 4.5,
+        "minPrice": 100,
+        "maxPrice": 250,
+        "images": [
+          { "id": 1, "url": "/uploads/img-1-xxxx.png" }
+        ],
+        "variants": [
+            { "id": 1, "name": "紅色, M", "price": 100, "stock": 50 },
+            { "id": 2, "name": "藍色, L", "price": 120, "stock": 30 }
+        ],
+        "category": { "id": 1, "name": "電子產品" },
+        "seller": { "id": 2, "shopName": "優質賣家" },
+        "_count": { "reviews": 15 }
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "pageSize": 10,
+      "total": 100,
+      "totalPages": 10
     }
   }
 }
 ```
 
-### 3.7 刷新 Access Token
-- **端點**: `POST /auth/refresh-token`
-- **權限**: Public (需要有效的 refreshToken 在請求體中)
-- **目的**: 使用 refreshToken 獲取新的 accessToken。
-- **請求體** (`RefreshTokenDto` - 假設結構):
+---
+
+### `GET /api/v1/products/:productId`
+獲取單一商品詳情。
+
+- **需要認證:** 否
+
+**回應 (200 OK):**
 ```json
 {
-  "refreshToken": "string (用戶持有的refreshToken)"
-}
-```
-- **成功回應** (`ResponseDto<{ accessToken: string }>`):
-```json
-{
-  "statusCode": 200,
-  "message": "成功刷新Token",
+  "success": true,
+  "message": "獲取商品詳情成功",
   "data": {
-    "accessToken": "string (新的JWT)"
+    "id": 1,
+    "name": "範例商品",
+    "description": "這是一個很棒的商品",
+    "avgRating": 4.5,
+    "minPrice": 100,
+    "maxPrice": 250,
+    "images": [
+      { "id": 1, "url": "/uploads/img-1-xxxx.png" }
+    ],
+    "variants": [
+        { "id": 1, "name": "紅色, M", "price": 100, "stock": 50, "attributes": [{"key":"顏色","value":"紅色"},{"key":"尺寸","value":"M"}] },
+        { "id": 2, "name": "藍色, L", "price": 120, "stock": 30, "attributes": [{"key":"顏色","value":"藍色"},{"key":"尺寸","value":"L"}] }
+    ],
+    "category": { "id": 1, "name": "電子產品" },
+    "seller": { "id": 2, "username": "seller1", "shopName": "優質賣家" },
+    "reviews": [
+      {
+        "id": 1,
+        "score": 5,
+        "comment": "非常好！",
+        "createdAt": "2023-10-27T10:00:00.000Z",
+        "buyer": { "id": 3, "username": "buyer1" }
+      }
+    ],
+    "_count": { "reviews": 15 }
   }
 }
 ```
 
 ---
 
-## 4. 系統健康檢查
+### `GET /api/v1/products/:productId/reviews`
+獲取商品的評論列表。
 
-### 4.1 健康檢查
-- **端點**: `GET /health`
-- **權限**: Public
-- **回應**:
+- **需要認證:** 否
+- **查詢參數:**
+  - `page` (number, optional): 頁碼，預設為 1。
+  - `pageSize` (number, optional): 每頁數量，預設為 10。
+
+**回應 (200 OK):**
 ```json
 {
+  "success": true,
+  "message": "獲取商品評論成功",
   "data": {
-    "status": "ok",
-    "timestamp": "2024-01-01T00:00:00.000Z",
-    "service": "Zipperoo Backend"
-  }
-}
-```
-
----
-
-## 5. 公共 API
-
-### 5.1 獲取商品列表（帶搜尋篩選）
-- **端點**: `GET /products`
-- **權限**: Public
-- **查詢參數**:
-  - `page`: 頁碼
-  - `pageSize`: 每頁項目數
-  - `search`: 搜尋關鍵字
-  - `categoryId`: 分類ID
-  - `minPrice`: 最低價格
-  - `maxPrice`: 最高價格
-  - `sortBy`: 排序欄位 (createdAt|name|price)
-  - `sortOrder`: 排序方向 (asc|desc)
-
-### 5.2 獲取單一商品詳情
-- **端點**: `GET /products/{id}`
-- **權限**: Public
-- **回應**: 包含商品詳情、圖片、評價和平均評分
-
-### 5.3 獲取所有分類
-- **端點**: `GET /categories`
-- **權限**: Public
-
-### 5.4 獲取分類下的商品
-- **端點**: `GET /categories/{id}/products`
-- **權限**: Public
-
----
-
-## 6. 分類管理 API
-
-### 6.1 創建分類
-- **端點**: `POST /categories`
-- **權限**: Seller | Admin
-- **請求體**:
-```json
-{
-  "name": "string"
-}
-```
-
-### 6.2 獲取單一分類
-- **端點**: `GET /categories/{id}`
-- **權限**: Public
-
-### 6.3 更新分類
-- **端點**: `PATCH /categories/{id}`
-- **權限**: Seller | Admin
-- **請求體**:
-```json
-{
-  "name": "string"
-}
-```
-
-### 6.4 刪除分類
-- **端點**: `DELETE /categories/{id}`
-- **權限**: Seller | Admin
-
----
-
-## 7. 賣家 API
-
-### 7.1 商品管理
-
-#### 獲取賣家商品列表
-- **端點**: `GET /seller/products`
-- **權限**: Seller
-
-#### 創建商品
-- **端點**: `POST /seller/products`
-- **權限**: Seller
-- **請求體**:
-```json
-{
-  "name": "string",
-  "description": "string",
-  "categoryId": "number (可選)",
-  "variants": [
-    {
-      "name": "string",
-      "price": "number",
-      "stock": "number"
+    "data": [
+        {
+          "id": 1,
+          "score": 5,
+          "comment": "非常好！",
+          "createdAt": "2023-10-27T10:00:00.000Z",
+          "buyer": { "id": 3, "username": "buyer1" }
+        }
+    ],
+    "meta": {
+      "page": 1,
+      "pageSize": 10,
+      "total": 5,
+      "totalPages": 1
     }
-  ],
-  "imageUrls": ["string"]
+  }
 }
 ```
 
-#### 獲取賣家單一商品
-- **端點**: `GET /seller/products/{id}`
-- **權限**: Seller
-
-#### 更新商品
-- **端點**: `PUT /seller/products/{id}`
-- **權限**: Seller
-
-#### 刪除商品
-- **端點**: `DELETE /seller/products/{id}`
-- **權限**: Seller
-
-### 7.2 訂單管理
-
-#### 獲取賣家訂單列表
-- **端點**: `GET /seller/orders`
-- **權限**: Seller
-
-#### 訂單出貨
-- **端點**: `PATCH /seller/orders/{orderId}/ship`
-- **權限**: Seller
-
-#### 完成訂單
-- **端點**: `PATCH /seller/orders/{orderId}/complete`
-- **權限**: Seller
-
 ---
 
-## 8. 商品款式管理 API
+### `GET /api/v1/categories`
+獲取所有分類列表。
 
-### 8.1 為商品新增款式
-- **端點**: `POST /seller/products/{productId}/variants`
-- **權限**: Seller | Admin
-- **請求體**:
+- **需要認證:** 否
+
+**回應 (200 OK):**
 ```json
 {
-  "variants": [
+  "success": true,
+  "message": "獲取分類列表成功",
+  "data": [
     {
-      "name": "string",
-      "price": "number",
-      "stock": "number"
+      "id": 1,
+      "name": "電子產品",
+      "description": "最新的電子產品",
+      "_count": { "products": 50 }
     }
   ]
 }
 ```
 
-### 8.2 更新商品款式
-- **端點**: `PUT /seller/variants/{variantId}`
-- **權限**: Seller | Admin
-- **請求體**:
-```json
-{
-  "name": "string (可選)",
-  "price": "number (可選)",
-  "stock": "number (可選)"
-}
-```
-
-### 8.3 刪除商品款式
-- **端點**: `DELETE /seller/variants/{variantId}`
-- **權限**: Seller | Admin
-
 ---
 
-## 9. 買家 API
+### `GET /api/v1/categories/:id`
+獲取單一分類詳情。
 
-### 9.1 購物車管理
+- **需要認證:** 否
 
-#### 獲取購物車
-- **端點**: `GET /buyers/me/cart`
-- **權限**: Buyer
-
-#### 添加商品到購物車
-- **端點**: `POST /buyers/me/cart/items`
-- **權限**: Buyer
-- **請求體**:
+**回應 (200 OK):**
 ```json
 {
-  "productVariantId": "number",
-  "quantity": "number"
-}
-```
-
-#### 更新購物車項目
-- **端點**: `PATCH /buyers/me/cart/items/{itemId}`
-- **權限**: Buyer
-- **請求體**:
-```json
-{
-  "quantity": "number (可選)",
-  "isSelected": "boolean (可選)"
-}
-```
-
-#### 從購物車刪除商品
-- **端點**: `DELETE /buyers/me/cart/items/{itemId}`
-- **權限**: Buyer
-
-### 9.2 結帳系統
-
-#### 結帳（支援指定項目ID）
-- **端點**: `POST /buyers/me/image.png`
-- **權限**: Buyer
-- **請求體**:
-```json
-{
-  "cartItemIds": ["number"] // 可選，指定要結帳的項目ID
-}
-```
-
-### 9.3 訂單管理
-
-#### 獲取買家訂單列表
-- **端點**: `GET /buyers/me/orders`
-- **權限**: Buyer
-
-#### 獲取買家單一訂單
-- **端點**: `GET /buyers/me/orders/{orderId}`
-- **權限**: Buyer
-
-#### 取消訂單
-- **端點**: `PATCH /buyers/me/orders/{orderId}/cancel`
-- **權限**: Buyer
-
----
-
-## 10. 評價系統 API
-
-### 10.1 創建商品評價
-- **端點**: `POST /products/{productId}/reviews`
-- **權限**: Buyer | Admin
-- **請求體**:
-```json
-{
-  "score": "number (1-5)",
-  "comment": "string (可選)"
-}
-```
-
-### 10.2 獲取商品評價列表
-- **端點**: `GET /products/{productId}/reviews`
-- **權限**: Public
-
-### 10.3 更新評價
-- **端點**: `PATCH /reviews/{reviewId}`
-- **權限**: Buyer | Admin
-- **請求體**:
-```json
-{
-  "score": "number (1-5, 可選)",
-  "comment": "string (可選)"
-}
-```
-
-### 10.4 刪除評價
-- **端點**: `DELETE /reviews/{reviewId}`
-- **權限**: Buyer | Admin
-
----
-
-## 11. 聊天系統 API
-
-### 11.1 創建或獲取聊天室
-- **端點**: `POST /chat/rooms`
-- **權限**: Buyer | Seller | Admin
-- **請求體**:
-```json
-{
-  "buyerId": "number (可選)",
-  "sellerId": "number (可選)"
-}
-```
-
-### 11.2 獲取用戶聊天室列表
-- **端點**: `GET /chat/rooms`
-- **權限**: Buyer | Seller | Admin
-
-### 11.3 獲取聊天室訊息
-- **端點**: `GET /chat/rooms/{roomId}/messages`
-- **權限**: Buyer | Seller | Admin
-
-### 11.4 發送訊息
-- **端點**: `POST /chat/rooms/{roomId}/messages`
-- **權限**: Buyer | Seller | Admin
-- **請求體**:
-```json
-{
-  "content": "string"
+  "success": true,
+  "message": "獲取分類成功",
+  "data": {
+    "id": 1,
+    "name": "電子產品",
+    "description": "最新的電子產品"
+  }
 }
 ```
 
 ---
 
-## 12. 圖片管理 API
+### `GET /api/v1/categories/:id/products`
+獲取特定分類下的商品。
 
-### 12.1 上傳商品圖片
-- **端點**: `POST /products/{productId}/images`
-- **權限**: Seller | Admin | Buyer
-- **請求**: multipart/form-data，欄位名稱為 `images`
-- **限制**: 最多8張圖片，每張最大10MB
+- **需要認證:** 否
+- **查詢參數:**
+  - `page` (number, optional): 頁碼，預設為 1。
+  - `pageSize` (number, optional): 每頁數量，預設為 10。
 
-### 12.2 刪除商品圖片
-- **端點**: `DELETE /images/{imageId}`
-- **權限**: Seller | Admin
-
-### 12.3 通過檔名獲取圖片
-- **端點**: `GET /imagesFromName/{imgName}`
-- **權限**: Public
-
-### 12.4 通過ID獲取圖片
-- **端點**: `GET /imagesFromID/{imageId}`
-- **權限**: Public
+**回應 (200 OK):** (格式同 `GET /api/v1/products`)
 
 ---
 
-## 13. 管理員 API
+## 3. 買家 (Buyer)
 
-### 13.1 用戶管理
+買家專用功能，需要 `BUYER` 角色權限。所有端點都需要認證。
 
-#### 獲取所有用戶
-- **端點**: `GET /admin/users`
-- **權限**: Admin
+### `GET /api/v1/buyers/me/cart`
+獲取當前使用者的購物車。
 
-#### 刪除用戶
-- **端點**: `DELETE /admin/users/{userId}`
-- **權限**: Admin
-
-#### 封鎖用戶
-- **端點**: `PATCH /admin/users/{userId}/block`
-- **權限**: Admin
-
-#### 解除封鎖用戶
-- **端點**: `PATCH /admin/users/{userId}/unblock`
-- **權限**: Admin
-
-### 13.2 商品管理
-
-#### 獲取所有商品（管理員）
-- **端點**: `GET /admin/products`
-- **權限**: Admin
-
-#### 刪除商品（管理員）
-- **端點**: `DELETE /admin/products/{productId}`
-- **權限**: Admin
-
-### 13.3 訂單管理
-
-#### 獲取所有訂單
-- **端點**: `GET /admin/orders`
-- **權限**: Admin
-
-#### 獲取單一訂單詳情
-- **端點**: `GET /admin/orders/{id}`
-- **權限**: Admin
-
-#### 更新訂單狀態
-- **端點**: `PATCH /admin/orders/{id}/status`
-- **權限**: Admin
-- **請求體**:
+**回應 (200 OK):**
 ```json
 {
-  "status": "UNCOMPLETED | COMPLETED | CANCELED"
+  "success": true,
+  "message": "獲取購物車成功",
+  "data": {
+    "id": 1,
+    "buyerId": 3,
+    "items": [
+      {
+        "id": 1,
+        "quantity": 2,
+        "variant": {
+          "id": 1,
+          "name": "紅色, M",
+          "price": 100,
+          "stock": 50,
+          "product": {
+            "id": 1,
+            "name": "範例商品",
+            "images": [{ "url": "/uploads/img-1-xxxx.png" }]
+          }
+        }
+      }
+    ],
+    "totalPrice": 200
+  }
 }
 ```
 
-### 13.4 系統管理
+---
 
-#### 獲取系統日誌
-- **端點**: `GET /admin/logs`
-- **權限**: Admin
+### `POST /api/v1/buyers/me/cart/items`
+新增商品至購物車。
+
+**請求 Body (`application/json`):**
+```json
+{
+  "productVariantId": 1,
+  "quantity": 1
+}
+```
+
+**回應 (201 Created):** (回應格式同 `GET /api/v1/buyers/me/cart`)
 
 ---
 
-## 總結
+### `PATCH /api/v1/buyers/me/cart/items/:itemId`
+更新購物車中的商品數量。
 
-本 API 文檔涵蓋了 Zipperoo 電商平台的所有功能：
+**請求 Body (`application/json`):**
+```json
+{
+  "quantity": 3
+}
+```
 
-- **51 個 API 端點**
-- **完整的用戶權限管理**
-- **支援商品變體系統**
-- **靈活的購物車與結帳機制**
-- **即時聊天功能**
-- **圖片上傳與管理**
-- **全面的管理後台**
+**回應 (200 OK):** (回應格式同 `GET /api/v1/buyers/me/cart`)
 
-所有端點都經過充分測試，並提供完整的錯誤處理和輸入驗證。
+---
+
+### `DELETE /api/v1/buyers/me/cart/items/:itemId`
+從購物車移除商品。
+
+**回應 (200 OK):** (回應格式同 `GET /api/v1/buyers/me/cart`)
+
+---
+
+### `POST /api/v1/buyers/me/checkout`
+從購物車結帳，創建訂單。
+
+**請求 Body (`application/json`):**
+```json
+{
+  "shippingAddress": "123 範例路",
+  "paymentMethod": "CREDIT_CARD" // 或其他付款方式
+}
+```
+
+**回應 (201 Created):**
+```json
+{
+  "success": true,
+  "message": "結帳成功",
+  "data": {
+    "id": 1,
+    "buyerId": 3,
+    "totalPrice": 200,
+    "status": "PENDING",
+    "shippingAddress": "123 範例路",
+    "paymentMethod": "CREDIT_CARD",
+    "createdAt": "2023-10-27T10:00:00.000Z",
+    "items": [
+        {
+            "id": 1,
+            "quantity": 2,
+            "price": 100,
+            "variant": { "id": 1, "name": "紅色, M" }
+        }
+    ]
+  }
+}
+```
+
+---
+
+### `GET /api/v1/buyers/me/orders`
+獲取我的訂單列表。
+
+- **查詢參數:**
+  - `page` (number, optional): 頁碼。
+  - `pageSize` (number, optional): 每頁數量。
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "獲取訂單列表成功",
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "totalPrice": 200,
+        "status": "PENDING",
+        "createdAt": "2023-10-27T10:00:00.000Z",
+        "items": [
+          {
+            "id": 1,
+            "quantity": 2,
+            "price": 100,
+            "variant": {
+              "id": 1,
+              "name": "紅色, M",
+              "product": { "id": 1, "name": "範例商品" }
+            }
+          }
+        ]
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "pageSize": 10,
+      "total": 1,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+---
+
+### `GET /api/v1/buyers/me/orders/:orderId`
+獲取單一訂單詳情。
+
+**回應 (200 OK):** (格式同 `POST /api/v1/buyers/me/checkout` 回應中的 data)
+
+---
+
+### `PATCH /api/v1/buyers/me/orders/:orderId/cancel`
+取消訂單。
+
+**回應 (200 OK):**
+```json
+{
+    "success": true,
+    "message": "訂單已取消",
+    "data": {
+        "id": 1,
+        "status": "CANCELLED"
+    }
+}
+```
+
+---
+
+### `POST /api/v1/products/:productId/reviews`
+建立商品評論。
+
+- **需要認證:** 是
+- **角色限制:** `BUYER`, `ADMIN`
+
+**請求 Body (`application/json`):**
+```json
+{
+  "score": 5, // 1-5
+  "comment": "這真是太棒了！"
+}
+```
+
+**回應 (201 Created):**
+```json
+{
+  "success": true,
+  "message": "評論創建成功",
+  "data": {
+    "id": 1,
+    "score": 5,
+    "comment": "這真是太棒了！",
+    "buyerId": 3,
+    "productId": 1
+  }
+}
+```
+
+---
+
+### `PATCH /api/v1/reviews/:reviewId`
+更新自己的評論。
+
+- **需要認證:** 是
+- **角色限制:** `BUYER`, `ADMIN`
+
+**請求 Body (`application/json`):**
+```json
+{
+  "score": 4,
+  "comment": "更新一下，還是不錯的。"
+}
+```
+
+**回應 (200 OK):** (格式同上)
+
+---
+
+### `DELETE /api/v1/reviews/:reviewId`
+刪除自己的評論。
+
+- **需要認證:** 是
+- **角色限制:** `BUYER`, `ADMIN`
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "評論刪除成功",
+  "data": null
+}
+```
+
+---
+
+## 4. 賣家 (Seller)
+
+賣家專用功能，需要 `SELLER` 或 `ADMIN` 角色權限。所有端點都需要認證。
+
+### `POST /api/v1/seller/products`
+建立新商品。
+
+**請求 Body (`application/json`):**
+```json
+{
+  "name": "全新的商品",
+  "description": "這是一個詳細的描述",
+  "categoryId": 1,
+  "variants": [
+    {
+      "name": "款式一",
+      "price": 199.99,
+      "stock": 100,
+      "attributes": [{ "key": "顏色", "value": "黑色" }]
+    }
+  ]
+}
+```
+
+**回應 (201 Created):**
+```json
+{
+  "success": true,
+  "message": "商品創建成功",
+  "data": {
+    "id": 101,
+    "name": "全新的商品",
+    "description": "這是一個詳細的描述",
+    "categoryId": 1,
+    "sellerId": 2,
+    "status": "ON_SHELF",
+    "variants": [
+        { "id": 201, "name": "款式一", "price": 199.99, "stock": 100 }
+    ]
+  }
+}
+```
+
+---
+
+### `PATCH /api/v1/seller/products/:id`
+更新商品資訊。
+
+**請求 Body (`application/json`):**
+```json
+{
+  "name": "更新後的商品名稱",
+  "description": "更新後的描述",
+  "status": "OFF_SHELF" // "ON_SHELF" 或 "OFF_SHELF"
+}
+```
+
+**回應 (200 OK):** (格式同上)
+
+---
+
+### `POST /api/v1/seller/products/:productId/variants`
+新增商品款式。
+
+**請求 Body (`application/json`):**
+```json
+{
+  "variants": [
+    {
+      "name": "款式二",
+      "price": 249.99,
+      "stock": 50,
+      "attributes": [{ "key": "顏色", "value": "白色" }]
+    }
+  ]
+}
+```
+
+**回應 (201 Created):**
+```json
+{
+    "success": true,
+    "message": "商品款式新增成功",
+    "data": {
+        "count": 1
+    }
+}
+```
+
+---
+
+### `PUT /api/v1/seller/variants/:variantId`
+更新商品款式。
+
+**請求 Body (`application/json`):**
+```json
+{
+  "name": "更新後的款式名稱",
+  "price": 259.99,
+  "stock": 45
+}
+```
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "商品款式更新成功",
+  "data": {
+    "id": 201,
+    "name": "更新後的款式名稱",
+    "price": 259.99,
+    "stock": 45
+  }
+}
+```
+
+---
+
+### `GET /api/v1/seller/orders`
+獲取賣家所有訂單。
+
+- **查詢參數:**
+  - `page` (number, optional): 頁碼。
+  - `pageSize` (number, optional): 每頁數量。
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "獲取訂單列表成功",
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "totalPrice": 200,
+        "status": "PENDING",
+        "shippingAddress": "123 範例路",
+        "createdAt": "2023-10-27T10:00:00.000Z",
+        "buyer": { "id": 3, "username": "buyer1" },
+        "items": [
+          {
+            "id": 1,
+            "quantity": 2,
+            "price": 100,
+            "variant": { "id": 1, "name": "紅色, M" }
+          }
+        ]
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "pageSize": 10,
+      "total": 1,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+---
+
+### `PATCH /api/v1/seller/orders/:orderId/ship`
+將訂單標示為已出貨。
+
+**回應 (200 OK):**
+```json
+{
+    "success": true,
+    "message": "訂單已出貨",
+    "data": {
+        "id": 1,
+        "status": "SHIPPED"
+    }
+}
+```
+
+---
+
+### `PATCH /api/v1/seller/orders/:orderId/complete`
+將訂單標示為已完成。
+
+**回應 (200 OK):**
+```json
+{
+    "success": true,
+    "message": "訂單已完成",
+    "data": {
+        "id": 1,
+        "status": "COMPLETED"
+    }
+}
+```
+
+---
+
+### `POST /api/v1/categories`
+建立新分類。
+
+- **角色限制:** `SELLER`, `ADMIN`
+
+**請求 Body (`application/json`):**
+```json
+{
+  "name": "新的分類",
+  "description": "分類描述"
+}
+```
+
+**回應 (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Category created successfully.",
+  "data": {
+    "id": 5,
+    "name": "新的分類",
+    "description": "分類描述"
+  }
+}
+```
+
+---
+
+### `PATCH /api/v1/categories/:id`
+更新分類。
+
+- **角色限制:** `SELLER`, `ADMIN`
+
+**請求 Body (`application/json`):**
+```json
+{
+  "name": "更新後的分類名稱",
+  "description": "更新後的分類描述"
+}
+```
+
+**回應 (200 OK):** (格式同上)
+
+---
+
+### `DELETE /api/v1/categories/:id`
+刪除分類。
+
+- **角色限制:** `SELLER`, `ADMIN`
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Category deleted successfully.",
+  "data": null
+}
+```
+
+---
+
+## 5. 圖片管理 (Image Management)
+
+### `POST /api/v1/products/:productId/images`
+上傳商品圖片。
+
+- **需要認證:** 是
+- **角色限制:** `SELLER`, `ADMIN`, `BUYER`
+- **請求 Body:** `multipart/form-data`
+  - `images`: 圖片檔案 (可多選，最多8張)
+
+**回應 (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Images uploaded successfully.",
+  "data": [
+    {
+      "id": 10,
+      "filename": "img-1-xxxx.png",
+      "url": "/uploads/img-1-xxxx.png"
+    }
+  ]
+}
+```
+
+---
+
+### `DELETE /api/v1/images/:imageId`
+刪除商品圖片。
+
+- **需要認證:** 是
+- **角色限制:** `SELLER`, `ADMIN`
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "圖片刪除成功",
+  "data": {
+      "message": "圖片刪除成功"
+  }
+}
+```
+
+---
+
+## 6. 管理員 (Admin)
+
+管理員專用功能，需要 `ADMIN` 角色權限。所有端點都需要認證。
+
+### `GET /api/v1/admin/users`
+獲取所有使用者列表。
+
+- **查詢參數:** `page`, `pageSize`
+
+**回應 (200 OK):** (包含分頁的用戶列表)
+
+---
+
+### `PATCH /api/v1/admin/users/:userId/block`
+封鎖指定使用者。
+
+**回應 (200 OK):**
+```json
+{
+    "success": true,
+    "message": "用戶已封鎖",
+    "data": { "id": 5, "isBlocked": true }
+}
+```
+
+---
+
+### `PATCH /api/v1/admin/orders/:id/status`
+更新訂單狀態。
+
+**請求 Body (`application/json`):**
+```json
+{
+  "status": "SHIPPED" // PENDING, SHIPPED, COMPLETED, CANCELLED
+}
+```
+
+**回應 (200 OK):**
+```json
+{
+    "success": true,
+    "message": "訂單狀態更新成功",
+    "data": { "id": 1, "status": "SHIPPED" }
+}
+```
+
+---
+
+## 7. 聊天系統 (Chat)
+
+### 7.1 REST API
+
+#### `POST /api/v1/chat/rooms`
+建立或獲取聊天室。
+
+- **需要認證:** 是
+- **角色限制:** `BUYER`, `SELLER`, `ADMIN`
+- **請求 Body (`application/json`):**
+  - (當前用戶為買家時) `{ "sellerId": 2 }`
+  - (當前用戶為賣家時) `{ "buyerId": 3 }`
+
+**回應 (200 OK / 201 Created):**
+```json
+{
+    "success": true,
+    "message": "聊天室創建/獲取成功",
+    "data": {
+        "id": 1,
+        "buyerId": 3,
+        "sellerId": 2,
+        "lastMessage": "你好！",
+        "updatedAt": "2023-10-27T12:00:00.000Z"
+    }
+}
+```
+
+---
+
+#### `POST /api/v1/chat/rooms/:roomId/messages`
+在聊天室中發送訊息。
+
+- **需要認證:** 是
+- **角色限制:** `BUYER`, `SELLER`, `ADMIN`
+- **請求 Body (`application/json`):**
+```json
+{
+  "content": "請問這個商品還有貨嗎？"
+}
+```
+
+**回應 (201 Created):**
+```json
+{
+    "success": true,
+    "message": "訊息發送成功",
+    "data": {
+        "id": 101,
+        "content": "請問這個商品還有貨嗎？",
+        "senderId": 3,
+        "roomId": 1
+    }
+}
+```
+
+### 7.2 WebSocket (Namespace: `/chat`)
+
+客戶端需透過 `Authorization` 標頭或 `auth.token` 傳遞 JWT 進行連線。
+
+**客戶端 -> 伺服器事件:**
+- `joinRoom` -> `data: { roomId: number }`
+- `leaveRoom` -> `data: { roomId: number }`
+- `chatMessage` -> `data: { roomId: number, content: string }`
+
+**伺服器 -> 客戶端事件:**
+- `newMessage` -> `payload: { message: Message, room: Room }`
+- `error` -> `payload: { message: string }`
+
+---
+
+## 8. 系統健康檢查 (Health Check)
+
+### `GET /api/v1/health`
+檢查系統狀態。
+
+- **需要認證:** 否
+
+**回應 (200 OK):**
+```json
+{
+  "success": true,
+  "message": "系統健康",
+  "data": {
+    "status": "ok",
+    "timestamp": "2023-10-27T10:00:00.000Z",
+    "service": "Zipperoo Backend"
+  }
+}
+```

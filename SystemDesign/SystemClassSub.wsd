@@ -170,7 +170,7 @@ package "Services" {
     }
     
     class CategoryService {
-        +getCategories(): Category[]
+        +getCategories(): CategoryWithProductCount[]
         +getCategory(id: number): Category
         +createCategory(dto: CreateCategoryDto): Category
         +updateCategory(id: number, dto: UpdateCategoryDto): Category

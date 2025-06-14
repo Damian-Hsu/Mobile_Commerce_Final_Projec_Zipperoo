@@ -278,19 +278,47 @@ export class ProductDetailPage {
         if (variants.length === 0) {
             console.log('沒有規格選項');
             this.variantsContainer.innerHTML = '<p class="text-muted">此商品無規格選項</p>';
-            // 如果沒有規格，啟用購買按鈕並更新庫存信息
-            if (this.addToCartBtn) this.addToCartBtn.disabled = false;
-            if (this.buyNowBtn) this.buyNowBtn.disabled = false;
             
-            // 設定默認庫存信息
+            // 設定缺貨狀態和禁用購買按鈕
             const stockBadge = document.getElementById('stock-badge');
             const stockText = document.getElementById('stock-text');
             if (stockBadge && stockText) {
-                stockBadge.className = 'badge bg-success';
-                stockBadge.textContent = '有庫存';
-                stockText.textContent = '庫存充足';
+                stockBadge.className = 'badge bg-danger';
+                stockBadge.textContent = '缺貨';
+                stockText.textContent = '暫時缺貨';
             }
+            
+            // 禁用購買按鈕
+            if (this.addToCartBtn) this.addToCartBtn.disabled = true;
+            if (this.buyNowBtn) this.buyNowBtn.disabled = true;
             return;
+        }
+        
+        // 計算總庫存
+        const totalStock = variants.reduce((sum, variant) => sum + (variant.stock || 0), 0);
+        console.log('總庫存:', totalStock);
+        
+        // 設定初始庫存狀態
+        const stockBadge = document.getElementById('stock-badge');
+        const stockText = document.getElementById('stock-text');
+        if (stockBadge && stockText) {
+            if (totalStock === 0) {
+                // 完全缺貨
+                stockBadge.className = 'badge bg-danger';
+                stockBadge.textContent = '缺貨';
+                stockText.textContent = '暫時缺貨';
+                // 禁用購買按鈕
+                if (this.addToCartBtn) this.addToCartBtn.disabled = true;
+                if (this.buyNowBtn) this.buyNowBtn.disabled = true;
+            } else {
+                // 有庫存，等待用戶選擇規格
+                stockBadge.className = 'badge bg-info';
+                stockBadge.textContent = '請選擇規格';
+                stockText.textContent = '請選擇商品規格';
+                // 禁用購買按鈕，等待選擇規格
+                if (this.addToCartBtn) this.addToCartBtn.disabled = true;
+                if (this.buyNowBtn) this.buyNowBtn.disabled = true;
+            }
         }
         
         this.variantsContainer.innerHTML = '';
@@ -315,7 +343,7 @@ export class ProductDetailPage {
             this.variantsContainer.appendChild(variantButton);
         });
         
-        console.log(`成功渲染 ${variants.length} 個規格選項`);
+        console.log(`成功渲染 ${variants.length} 個規格選項，總庫存: ${totalStock}`);
     }
 
     selectVariant(variant, buttonElement) {

@@ -58,8 +58,8 @@
 
               <div class="mb-3">
                 <label for="account" class="form-label">帳號 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="account" name="account" required minlength="3" placeholder="請輸入您的帳號">
-                <div class="form-text">帳號最少需要 3 個字元，建議使用英文或數字</div>
+                <input type="text" class="form-control" id="account" name="account" required minlength="8" placeholder="請輸入您的帳號">
+                <div class="form-text">帳號最少需要 8 個字元，建議使用英文或數字</div>
               </div>
 
               <div class="mb-3">
@@ -70,8 +70,8 @@
 
               <div class="mb-3">
                 <label for="email" class="form-label">電子郵件</label>
-                <input type="email" class="form-control" id="email" name="email" placeholder="請輸入您的電子郵件（可選）">
-                <div class="form-text">用於接收重要通知，非必填</div>
+                <input type="email" class="form-control" id="email" name="email" placeholder="請輸入您的電子郵件" required>
+                <div class="form-text">用於接收重要通知與找回與找回密碼</div>
               </div>
 
               <div class="mb-3">
@@ -83,12 +83,12 @@
               <div class="mb-3">
                 <label for="password" class="form-label">密碼 <span class="text-danger">*</span></label>
                 <div class="input-group">
-                  <input type="password" class="form-control" id="password" name="password" required minlength="6" placeholder="請輸入您的密碼" autocomplete="new-password">
+                  <input type="password" class="form-control" id="password" name="password" required minlength="8" placeholder="請輸入您的密碼" autocomplete="new-password">
                   <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="togglePasswordIcon"></i>
                   </button>
                 </div>
-                <div class="form-text">密碼至少需要 6 個字元</div>
+                <div class="form-text">密碼至少需要8個字元</div>
               </div>
 
               <div class="mb-3">

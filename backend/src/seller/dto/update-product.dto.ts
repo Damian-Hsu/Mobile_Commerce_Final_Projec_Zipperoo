@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsPositive, IsOptional, MinLength, IsArray, IsIn, ValidateNested, IsNumber } from 'class-validator';
+import { IsString, IsInt, IsPositive, IsOptional, MinLength, IsArray, IsIn, ValidateNested, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class ProductVariantDto {
@@ -11,7 +11,7 @@ class ProductVariantDto {
   price: number;
 
   @IsInt()
-  @IsPositive()
+  @Min(0, { message: '庫存數量不能為負數' })
   stock: number;
 }
 
@@ -32,8 +32,8 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['ON_SHELF', 'OFF_SHELF', 'OUT_OF_STOCK'])
-  status?: 'ON_SHELF' | 'OFF_SHELF' | 'OUT_OF_STOCK';
+  @IsIn(['ON_SHELF', 'OFF_SHELF', 'DELETED'])
+  status?: 'ON_SHELF' | 'OFF_SHELF' | 'DELETED';
 
   @IsOptional()
   @IsArray()

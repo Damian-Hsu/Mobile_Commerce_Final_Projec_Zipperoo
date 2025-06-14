@@ -508,6 +508,16 @@ class APIClient {
   async getAdminCategory(categoryId) {
     return await this.request('GET', `/categories/${categoryId}`, null, false);
   }
+
+  // 更新商品（管理員）
+  async updateAdminProduct(productId, productData) {
+    return await this.request('PATCH', `/admin/products/${productId}`, productData, true);
+  }
+
+  // 更新商品狀態（管理員）
+  async updateAdminProductStatus(productId, status) {
+    return await this.request('PATCH', `/admin/products/${productId}/status`, { status }, true);
+  }
 }
 
 // 導出單例

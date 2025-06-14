@@ -41,14 +41,10 @@ package "應用服務層 (Application Services)" {
     
     class CategoryService <<service>> {
         +createCategory(dto: CreateCategoryDto): Category
-        +getCategories(): Category[]
+        +getCategories(): CategoryWithProductCount[]
         +getCategory(id: number): Category
         +updateCategory(id: number, dto: UpdateCategoryDto): Category
         +deleteCategory(id: number): void
-        +getCategoryProducts(categoryId: number, query: PaginationDto): PaginatedResult<Product>
-        --
-        -validateCategoryExists(id: number): boolean
-        -checkCategoryInUse(id: number): boolean
     }
     
     class VariantService <<service>> {

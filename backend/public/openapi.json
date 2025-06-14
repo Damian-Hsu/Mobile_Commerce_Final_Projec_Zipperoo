@@ -1797,6 +1797,102 @@
         ]
       }
     },
+    "/api/v1/admin/products/{id}": {
+      "patch": {
+        "description": "管理員更新指定商品的信息",
+        "operationId": "AdminController_updateProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "商品更新成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新商品",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
+    "/api/v1/admin/products/{id}/status": {
+      "patch": {
+        "description": "管理員更新指定商品的狀態",
+        "operationId": "AdminController_updateProductStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "商品ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "商品狀態更新成功"
+          },
+          "400": {
+            "description": "請求參數錯誤"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          },
+          "404": {
+            "description": "商品不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "更新商品狀態",
+        "tags": [
+          "系統管理"
+        ]
+      }
+    },
     "/api/v1/chat/rooms": {
       "post": {
         "description": "買家和賣家之間創建或獲取聊天室",
@@ -2774,6 +2870,24 @@
       "UpdateOrderStatusDto": {
         "type": "object",
         "properties": {}
+      },
+      "UpdateProductStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "商品狀態",
+            "enum": [
+              "ON_SHELF",
+              "OFF_SHELF",
+              "DELETED"
+            ],
+            "example": "ON_SHELF"
+          }
+        },
+        "required": [
+          "status"
+        ]
       },
       "CreateReviewDto": {
         "type": "object",

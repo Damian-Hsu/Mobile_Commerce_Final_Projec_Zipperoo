@@ -132,9 +132,16 @@ class SellerProducts {
                 
                 // 狀態過濾
                 if (this.statusFilter) {
-                    filteredProducts = filteredProducts.filter(product => 
-                        product.status === this.statusFilter
-                    );
+                    filteredProducts = filteredProducts.filter(product => {
+                        if (this.statusFilter === 'OUT_OF_STOCK') {
+                            // 缺貨篩選：庫存為0的商品
+                            const totalStock = product.variants?.reduce((sum, variant) => sum + (variant.stock || 0), 0) || 0;
+                            return totalStock === 0;
+                        } else {
+                            // 其他狀態篩選
+                            return product.status === this.statusFilter;
+                        }
+                    });
                 }
                 
                 this.products = filteredProducts;
@@ -167,6 +174,11 @@ class SellerProducts {
         };
 
         this.allProducts.forEach(product => {
+            // 計算庫存總量
+            const totalStock = product.variants?.reduce((sum, variant) => sum + (variant.stock || 0), 0) || 0;
+            const isOutOfStock = totalStock === 0;
+
+            // 根據商品狀態統計（不論是否缺貨）
             switch (product.status) {
                 case 'ON_SHELF':
                     stats.onShelf++;
@@ -174,11 +186,15 @@ class SellerProducts {
                 case 'OFF_SHELF':
                     stats.offShelf++;
                     break;
-                case 'OUT_OF_STOCK':
-                    stats.outOfStock++;
-                    break;
+            }
+
+            // 單獨統計缺貨商品（可以與上架/下架狀態並存）
+            if (isOutOfStock) {
+                stats.outOfStock++;
             }
         });
+
+        console.log('🔍 賣家商品統計:', stats);
 
         // 更新統計顯示
         document.getElementById('seller-total-products').textContent = stats.total.toLocaleString();
@@ -311,7 +327,7 @@ class SellerProducts {
         switch (status) {
             case 'ON_SHELF': return '上架中';
             case 'OFF_SHELF': return '已下架';
-            case 'OUT_OF_STOCK': return '缺貨';
+            case 'DELETED': return '已刪除';
             default: return '未知';
         }
     }
@@ -455,7 +471,7 @@ class SellerProducts {
                                 <select class="form-select" id="productStatus" required>
                                     <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
                                     <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>已下架</option>
-                                    <option value="OUT_OF_STOCK" ${product.status === 'OUT_OF_STOCK' ? 'selected' : ''}>缺貨</option>
+                                    
                                 </select>
                             </div>
                         </div>

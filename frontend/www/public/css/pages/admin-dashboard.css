@@ -106,6 +106,18 @@
     background: linear-gradient(135deg, #f093fb, #f5576c);
 }
 
+.stat-card.on-shelf .stat-icon {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.stat-card.off-shelf .stat-icon {
+    background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+.stat-card.out-of-stock .stat-icon {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
 .stat-card.orders .stat-icon {
     background: linear-gradient(135deg, #4facfe, #00f2fe);
 }
@@ -460,10 +472,33 @@
     border: 1px solid #d6d8db;
 }
 
+/* 狀態選擇器樣式 */
+.status-select {
+    min-width: 100px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.status-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    background-color: #ffffff;
+}
+
+.status-select option {
+    background-color: #ffffff;
+    color: #333333;
+    padding: 0.25rem;
+}
+
 /* 操作欄位寬度調整 */
 .data-table th:last-child,
 .data-table td:last-child {
-    width: 120px;
+    width: 140px;
     text-align: center;
 }
 

@@ -550,7 +550,7 @@ class AdminDashboard {
             // 並行載入所有統計數據
             const [usersResult, productsResult, categoriesResult, ordersResult, logsResult] = await Promise.all([
                 window.apiClient.getAdminUsers({ page: 1, pageSize: 1 }).catch(e => ({ error: e, data: null })),
-                window.apiClient.getAdminProducts({ page: 1, pageSize: 1 }).catch(e => ({ error: e, data: null })),
+                window.apiClient.getAdminProducts({ page: 1, pageSize: 1000 }).catch(e => ({ error: e, data: null })), // 載入更多商品以計算缺貨
                 window.apiClient.getAdminCategories({ page: 1, pageSize: 1 }).catch(e => ({ error: e, data: null })),
                 window.apiClient.getAdminOrders({ page: 1, pageSize: 1 }).catch(e => ({ error: e, data: null })),
                 window.apiClient.getAdminLogs({ page: 1, pageSize: 1 }).catch(e => ({ error: e, data: null }))
@@ -571,11 +571,49 @@ class AdminDashboard {
             const totalOrders = ordersResult.error ? '錯誤' : (ordersResult.data?.pagination?.total || 0);
             const totalLogs = logsResult.error ? '錯誤' : (logsResult.data?.pagination?.total || 0);
             
-            document.getElementById('total-users').textContent = totalUsers;
-            document.getElementById('total-products').textContent = totalProducts;
-            document.getElementById('total-categories').textContent = totalCategories;
-            document.getElementById('total-orders').textContent = totalOrders;
-            document.getElementById('total-logs').textContent = totalLogs;
+            // 計算商品狀態統計
+            let onShelfCount = 0;
+            let offShelfCount = 0;
+            let outOfStockCount = 0;
+            
+            if (!productsResult.error && productsResult.data?.products) {
+                const products = productsResult.data.products;
+                console.log('🔍 計算商品統計，商品數量:', products.length);
+                
+                products.forEach(product => {
+                    const totalStock = this.calculateTotalStock(product);
+                    const isOutOfStock = totalStock === 0;
+                    
+                    console.log(`商品 ${product.id} (${product.name}): 庫存=${totalStock}, 狀態=${product.status}, 缺貨=${isOutOfStock}`);
+                    
+                    if (isOutOfStock) {
+                        outOfStockCount++;
+                        console.log(`✅ 缺貨商品計數 +1, 當前缺貨總數: ${outOfStockCount}`);
+                    } else if (product.status === 'ON_SHELF') {
+                        onShelfCount++;
+                    } else if (product.status === 'OFF_SHELF') {
+                        offShelfCount++;
+                    }
+                });
+                
+                console.log('📊 最終統計結果:', {
+                    上架中: onShelfCount,
+                    已下架: offShelfCount,
+                    缺貨: outOfStockCount
+                });
+            }
+            
+            // 更新統計元素
+            if (document.getElementById('total-users')) document.getElementById('total-users').textContent = totalUsers;
+            if (document.getElementById('total-products')) document.getElementById('total-products').textContent = totalProducts;
+            if (document.getElementById('total-categories')) document.getElementById('total-categories').textContent = totalCategories;
+            if (document.getElementById('total-orders')) document.getElementById('total-orders').textContent = totalOrders;
+            if (document.getElementById('total-logs')) document.getElementById('total-logs').textContent = totalLogs;
+            
+            // 更新商品狀態統計
+            if (document.getElementById('on-shelf-count')) document.getElementById('on-shelf-count').textContent = onShelfCount;
+            if (document.getElementById('off-shelf-count')) document.getElementById('off-shelf-count').textContent = offShelfCount;
+            if (document.getElementById('out-of-stock-count')) document.getElementById('out-of-stock-count').textContent = outOfStockCount;
 
             console.log('✅ 統計數據載入完成:', {
                 users: totalUsers,
@@ -864,13 +902,20 @@ class AdminDashboard {
                     }
                 </td>
                 <td style="width: 80px; text-align: center;">
-                    ${product.variants ? product.variants.reduce((sum, v) => sum + (v.stock || 0), 0) : 0}
+                    ${(() => {
+                        const totalStock = product.variants ? product.variants.reduce((sum, v) => sum + (v.stock || 0), 0) : 0;
+                        const isOutOfStock = totalStock === 0;
+                        return `
+                            <span class="${isOutOfStock ? 'text-danger fw-bold' : 'text-success'}">
+                                ${totalStock}
+                            </span>
+                            ${isOutOfStock ? '<br><small class="text-warning">⚠️ 缺貨</small>' : ''}
+                        `;
+                    })()}
                 </td>
-                <td style="width: 80px;">
-                    <span class="status-badge ${(product.status || 'ACTIVE').toLowerCase()}">
-                        ${this.getStatusDisplayName(product.status || 'ACTIVE')}
-                        </span>
-                    </td>
+                <td style="width: 120px;">
+                    ${this.getProductStatusDisplay(product)}
+                </td>
                 <td style="width: 120px;">
                     ${this.formatDate(product.createdAt)}
                 </td>
@@ -1273,12 +1318,63 @@ class AdminDashboard {
 
     getStatusDisplayName(status) {
         const statusNames = {
+            'ON_SHELF': '上架中',
+            'OFF_SHELF': '下架',
+            'DELETED': '已刪除',
             'ACTIVE': '上架中',
             'INACTIVE': '已下架',
             'PENDING': '審核中',
             'REJECTED': '已拒絕'
         };
         return statusNames[status] || status;
+    }
+
+    // 計算商品總庫存
+    calculateTotalStock(product) {
+        if (!product.variants || product.variants.length === 0) {
+            return 0;
+        }
+        return product.variants.reduce((total, variant) => total + (variant.stock || 0), 0);
+    }
+
+    // 判斷商品是否缺貨
+    isOutOfStock(product) {
+        return this.calculateTotalStock(product) === 0;
+    }
+
+    // 獲取商品狀態顯示（包含動態缺貨判斷）
+    getProductStatusDisplay(product) {
+        const totalStock = this.calculateTotalStock(product);
+        const isOutOfStock = totalStock === 0;
+        
+        // 如果商品已被刪除，顯示為不可編輯的狀態
+        if (product.status === 'DELETED') {
+            return `<span class="badge bg-secondary">已刪除</span>`;
+        }
+        
+        // 如果缺貨，顯示缺貨警告但保持原有狀態
+        if (isOutOfStock) {
+            return `
+                <div>
+                    <span class="badge bg-warning text-dark mb-1">⚠️ 缺貨</span>
+                    <select class="form-select form-select-sm status-select" 
+                            data-product-id="${product.id}" 
+                            onchange="window.adminDashboard.updateProductStatus(${product.id}, this.value)">
+                        <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
+                        <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>下架</option>
+                    </select>
+                </div>
+            `;
+        }
+        
+        return `
+            <select class="form-select form-select-sm status-select" 
+                    data-product-id="${product.id}" 
+                    onchange="window.adminDashboard.updateProductStatus(${product.id}, this.value)">
+                <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
+                <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>下架</option>
+            </select>
+        `;
     }
 
     getOrderStatusDisplayName(status) {
@@ -1625,9 +1721,9 @@ class AdminDashboard {
                         <div class="col-md-6 mb-3">
                             <label for="edit-product-status" class="form-label">商品狀態</label>
                             <select class="form-select" id="edit-product-status">
-                                <option value="ACTIVE" ${product.status === '上架中' ? 'selected' : ''}>上架中</option>
-                                <option value="INACTIVE" ${product.status === '下架' ? 'selected' : ''}>下架</option>
-                                <option value="PENDING" ${product.status === '待審核' ? 'selected' : ''}>待審核</option>
+                                                        <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
+                        <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>下架</option>
+                        <option value="DELETED" ${product.status === 'DELETED' ? 'selected' : ''}>已刪除</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -1676,9 +1772,8 @@ class AdminDashboard {
             
             console.log(`📝 更新商品 ID: ${productId}`);
             
-            // 注意：這裡需要根據實際的API來調整
-            // 目前使用 updateProduct API，但可能需要管理員專用的API
-            const result = await window.apiClient.updateProduct(productId, {
+            // 使用管理員專用的商品更新API
+            const result = await window.apiClient.updateAdminProduct(productId, {
                 name: name,
                 status: status
             });
@@ -1695,6 +1790,25 @@ class AdminDashboard {
         } catch (error) {
             console.error('❌ 更新商品失敗:', error);
             this.showError('更新商品失敗: ' + error.message);
+        }
+    }
+
+    // 單獨更新商品狀態的方法
+    async updateProductStatus(productId, status) {
+        try {
+            console.log(`📝 更新商品狀態 ID: ${productId}, 狀態: ${status}`);
+            
+            // 使用管理員專用的商品狀態更新API
+            const result = await window.apiClient.updateAdminProductStatus(productId, status);
+            
+            this.showSuccess('商品狀態更新成功');
+            
+            // 刷新商品列表
+            this.refreshProducts();
+            
+        } catch (error) {
+            console.error('❌ 更新商品狀態失敗:', error);
+            this.showError('更新商品狀態失敗: ' + error.message);
         }
     }
 

@@ -27,22 +27,22 @@ echo.
 
 echo 3/3: Running seed script...
 docker-compose exec backend npm run seed
-if errorlevel 0 (
+if errorlevel 1 (
+    echo.
+    echo ===============================================
+    echo ❌ Database seeding failed!
+    echo ===============================================
+    echo.
+) else (
     echo.
     echo ===============================================
     echo ✅ Database seeding completed successfully!
     echo ===============================================
     echo.
     echo Test accounts created:
-    echo   - Admin:  admin / 123456
-    echo   - Seller: seller / 123456
-    echo   - Buyer:  buyer / 123456
-    echo.
-) else (
-    echo.
-    echo ===============================================
-    echo ❌ Database seeding failed!
-    echo ===============================================
+    echo   - Admin:  admin / s11114020
+    echo   - Seller: seller / cyut123456
+    echo   - Buyer:  buyer / cyut123456
     echo.
 )
 

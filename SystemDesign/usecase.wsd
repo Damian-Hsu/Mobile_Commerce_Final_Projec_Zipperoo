@@ -25,8 +25,7 @@ package "帳號認證 (Authentication)" {
 package "公開功能 (Public API)" {
     usecase UC_BrowseProducts as "瀏覽商品列表\n(含搜尋篩選)"
     usecase UC_ViewProductDetail as "查看商品詳情\n(含評價平均分)"
-    usecase UC_BrowseCategories as "瀏覽分類"
-    usecase UC_ViewCategoryProducts as "查看分類下商品"
+    usecase UC_BrowseCategories as "瀏覽分類(含商品數量)"
     usecase UC_ViewProductReviews as "查看商品評價"
 }
 
@@ -108,7 +107,6 @@ Visitor --> UC_ResetPassword
 Visitor --> UC_BrowseProducts
 Visitor --> UC_ViewProductDetail
 Visitor --> UC_BrowseCategories
-Visitor --> UC_ViewCategoryProducts
 Visitor --> UC_ViewProductReviews
 Visitor --> UC_GetImageByName
 Visitor --> UC_GetImageById

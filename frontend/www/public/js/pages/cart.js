@@ -97,15 +97,23 @@ export class CartPage {
             this.cartContainer.appendChild(cartItem);
         });
         
-        // Initialize selected items based on isSelected
+        // Initialize selected items based on isSelected, but exclude off-shelf/out-of-stock items
         this.selectedItems.clear();
         items.forEach(item => {
-            if (item.isSelected) {
+            const product = item.productVariant.product;
+            const variant = item.productVariant;
+            const isProductOffShelf = product.status === 'OFF_SHELF' || product.status === 'DELETED';
+            const isOutOfStock = variant.stock === 0;
+            
+            // Only add to selected items if product is available and was previously selected
+            if (item.isSelected && !isProductOffShelf && !isOutOfStock) {
                 this.selectedItems.add(item.id);
             }
         });
         
         this.updateSelectAllState();
+        this.updateSummary();
+        this.updateCheckoutButton();
     }
 
     createCartItemElement(item) {
@@ -121,6 +129,11 @@ export class CartPage {
         
         const totalPrice = item.quantity * item.unitPrice;
         
+        // 檢查商品狀態
+        const isProductOffShelf = product.status === 'OFF_SHELF' || product.status === 'DELETED';
+        const isOutOfStock = variant.stock === 0;
+        const isQuantityExceedsStock = item.quantity > variant.stock;
+        
         itemDiv.innerHTML = `
             <div class="card-body">
                 <div class="row align-items-center">
@@ -128,7 +141,9 @@ export class CartPage {
                     <div class="col-auto">
                         <div class="form-check">
                             <input class="form-check-input item-checkbox" type="checkbox" 
-                                   data-item-id="${item.id}" ${item.isSelected ? 'checked' : ''}>
+                                   data-item-id="${item.id}" 
+                                   ${item.isSelected && !isProductOffShelf && !isOutOfStock ? 'checked' : ''}
+                                   ${isProductOffShelf || isOutOfStock ? 'disabled' : ''}>
                         </div>
                     </div>
                     
@@ -153,7 +168,14 @@ export class CartPage {
                             <span class="text-primary fw-bold">NT$ ${item.unitPrice}</span>
                         </div>
                         <div class="mt-1">
-                            <small class="text-success">庫存: ${variant.stock} 件</small>
+                            ${isProductOffShelf ? 
+                                '<span class="badge bg-danger">商品已下架</span>' : 
+                                isOutOfStock ? 
+                                    '<span class="badge bg-warning text-dark">缺貨</span>' :
+                                    isQuantityExceedsStock ?
+                                        `<span class="badge bg-warning text-dark">庫存不足 (僅剩 ${variant.stock} 件)</span>` :
+                                        `<small class="text-success">庫存: ${variant.stock} 件</small>`
+                            }
                         </div>
                     </div>
                     
@@ -162,16 +184,19 @@ export class CartPage {
                         <div class="d-flex align-items-center">
                             <button class="btn btn-outline-secondary btn-sm quantity-btn" 
                                     data-action="decrease" data-item-id="${item.id}"
-                                    ${item.quantity <= 1 ? 'disabled' : ''}>
+                                    ${item.quantity <= 1 || isProductOffShelf || isOutOfStock ? 'disabled' : ''}>
                                 <i class="bi bi-dash"></i>
                             </button>
                             <span class="mx-3 fw-bold quantity-display">${item.quantity}</span>
                             <button class="btn btn-outline-secondary btn-sm quantity-btn" 
                                     data-action="increase" data-item-id="${item.id}"
-                                    ${item.quantity >= variant.stock ? 'disabled' : ''}>
+                                    ${item.quantity >= variant.stock || isProductOffShelf || isOutOfStock ? 'disabled' : ''}>
                                 <i class="bi bi-plus"></i>
                             </button>
                         </div>
+                        ${isProductOffShelf || isOutOfStock ? 
+                            '<div class="mt-1"><small class="text-danger">無法調整數量</small></div>' : 
+                            ''}
                     </div>
                     
                     <!-- Total Price -->
@@ -214,7 +239,7 @@ export class CartPage {
 
     handleSelectAll() {
         const isChecked = this.selectAllCheckbox.checked;
-        const checkboxes = document.querySelectorAll('.item-checkbox');
+        const checkboxes = document.querySelectorAll('.item-checkbox:not(:disabled)');
         
         checkboxes.forEach(checkbox => {
             checkbox.checked = isChecked;
@@ -239,16 +264,16 @@ export class CartPage {
     }
 
     updateSelectAllState() {
-        const allCheckboxes = document.querySelectorAll('.item-checkbox');
-        const checkedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+        const allAvailableCheckboxes = document.querySelectorAll('.item-checkbox:not(:disabled)');
+        const checkedAvailableCheckboxes = document.querySelectorAll('.item-checkbox:not(:disabled):checked');
         
-        if (allCheckboxes.length === 0) {
+        if (allAvailableCheckboxes.length === 0) {
             this.selectAllCheckbox.indeterminate = false;
             this.selectAllCheckbox.checked = false;
-        } else if (checkedCheckboxes.length === allCheckboxes.length) {
+        } else if (checkedAvailableCheckboxes.length === allAvailableCheckboxes.length) {
             this.selectAllCheckbox.indeterminate = false;
             this.selectAllCheckbox.checked = true;
-        } else if (checkedCheckboxes.length > 0) {
+        } else if (checkedAvailableCheckboxes.length > 0) {
             this.selectAllCheckbox.indeterminate = true;
         } else {
             this.selectAllCheckbox.indeterminate = false;
@@ -307,7 +332,25 @@ export class CartPage {
             
         } catch (error) {
             console.error('更新數量失敗:', error);
-            UIUtils.showToast('更新數量失敗', 'danger');
+            
+            // 根據錯誤類型顯示不同的訊息和處理方式
+            if (error.message.includes('商品已下架') || error.message.includes('商品不存在')) {
+                // 商品已下架或不存在，詢問是否移除
+                const shouldRemove = confirm('此商品已下架或不存在，是否從購物車中移除？');
+                if (shouldRemove) {
+                    this.deleteItem(itemId);
+                }
+            } else if (error.message.includes('庫存不足')) {
+                UIUtils.showToast('庫存不足，請調整數量', 'warning');
+                // 重新載入購物車以獲取最新庫存信息
+                this.loadCart();
+            } else if (error.message.includes('缺貨')) {
+                UIUtils.showToast('商品已缺貨，無法更新數量', 'warning');
+                // 重新載入購物車以獲取最新狀態
+                this.loadCart();
+            } else {
+                UIUtils.showToast('更新數量失敗：' + error.message, 'danger');
+            }
         }
     }
 
