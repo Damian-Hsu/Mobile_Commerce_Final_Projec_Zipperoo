@@ -209,23 +209,20 @@ class SellerProductNew {
         }
     }
 
-    async uploadImages() {
+    async uploadImagesToProduct(productId) {
         if (this.imageFiles.length === 0) {
             return [];
         }
 
-        const imageUrls = [];
-        
-        // 這裡應該實現真正的圖片上傳邏輯
-        // 目前使用模擬的URL
-        for (let i = 0; i < this.imageFiles.length; i++) {
-            const file = this.imageFiles[i];
-            // 模擬上傳，實際應該上傳到服務器或雲存儲
-            const mockUrl = `https://via.placeholder.com/400x400?text=Product+Image+${i + 1}`;
-            imageUrls.push(mockUrl);
+        try {
+            // 使用API客戶端上傳圖片
+            const result = await window.apiClient.uploadProductImages(productId, this.imageFiles);
+            console.log('圖片上傳結果:', result);
+            return result;
+        } catch (error) {
+            console.error('圖片上傳失敗:', error);
+            throw error;
         }
-        
-        return imageUrls;
     }
 
     async submitForm() {
@@ -260,23 +257,34 @@ class SellerProductNew {
                 }
             });
             
-            // 上傳圖片
-            const imageUrls = await this.uploadImages();
-            
-            // 準備商品數據
+            // 準備商品數據（不包含圖片）
             const productData = {
                 name: formData.get('name'),
                 description: formData.get('description'),
                 categoryId: parseInt(formData.get('categoryId')),
-                status: formData.get('status'),
-                variants: variants,
-                imageUrls: imageUrls
+                status: formData.get('status') || 'ON_SHELF',
+                variants: variants
             };
             
             console.log('提交商品數據:', productData);
             
             // 調用API創建商品
             const response = await window.apiClient.createProduct(productData);
+            
+            // 如果商品創建成功且有圖片需要上傳
+            if (response.statusCode === 201 && response.data && this.imageFiles.length > 0) {
+                const productId = response.data.id;
+                console.log('商品創建成功，開始上傳圖片，商品ID:', productId);
+                
+                try {
+                    // 上傳圖片到剛創建的商品
+                    await this.uploadImagesToProduct(productId);
+                    console.log('圖片上傳完成');
+                } catch (imageError) {
+                    console.error('圖片上傳失敗:', imageError);
+                    // 圖片上傳失敗不影響商品創建成功的提示
+                }
+            }
             
             console.log('商品創建成功:', response);
             this.showAlert('商品創建成功！', 'success');

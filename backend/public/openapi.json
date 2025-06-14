@@ -958,6 +958,15 @@
         "operationId": "ProductController_getSellerProducts",
         "parameters": [
           {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "搜尋關鍵字",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "pageSize",
             "required": false,
             "in": "query",

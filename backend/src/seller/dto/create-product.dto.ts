@@ -11,6 +11,7 @@ import {
   Min,
   ValidateNested,
   ArrayMaxSize,
+  IsIn,
 } from 'class-validator';
 
 class VariantDto {
@@ -54,4 +55,9 @@ export class CreateProductDto {
   @ValidateNested({ each: true })
   @Type(() => VariantDto)
   variants: VariantDto[];
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['ON_SHELF', 'OFF_SHELF'])
+  status?: 'ON_SHELF' | 'OFF_SHELF';
 } 

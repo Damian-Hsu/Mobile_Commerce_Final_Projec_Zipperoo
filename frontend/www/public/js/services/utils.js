@@ -196,9 +196,13 @@ export class UIUtils {
    * @returns {string} - 圖片URL
    */
   static getProductImageUrl(product) {
+    console.log('🖼️ getProductImageUrl called with product:', product?.name, 'images:', product?.images);
     if (product && product.images && product.images.length > 0 && product.images[0].url) {
-      return UIUtils.getImageUrl(product.images[0].url);
+      const imageUrl = UIUtils.getImageUrl(product.images[0].url);
+      console.log('🖼️ 返回圖片URL:', imageUrl);
+      return imageUrl;
     }
+    console.log('🖼️ 使用placeholder圖片');
     return '/images/placeholder.svg';
   }
 }

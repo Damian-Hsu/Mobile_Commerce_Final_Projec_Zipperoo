@@ -44,24 +44,41 @@ class SellerProducts {
     }
 
     setupEventListeners() {
-        // 搜索功能
-        const searchInput = document.getElementById('search-input');
-        const searchBtn = document.getElementById('search-btn');
+        // 搜索功能 - 只獲取商品頁面的搜尋框，避免與導航欄衝突
+        const searchInput = document.querySelector('.seller-products-main #search-input');
+        const searchBtn = document.querySelector('.seller-products-main #search-btn');
+        
+        console.log('🔍 設置事件監聽器 - searchInput:', !!searchInput, 'searchBtn:', !!searchBtn);
         
         if (searchInput && searchBtn) {
+            // 防止搜尋框被意外清空
+            searchInput.addEventListener('input', (e) => {
+                console.log('🔍 輸入框內容變化:', `"${e.target.value}"`);
+            });
+            
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
+                    console.log('🔍 Enter鍵觸發搜尋，當前值:', `"${e.target.value}"`);
+                    e.preventDefault(); // 防止表單提交
                     this.handleSearch();
                 }
             });
             
-            searchBtn.addEventListener('click', () => {
+            searchBtn.addEventListener('click', (e) => {
+                console.log('🔍 搜尋按鈕點擊');
+                e.preventDefault(); // 防止表單提交
+                const currentValue = searchInput.value;
+                console.log('🔍 點擊時輸入框值:', `"${currentValue}"`);
                 this.handleSearch();
             });
+            
+            console.log('🔍 搜尋事件監聽器已綁定');
+        } else {
+            console.error('🔍 搜尋元素未找到');
         }
 
         // 狀態篩選
-        const statusFilter = document.getElementById('status-filter');
+        const statusFilter = document.querySelector('.seller-products-main #status-filter');
         if (statusFilter) {
             statusFilter.addEventListener('change', (e) => {
                 this.statusFilter = e.target.value;
@@ -89,7 +106,7 @@ class SellerProducts {
         }
         
         // 同步狀態篩選下拉選單
-        const statusFilterSelect = document.getElementById('status-filter');
+        const statusFilterSelect = document.querySelector('.seller-products-main #status-filter');
         if (statusFilterSelect) {
             statusFilterSelect.value = status;
         }
@@ -99,11 +116,26 @@ class SellerProducts {
     }
 
     handleSearch() {
-        const searchInput = document.getElementById('search-input');
+        console.log('🔍 handleSearch 被調用');
+        
+        // 只獲取商品頁面的搜尋輸入框，避免與導航欄搜尋框衝突
+        const searchInput = document.querySelector('.seller-products-main #search-input');
+        
+        console.log('🔍 商品頁面搜尋框:', !!searchInput);
+        
         if (searchInput) {
-            this.searchQuery = searchInput.value.trim();
+            const inputValue = searchInput.value;
+            console.log('🔍 輸入框原始值:', `"${inputValue}"`);
+            
+            this.searchQuery = inputValue.trim();
             this.currentPage = 1;
+            
+            console.log('🔍 處理後的搜尋關鍵字:', `"${this.searchQuery}"`);
+            console.log('🔍 搜尋關鍵字長度:', this.searchQuery.length);
+            
             this.loadProducts();
+        } else {
+            console.error('🔍 找不到商品頁面的搜尋輸入框');
         }
     }
 
@@ -111,26 +143,29 @@ class SellerProducts {
         try {
             this.showLoading();
 
-            const response = await window.apiClient.getSellerProducts({
+            // 構建API請求參數
+            const params = {
                 page: this.currentPage,
                 pageSize: this.pageSize
-            });
+            };
+
+            // 添加搜尋參數
+            if (this.searchQuery && this.searchQuery.trim()) {
+                params.search = this.searchQuery.trim();
+                console.log('🔍 添加搜尋參數:', params.search);
+            }
+
+            console.log('🔍 API請求參數:', params);
+            const response = await window.apiClient.getSellerProducts(params);
 
             if (response.statusCode === 200 && response.data) {
-                // 保存所有商品的原始數據
+                // 獲取API返回的商品數據
                 this.allProducts = response.data.data || [];
                 
-                // 前端過濾
+                // 後端過濾（搜尋）+ 前端過濾（狀態）
                 let filteredProducts = this.allProducts;
                 
-                // 搜索過濾
-                if (this.searchQuery) {
-                    filteredProducts = filteredProducts.filter(product => 
-                        product.name.toLowerCase().includes(this.searchQuery.toLowerCase())
-                    );
-                }
-                
-                // 狀態過濾
+                // 狀態過濾（前端處理，因為後端不支持複雜的狀態過濾）
                 if (this.statusFilter) {
                     filteredProducts = filteredProducts.filter(product => {
                         if (this.statusFilter === 'OUT_OF_STOCK') {
@@ -145,9 +180,17 @@ class SellerProducts {
                 }
                 
                 this.products = filteredProducts;
-                this.totalProducts = filteredProducts.length;
                 
-                this.updateStats(); // 使用原始數據計算統計
+                // 如果有狀態過濾，使用過濾後的數量；否則使用API返回的總數
+                if (this.statusFilter) {
+                    this.totalProducts = filteredProducts.length;
+                } else {
+                    this.totalProducts = response.data.meta?.total || filteredProducts.length;
+                }
+                
+                // 載入所有商品用於統計（不受搜尋和狀態過濾影響）
+                await this.loadAllProductsForStats();
+                
                 this.renderProducts();
                 this.updatePagination({
                     page: this.currentPage,
@@ -164,16 +207,49 @@ class SellerProducts {
         }
     }
 
+    // 載入所有商品用於統計
+    async loadAllProductsForStats() {
+        try {
+            // 如果沒有搜尋和狀態過濾，直接使用當前數據
+            if (!this.searchQuery && !this.statusFilter) {
+                console.log('🔍 無搜尋和過濾，使用當前數據計算統計');
+                this.updateStats();
+                return;
+            }
+
+            console.log('🔍 載入所有商品用於統計計算');
+            // 載入所有商品用於統計（不包含搜尋參數）
+            const response = await window.apiClient.getSellerProducts({
+                page: 1,
+                pageSize: 1000 // 載入大量商品用於統計
+            });
+
+            if (response.statusCode === 200 && response.data) {
+                const allProductsForStats = response.data.data || [];
+                console.log('🔍 統計用商品數量:', allProductsForStats.length);
+                this.updateStatsWithData(allProductsForStats);
+            }
+        } catch (error) {
+            console.error('載入統計數據失敗:', error);
+            // 如果載入失敗，使用當前數據
+            this.updateStats();
+        }
+    }
+
     updateStats() {
-        // 使用原始數據計算各狀態商品數量，不受篩選影響
+        this.updateStatsWithData(this.allProducts);
+    }
+
+    updateStatsWithData(products) {
+        // 使用指定數據計算各狀態商品數量，不受篩選影響
         const stats = {
-            total: this.allProducts.length,
+            total: products.length,
             onShelf: 0,
             offShelf: 0,
             outOfStock: 0
         };
 
-        this.allProducts.forEach(product => {
+        products.forEach(product => {
             // 計算庫存總量
             const totalStock = product.variants?.reduce((sum, variant) => sum + (variant.stock || 0), 0) || 0;
             const isOutOfStock = totalStock === 0;

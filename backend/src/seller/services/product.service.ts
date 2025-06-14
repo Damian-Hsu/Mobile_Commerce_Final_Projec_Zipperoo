@@ -25,7 +25,7 @@ export class ProductService {
           data: {
             sellerId,
             ...productData,
-            status: 'ON_SHELF',
+            status: productData.status || 'ON_SHELF',
           },
         });
 
@@ -94,15 +94,29 @@ export class ProductService {
     }
   }
 
-  async getProducts(sellerId: number, page: number = 1, pageSize: number = 10) {
+  async getProducts(sellerId: number, page: number = 1, pageSize: number = 10, search?: string) {
     const skip = (page - 1) * pageSize;
+
+    // 構建搜尋條件
+    const whereCondition: any = {
+      sellerId,
+      status: { not: 'DELETED' },
+    };
+
+    // 如果有搜尋關鍵字，添加搜尋條件
+    if (search && search.trim()) {
+      console.log('🔍 後端收到搜尋關鍵字:', search.trim());
+      // 簡化搜尋條件，只搜尋商品名稱（不區分大小寫）
+      whereCondition.name = {
+        contains: search.trim(),
+        mode: 'insensitive', // 不區分大小寫
+      };
+      console.log('🔍 搜尋條件:', JSON.stringify(whereCondition, null, 2));
+    }
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
-        where: { 
-          sellerId,
-          status: { not: 'DELETED' },
-        },
+        where: whereCondition,
         include: {
           images: true,
           category: true,
@@ -123,10 +137,7 @@ export class ProductService {
         take: pageSize,
       }),
       this.prisma.product.count({
-        where: { 
-          sellerId,
-          status: { not: 'DELETED' },
-        },
+        where: whereCondition,
       }),
     ]);
 

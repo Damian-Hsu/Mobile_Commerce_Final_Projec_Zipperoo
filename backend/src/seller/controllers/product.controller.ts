@@ -22,14 +22,18 @@ export class ProductController {
   @ApiOperation({ summary: '獲取賣家商品列表', description: '獲取當前賣家的所有商品列表' })
   @ApiQuery({ name: 'page', type: 'number', required: false, description: '頁碼' })
   @ApiQuery({ name: 'pageSize', type: 'number', required: false, description: '每頁數量' })
+  @ApiQuery({ name: 'search', type: 'string', required: false, description: '搜尋關鍵字' })
   @ApiResponse({ status: 200, description: '獲取商品列表成功' })
   @ApiResponse({ status: 401, description: '未認證用戶' })
   @ApiResponse({ status: 403, description: '權限不足' })
-  async getSellerProducts(@CurrentUser() user: any, @Query() paginationDto: PaginationDto) {
+  async getSellerProducts(@CurrentUser() user: any, @Query() paginationDto: PaginationDto, @Query('search') search?: string) {
+    console.log('🔍 控制器收到搜尋參數:', search);
+    console.log('🔍 分頁參數:', paginationDto);
     const result = await this.productService.getProducts(
       user.id,
       paginationDto.page,
       paginationDto.pageSize,
+      search,
     );
     return ResponseDto.success(result, '獲取商品列表成功');
   }

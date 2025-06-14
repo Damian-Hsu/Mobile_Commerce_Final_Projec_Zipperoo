@@ -1,4 +1,4 @@
-import { IsOptional, IsPositive, Min } from 'class-validator';
+import { IsOptional, IsPositive, Min, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class PaginationDto {
@@ -11,6 +11,10 @@ export class PaginationDto {
   @Transform(({ value }) => parseInt(value))
   @Min(1)
   pageSize?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
 
 export interface PaginationMeta {

@@ -13,7 +13,7 @@ export class Config {
     getApiBaseUrl() {
         if (this.isDevelopment) {
             // 在開發環境中，強制使用正確的後端端口
-            const result = 'http://localhost:3001';
+            const result = 'http://localhost';
             console.log('Config Debug:');
             console.log('isDevelopment:', this.isDevelopment);
             console.log('window.__ENV__:', window.__ENV__);
@@ -24,6 +24,13 @@ export class Config {
             // so the frontend can just use its own origin.
             return window.location.origin;
         }
+    }
+
+    getImageBaseUrl() {
+        if (this.isDevelopment) {
+            return 'http://localhost';
+        }
+        return window.location.origin;
     }
 
     // 獲取環境變數的通用方法

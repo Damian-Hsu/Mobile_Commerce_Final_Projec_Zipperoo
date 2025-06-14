@@ -7,6 +7,8 @@
     }) %>
     <link rel="stylesheet" href="/css/pages/seller-products.css">
 </head>
+  <!-- Google tag (gtag.js) -->
+  <%- include('../partials/GA4Config') %>
 <body>
     <%- include('../partials/navbar', { user: locals.user }) %>
 
@@ -30,7 +32,7 @@
             <div class="toolbar">
                 <div class="toolbar-left">
                     <div class="search-box">
-                        <input type="text" id="search-input" placeholder="搜尋商品名稱..." class="form-control">
+                        <input type="search" id="search-input" placeholder="搜尋商品..." class="form-control search-input" autocomplete="off">
                         <button type="button" id="search-btn" class="btn btn-outline-secondary">
                             <i class="bi bi-search"></i>
                         </button>
@@ -38,6 +40,8 @@
                     <select id="status-filter" class="form-select">
                         <option value="">所有狀態</option>
                         <option value="ON_SHELF">上架中</option>
+                        <option value="OFF_SHELF">已下架</option>
+                        <option value="OUT_OF_STOCK">缺貨</option>
                     </select>
                 </div>
                 <div class="toolbar-right">
