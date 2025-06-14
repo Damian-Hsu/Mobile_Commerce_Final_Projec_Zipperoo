@@ -1,8 +1,8 @@
-# Zipperoo 電商平台後端系統
+# Zipperoo 購衣平台系統介紹
 
 Zipperoo 是一個功能完整的電商平台後端系統，採用現代化的 NestJS + PostgreSQL + Prisma 技術棧，支援買家、賣家、管理員三種角色的電商生態系統，具備商品變體管理、即時聊天、評價系統等企業級功能。
 
-## 🌟 產品願景
+## 🌟 設計願景
 
 建立一個穩定、可擴展的電商平台，為不同角色提供最佳的使用體驗：
 - **💰 賣家** - 輕鬆管理商品、處理訂單、與客戶溝通
@@ -40,37 +40,601 @@ Zipperoo 是一個功能完整的電商平台後端系統，採用現代化的 N
 - **密碼安全**: bcrypt 加密、重設流程
 - **數據驗證**: DTO 驗證、類型安全
 
-## 🏗️ 系統架構
+## 🏛️ 系統分析與設計
 
-### 🎯 三層式架構設計
+本節詳細闡述了 Zipperoo 系統的核心設計，包含系統的參與者、功能、以及核心業務對象的結構與關係。  
+詳細內容可以在 `/SystemDesign` 查看，內含有所有設計圖以及API設計表格，同時還有詳細的API介面介紹。
+### UML 用例圖 (Use Case Diagram)
+用例圖描述了系統外部不同角色（Actors）與系統提供的功能（Use Cases）之間的互動關係，**完全基於實際 API 端點和控制器實現**，展示了系統的真實業務流程。
+
+```mermaid
+graph TD
+    subgraph "Zipperoo 電商平台系統"
+        UC1(用戶認證管理)
+        UC2(商品瀏覽與搜尋)
+        UC3(購物車管理)
+        UC4(訂單結帳與管理)
+        UC5(商品評價系統)
+        UC6(商品與變體管理)
+        UC7(賣家訂單處理)
+        UC8(即時聊天系統)
+        UC9(分類管理)
+        UC10(圖片上傳管理)
+        UC11(用戶管理)
+        UC12(商品狀態審核)
+        UC13(系統日誌監控)
+        UC14(健康檢查)
+    end
+    
+    Buyer(🛒 買家<br/>BUYER)
+    Seller(🏪 賣家<br/>SELLER)
+    Admin(🔧 管理員<br/>ADMIN)
+
+    %% 買家功能
+    Buyer --> UC1
+    Buyer --> UC2
+    Buyer --> UC3
+    Buyer --> UC4
+    Buyer --> UC5
+    Buyer --> UC8
+    Buyer --> UC10
+    
+    %% 賣家功能
+    Seller --> UC1
+    Seller --> UC2
+    Seller --> UC6
+    Seller --> UC7
+    Seller --> UC8
+    Seller --> UC9
+    Seller --> UC10
+    
+    %% 管理員功能
+    Admin --> UC1
+    Admin --> UC2
+    Admin --> UC5
+    Admin --> UC8
+    Admin --> UC9
+    Admin --> UC10
+    Admin --> UC11
+    Admin --> UC12
+    Admin --> UC13
+    Admin --> UC14
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Presentation Layer                       │
-├─────────────────────────────────────────────────────────────┤
-│ • NestJS Controllers (RESTful API)                         │
-│ • API 測試界面 (api-tester.html)                            │
-│ • WebSocket Gateway (即時聊天)                              │
-│ • Guards & Decorators (權限控制)                            │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                     Business Layer                          │
-├─────────────────────────────────────────────────────────────┤
-│ • Services (業務邏輯)                                        │
-│ • DTOs (數據驗證)                                            │
-│ • Domain Models (實體管理)                                   │
-│ • Transaction Management (事務處理)                          │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Data Layer                             │
-├─────────────────────────────────────────────────────────────┤
-│ • Prisma ORM (類型安全)                                      │
-│ • PostgreSQL (關聯數據庫)                                    │
-│ • Redis (快取系統)                                           │
-│ • File System (圖片存儲)                                     │
+
+### UML 類別圖 (Class Diagram)
+類別圖展示了系統中核心的業務實體、它們的屬性、方法以及彼此之間的靜態關係，**完全基於 Prisma Schema 的真實資料模型**。
+
+```mermaid
+classDiagram
+    direction TB
+    
+    class User {
+        +Int id
+        +String account
+        +String passwordHash
+        +String username
+        +String email
+        +String phone
+        +Role role
+        +Boolean isBlocked
+        +String shopName
+        +String description
+        +DateTime createdAt
+        +DateTime updatedAt
+        +login()
+        +register()
+        +updateProfile()
+    }
+
+    class Product {
+        +Int id
+        +Int sellerId
+        +Int categoryId
+        +String name
+        +String description
+        +ProductStatus status
+        +DateTime createdAt
+        +DateTime updatedAt
+        +createProduct()
+        +updateStatus()
+        +addVariant()
+    }
+
+    class ProductVariant {
+        +Int id
+        +Int productId
+        +String name
+        +Int price
+        +Int stock
+        +Json attributes
+        +DateTime createdAt
+        +DateTime updatedAt
+        +updateStock()
+        +checkAvailability()
+    }
+    
+    class Category {
+        +Int id
+        +String name
+        +DateTime createdAt
+        +DateTime updatedAt
+        +create()
+        +update()
+    }
+
+    class Order {
+        +Int id
+        +Int buyerId
+        +Int sellerId
+        +Int totalAmount
+        +OrderStatus status
+        +String recipientName
+        +String recipientPhone
+        +String city
+        +String district
+        +String postalCode
+        +String address
+        +String notes
+        +PaymentMethod paymentMethod
+        +DateTime createdAt
+        +DateTime updatedAt
+        +checkout()
+        +updateStatus()
+        +ship()
+        +complete()
+        +cancel()
+    }
+    
+    class OrderItem {
+        +Int id
+        +Int orderId
+        +Int productVariantId
+        +Int quantity
+        +Int unitPrice
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Cart {
+        +Int id
+        +Int buyerId
+        +DateTime createdAt
+        +DateTime updatedAt
+        +addItem()
+        +removeItem()
+        +updateQuantity()
+        +clear()
+    }
+
+    class CartItem {
+        +Int id
+        +Int cartId
+        +Int productVariantId
+        +Int quantity
+        +Int unitPrice
+        +Boolean isSelected
+        +DateTime createdAt
+        +DateTime updatedAt
+        +select()
+        +updateQuantity()
+    }
+
+    class Review {
+        +Int id
+        +Int productId
+        +Int orderId
+        +Int buyerId
+        +Int score
+        +String comment
+        +Boolean isEdited
+        +Boolean isDeleted
+        +DateTime createdAt
+        +DateTime updatedAt
+        +create()
+        +update()
+        +delete()
+    }
+
+    class ChatRoom {
+        +Int id
+        +Int buyerId
+        +Int sellerId
+        +DateTime createdAt
+        +DateTime updatedAt
+        +createOrGet()
+    }
+
+    class ChatMessage {
+        +Int id
+        +Int roomId
+        +Int fromUserId
+        +String content
+        +Boolean isEdited
+        +DateTime createdAt
+        +DateTime updatedAt
+        +send()
+        +edit()
+    }
+
+    class ProductImage {
+        +Int id
+        +Int productId
+        +String url
+        +DateTime createdAt
+        +DateTime updatedAt
+        +upload()
+        +delete()
+    }
+
+    class LogEntry {
+        +Int id
+        +String event
+        +Int actorId
+        +String description
+        +String ipAddress
+        +Json meta
+        +DateTime createdAt
+        +record()
+    }
+
+    %% 關聯關係
+    User "1" --> "*" Product : sells
+    User "1" --> "1" Cart : owns
+    User "1" --> "*" Order : places
+    User "1" --> "*" Order : receives
+    User "1" --> "*" Review : writes
+    User "1" --> "*" ChatMessage : sends
+    User "1" --> "*" ChatRoom : buyer
+    User "1" --> "*" ChatRoom : seller
+    User "1" --> "*" LogEntry : performs
+    
+    Category "1" --> "*" Product : categorizes
+    
+    Product "1" --> "*" ProductVariant : has
+    Product "1" --> "*" ProductImage : images
+    Product "1" --> "*" Review : reviewed
+    
+    ProductVariant "1" --> "*" CartItem : selected
+    ProductVariant "1" --> "*" OrderItem : ordered
+    
+    Cart "1" --> "*" CartItem : contains
+    
+    Order "1" --> "*" OrderItem : contains
+    Order "1" --> "*" Review : reviewed
+    
+    ChatRoom "1" --> "*" ChatMessage : contains
+```
+
+### 時序圖 (Sequence Diagram) - 結帳流程
+時序圖（或稱循序圖）專門用於展示對象之間如何隨著時間的推移進行互動。下圖**完全基於實際程式碼實現**，詳細描繪了買家從發起結帳請求到訂單成功創建的真實後端處理流程。
+
+```mermaid
+sequenceDiagram
+    participant U as 🛒 買家
+    participant OC as 📦 OrderController
+    participant OS as 📦 OrderService
+    participant PS as 🗄️ PrismaService
+    participant DB as 🗄️ PostgreSQL
+    participant LS as 📝 LogService
+
+    U->>OC: POST /buyers/me/checkout
+    Note over U,OC: CheckoutDto: {cartItemIds?, shippingAddress, paymentMethod}
+    
+    OC->>OS: checkout(user.id, checkoutDto)
+    
+    OS->>PS: $transaction 開始
+    Note over OS,PS: 確保資料一致性的資料庫交易
+    
+    PS->>DB: cart.findUnique({where: {buyerId}, include: {items, productVariant, product}})
+    DB-->>PS: 購物車完整資料
+    PS-->>OS: cart with items
+    
+    alt 購物車為空
+        OS-->>OC: throw BadRequestException('購物車為空')
+        OC-->>U: 400 購物車為空
+    end
+    
+    OS->>OS: 篩選結帳項目
+    Note over OS: 根據cartItemIds或isSelected篩選
+    
+    alt 指定項目不存在
+        OS-->>OC: throw BadRequestException('指定的購物車項目不存在')
+        OC-->>U: 400 項目不存在
+    end
+    
+    OS->>OS: 按賣家分組商品
+    Note over OS: itemsBySeller = items.reduce(groupBySellerId)
+    
+    loop 每個賣家的商品群組
+        OS->>OS: 檢查庫存和商品狀態
+        
+        alt 庫存不足
+            OS-->>OC: throw BadRequestException('商品庫存不足')
+            OC-->>U: 400 庫存不足
+        end
+        
+        alt 商品已下架
+            OS-->>OC: throw BadRequestException('商品已下架')
+            OC-->>U: 400 商品已下架
+        end
+        
+        OS->>OS: 計算訂單總金額
+        
+        OS->>PS: order.create({buyerId, sellerId, totalAmount, status: 'UNCOMPLETED', ...shippingAddress, paymentMethod})
+        PS->>DB: INSERT INTO Order
+        DB-->>PS: 新訂單ID
+        PS-->>OS: order object
+        
+        loop 每個商品項目
+            OS->>PS: orderItem.create({orderId, productVariantId, quantity, unitPrice})
+            PS->>DB: INSERT INTO OrderItem
+            
+            OS->>PS: productVariant.update({where: {id}, data: {stock: {decrement: quantity}}})
+            PS->>DB: UPDATE ProductVariant SET stock = stock - quantity
+        end
+        
+        OS->>PS: cartItem.deleteMany({where: {id: {in: itemIds}}})
+        PS->>DB: DELETE FROM CartItem WHERE id IN (...)
+    end
+    
+    OS->>LS: record('ORDER_CREATED', buyerId, description, undefined, {orderIds, cartItemIds})
+    LS->>DB: INSERT INTO LogEntry
+    Note over LS,DB: 記錄操作日誌
+    
+    PS->>OS: 提交交易成功
+    OS-->>OC: 返回訂單陣列
+    OC-->>U: ResponseDto.created(orders, '結帳成功')
+```
+
+### 🗄️ 核心數據模型 (ER Diagram)
+實體關係圖（ERD）專注於數據庫層級的表結構與它們之間的關聯。下圖是根據專案核心 `schema.prisma` 文件重新繪製的、最權威的數據模型，它精準地反映了系統中所有實體及其真實關係。
+
+```mermaid
+erDiagram
+    User {
+        Int id PK
+        String account UK
+        String passwordHash
+        String username
+        String email UK
+        String phone
+        Role role
+        Boolean isBlocked
+        String shopName
+        String description
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Category {
+        Int id PK
+        String name UK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Product {
+        Int id PK
+        Int sellerId FK
+        Int categoryId FK
+        String name
+        String description
+        ProductStatus status
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    ProductVariant {
+        Int id PK
+        Int productId FK
+        String name
+        Int price
+        Int stock
+        Json attributes
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    ProductImage {
+        Int id PK
+        Int productId FK
+        String url
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Cart {
+        Int id PK
+        Int buyerId FK, UK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    CartItem {
+        Int id PK
+        Int cartId FK
+        Int productVariantId FK
+        Int quantity
+        Int unitPrice
+        Boolean isSelected
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Order {
+        Int id PK
+        Int buyerId FK
+        Int sellerId FK
+        Int totalAmount
+        OrderStatus status
+        String recipientName
+        String recipientPhone
+        String city
+        String district
+        String postalCode
+        String address
+        String notes
+        PaymentMethod paymentMethod
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    OrderItem {
+        Int id PK
+        Int orderId FK
+        Int productVariantId FK
+        Int quantity
+        Int unitPrice
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Review {
+        Int id PK
+        Int productId FK
+        Int orderId FK
+        Int buyerId FK
+        Int score
+        String comment
+        Boolean isEdited
+        Boolean isDeleted
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    ChatRoom {
+        Int id PK
+        Int buyerId FK
+        Int sellerId FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    ChatMessage {
+        Int id PK
+        Int roomId FK
+        Int fromUserId FK
+        String content
+        Boolean isEdited
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    LogEntry {
+        Int id PK
+        String event
+        Int actorId FK
+        String description
+        String ipAddress
+        Json meta
+        DateTime createdAt
+    }
+
+    PasswordResetToken {
+        Int id PK
+        String email UK
+        String token UK
+        DateTime expiresAt
+        DateTime createdAt
+    }
+
+    %% 用戶關聯
+    User ||--o{ Product : "sells"
+    User ||--|| Cart : "owns"
+    User ||--o{ Order : "places"
+    User ||--o{ Order : "receives"
+    User ||--o{ Review : "writes"
+    User ||--o{ ChatMessage : "sends"
+    User ||--o{ ChatRoom : "buyer"
+    User ||--o{ ChatRoom : "seller"
+    User ||--o{ LogEntry : "performs"
+    
+    %% 商品關聯
+    Category ||--o{ Product : "categorizes"
+    Product ||--o{ ProductVariant : "has"
+    Product ||--o{ ProductImage : "images"
+    Product ||--o{ Review : "reviewed"
+    
+    %% 購物車關聯
+    Cart ||--o{ CartItem : "contains"
+    ProductVariant ||--o{ CartItem : "selected"
+    
+    %% 訂單關聯
+    Order ||--o{ OrderItem : "contains"
+    ProductVariant ||--o{ OrderItem : "ordered"
+    Order ||--o{ Review : "reviewed"
+    
+    %% 聊天關聯
+    ChatRoom ||--o{ ChatMessage : "contains"
+```
+
+## 🏗️ 系統架構與實現
+
+### 🎯 系統完整架構圖 (Full System Architecture)
+本專案採用了現代化的前後端分離架構，並透過 Nginx 進行服務的統一代理與分發。下圖詳細描繪了從使用者請求到數據庫操作的完整流程與分層結構：
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                       End User's Browser                    │
+└─────────────────────────────┬─────────────────────────────┘
+                              │ (HTTP/HTTPS Requests to http://localhost)
+                              ▼
+┌─────────────────────────────┴─────────────────────────────┐
+│                 Web & Proxy Layer (Nginx)                   │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │   Nginx (Reverse Proxy running in Docker)              │ │
+│  ├──────────────────────┬─────────────────────────────────┤ │
+│  │ IF path starts with  │ ELSE (Serve User Interface)     │ │
+│  │ `/api` or `/socket.io` │                                 │ │
+│  └──────────┬───────────┴─────────────────────────────────┘ │
+└─────────────│───────────────────────┬───────────────────────┘
+              │                       │
+              │ (Proxy to Backend)    │ (Proxy to Frontend)
+              ▼                       ▼
+┌─────────────┴─────────────┐ ┌───────┴───────────────────────┐
+│   Application Layer       │ │     Presentation Layer        │
+│    (Backend Service)      │ │      (Frontend Service)       │
+│ ┌───────────────────────┐ │ │ ┌───────────────────────────┐ │
+│ │  Presentation Layer   │ │ │ │   Node.js/Express Server  │ │
+│ │  • Controllers (API)  │ │ │ │    • Serves static files  │ │
+│ │  • Gateways (Socket)  │ │ │ └───────────────────────────┘ │
+│ └──────────┬────────────┘ │ │ ┌───────────────────────────┐ │
+│            │              │ │ │   Browser UI (www/)       │ │
+│            ▼              │ │ │    • HTML, CSS, JS        │ │
+│ ┌───────────────────────┐ │ │ └───────────────────────────┘ │
+│ │    Business Layer     │ │ └───────────────────────────────┘
+│ │  • Services (Logic)   │ │
+│ │  • DTOs (Validation)  │ │
+│ └──────────┬────────────┘ │
+│            │              │
+│            ▼              │
+│ ┌───────────────────────┐ │
+│ │      Data Layer       │ │
+│ │  • Prisma ORM         │ │
+│ └───────────────────────┘ │
+└─────────────┬─────────────┘
+              │ (Database Operations)
+              ▼
+┌─────────────┴─────────────────────────────────────────────┐
+│                   Data Persistence Layer                    │
+│    ┌────────────────────────┐   ┌────────────────────────┐  │
+│    │  PostgreSQL            │   │  Redis                 │  │
+│    │  (Relational Data)    │   │  (Cache, Sessions)     │  │
+│    └────────────────────────┘   └────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+###  decoupled-architecture 前後端分離架構 (Headless Architecture)
+本專案體現了「前後端分離」的設計理念。專案主要由兩個獨立的部分組成：
+- **`backend/`**: 一個基於 NestJS 的強大後端 API 服務，負責處理所有業務邏輯、資料庫互動與使用者認證。
+- **`frontend/`**: 一個獨立的網頁應用程式，它透過 Node.js/Express 伺服器提供靜態用戶界面。這個前端應用透過呼叫後端提供的 API 來實現所有互動功能，與後端完全解耦。
+
+這種架構的核心優勢在於 **靈活性** 與 **可擴展性**：
+- **解耦開發**: 後端團隊可以專注於 API 效能，而前端可以獨立開發用戶界面，兩者僅通過 API 進行溝通。
+- **獨立部署與擴展**: 前後端可以獨立部署、更新與擴容，提高了系統的維護性與彈性。
+- **多端支援潛力**: 未來可以基於同一套後端 API，擴展支援原生行動應用 (iOS/Android) 等不同客戶端。
+
+在本專案中，除了完整的 `frontend` 應用外，後端服務依然保留了 `public/api-tester.html`，為開發者提供了一個快速、便捷的底層 API 測試工具。
 
 ### 💻 技術棧選型
 | 層級 | 技術 | 版本 | 用途 |
@@ -85,56 +649,38 @@ Zipperoo 是一個功能完整的電商平台後端系統，採用現代化的 N
 | **容器化** | Docker | - | 應用程式容器化 |
 | **反向代理** | Nginx | - | 負載均衡與靜態資源 |
 
-### 🗄️ 核心數據模型
-```mermaid
-erDiagram
-    User ||--o{ Product : sells
-    User ||--|| Cart : owns
-    User ||--o{ Order : places
-    User ||--o{ Review : writes
-    User ||--o{ ChatMessage : sends
-    
-    Product ||--o{ ProductVariant : contains
-    Product ||--o{ ProductImage : has
-    Product }o--|| Category : belongs
-    
-    Cart ||--o{ CartItem : contains
-    CartItem }o--|| ProductVariant : references
-    
-    Order ||--o{ OrderItem : contains
-    OrderItem }o--|| ProductVariant : references
-    Order ||--|| Review : rated
-    
-    ChatRoom ||--o{ ChatMessage : contains
-    User ||--o{ ChatRoom : participates
-```
-
 ## 📁 專案結構
 
 ```
 Zipperoo/
-├── backend/                    # 後端核心應用
+├── frontend/                   # 🌐 前端應用
+│   ├── www/                   # 網頁靜態資源 (HTML, CSS, JS)
+│   ├── server.js              # 啟動前端服務的 Express 腳本
+│   ├── Dockerfile             # 前端應用容器化配置
+│   └── package.json           # 前端依賴與腳本
+│
+├── backend/                    # 🚀 後端核心應用 (NestJS)
 │   ├── src/
 │   │   ├── auth/              # 🔐 認證授權模組
-│   │   │   ├── dto/           # 登入註冊 DTO
-│   │   │   ├── strategies/    # JWT/Local 策略
+│   │   │   ├── dto/           # 登入、註冊、Token 等 DTO
+│   │   │   ├── strategies/    # JWT/Local Passport 策略
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.service.ts
 │   │   │   └── auth.module.ts
 │   │   │
 │   │   ├── buyer/             # 🛒 買家功能模組
-│   │   │   ├── controllers/   # 購物車、結帳控制器
-│   │   │   ├── services/      # 購物業務邏輯
-│   │   │   ├── dto/          # 購物相關 DTO
+│   │   │   ├── controllers/   # 購物車、結帳、訂單查詢控制器
+│   │   │   ├── services/      # 核心購物業務邏輯
+│   │   │   ├── dto/           # 購物相關 DTO
 │   │   │   └── buyer.module.ts
 │   │   │
 │   │   ├── seller/            # 🏪 賣家功能模組
-│   │   │   ├── controllers/   # 商品、訂單控制器
-│   │   │   ├── services/      # 商品管理邏輯
-│   │   │   ├── dto/          # 商品相關 DTO
+│   │   │   ├── controllers/   # 商品管理、訂單處理控制器
+│   │   │   ├── services/      # 商品、訂單、變體管理邏輯
+│   │   │   ├── dto/           # 商品、訂單相關 DTO
 │   │   │   └── seller.module.ts
 │   │   │
-│   │   ├── admin/             # ⚙️ 管理員模組
+│   │   ├── admin/             # ⚙️ 管理員功能模組
 │   │   │   ├── admin.controller.ts
 │   │   │   ├── admin.service.ts
 │   │   │   └── admin.module.ts
@@ -155,7 +701,7 @@ Zipperoo/
 │   │   │   └── review.service.ts
 │   │   │
 │   │   ├── chat/              # 💬 即時聊天模組
-│   │   │   ├── chat.gateway.ts   # WebSocket 閘道
+│   │   │   ├── chat.gateway.ts   # WebSocket 核心閘道
 │   │   │   ├── chat.controller.ts
 │   │   │   ├── chat.service.ts
 │   │   │   └── chat.module.ts
@@ -164,48 +710,47 @@ Zipperoo/
 │   │   │   ├── image.controller.ts
 │   │   │   └── image.service.ts
 │   │   │
-│   │   ├── common/            # 🔧 共用模組
-│   │   │   ├── controllers/   # 公共控制器
-│   │   │   ├── decorators/    # 自定義裝飾器
-│   │   │   ├── guards/        # 權限守衛
-│   │   │   ├── dto/          # 共用 DTO
+│   │   ├── common/            # 🔧 共用模組與工具
+│   │   │   ├── decorators/    # 自定義裝飾器 (如: GetUser)
+│   │   │   ├── guards/        # 權限守衛 (如: RolesGuard)
+│   │   │   ├── dto/           # 共用分頁、ID 等 DTO
 │   │   │   └── services/      # 日誌等共用服務
 │   │   │
-│   │   ├── prisma/            # 🗄️ 數據庫模組
+│   │   ├── prisma/            # 🗄️ Prisma 數據庫模組
 │   │   │   ├── prisma.service.ts
 │   │   │   └── prisma.module.ts
 │   │   │
-│   │   ├── health/            # ❤️ 健康檢查
-│   │   ├── scripts/           # 📊 數據填充腳本
+│   │   ├── health/            # ❤️ 健康檢查端點
+│   │   ├── scripts/           # 📊 數據填充腳本 (seeding)
 │   │   └── main.ts            # 🚀 應用程式入口
 │   │
-│   ├── prisma/                # 📋 數據庫配置
-│   │   ├── schema.prisma      # 數據模型定義
-│   │   └── migrations/        # 數據庫遷移
+│   ├── prisma/                # 📋 數據庫 Schema 與遷移
+│   │   ├── schema.prisma      # 數據庫模型定義檔
+│   │   └── migrations/        # 數據庫遷移歷史
 │   │
-│   ├── public/                # 🌐 靜態資源
+│   ├── public/                # 🌐 後端提供的靜態資源
 │   │   ├── api-tester.html    # API 測試界面
 │   │   ├── api-tester-style.css
 │   │   └── api-tester-scripts.js
 │   │
-│   ├── test/                  # 🧪 測試文件
-│   └── package.json           # 📦 專案配置
+│   ├── test/                  # 🧪 單元測試與 E2E 測試
+│   └── package.json           # 📦 後端專案依賴
 │
 ├── SystemDesign/              # 📋 系統設計文檔
-│   ├── APIStructure.md        # API 接口文檔
-│   ├── requirement.txt        # 需求規格書
-│   ├── usecase.wsd           # 用例圖
+│   ├── APIStructure.md        # API 接口詳細文檔
+│   ├── requirement.txt        # 原始需求規格書
+│   ├── usecase.wsd            # PlantUML 用例圖原始檔
 │   └── api_endpoints_v1.csv   # API 端點列表
 │
-├── data/                      # 💾 持久化數據
-│   ├── postgres/             # PostgreSQL 數據目錄
-│   ├── redis/                # Redis 數據目錄
-│   └── uploads/              # 上傳文件存儲
+├── data/                      # 💾 Docker 持久化數據卷
+│   ├── postgres/              # PostgreSQL 數據目錄
+│   ├── redis/                 # Redis 數據目錄
+│   └── uploads/               # 用戶上傳文件存儲
 │
-├── docker-compose.yml         # 🐳 容器編排配置
-├── Dockerfile                # 🐳 容器構建配置
-├── nginx.conf                # 🌐 Nginx 配置
-└── *.bat                     # 🪟 Windows 快速啟動腳本
+├── docker-compose.yml         # 🐳 容器編排配置 (Nginx, Backend, Postgres, Redis)
+├── Dockerfile                 # 🐳 後端應用容器構建配置
+├── nginx.conf                 # 🌐 Nginx 反向代理配置
+└── *.bat    
 ```
 
 ### 🎯 模組職責分工
@@ -219,7 +764,7 @@ Zipperoo/
 - **💬 Chat**: 即時聊天、消息推送
 - **🖼️ Image**: 圖片上傳、存儲管理
 
-## 🚀 快速開始
+## 🆘 快速開始
 
 ### 📋 環境要求
 - **Node.js**: 18.0+ (推薦 LTS 版本)
@@ -231,7 +776,7 @@ Zipperoo/
 ### ⚡ 一鍵啟動 (Windows)
 ```powershell
 # 🎯 使用自動化腳本，完成環境設置與應用啟動
-.\start-dev.bat
+.\start.bat
 
 # 🔄 重置數據庫並重新填充測試數據
 .\seed.bat
@@ -244,7 +789,7 @@ Zipperoo/
 
 #### 1. 📥 克隆專案
 ```bash
-git clone <repository-url>
+git clone https://github.com/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo.git
 cd Mobile_Commerce_Final_Projec_Zipperoo
 ```
 
@@ -261,12 +806,13 @@ npm install
 cp .env.example .env
 ```
 
-`.env` 配置說明：
+`.env` 配置說明 (此文件應放置於 `/backend` 目錄下):
 ```env
 # 🗄️ 數據庫配置
+# 注意: 在 Docker 環境中，主機名應為服務名 (postgres)，本地開發則為 localhost
 DATABASE_URL="postgresql://zipperoo:zipperoo123@localhost:5433/zipperoo_db?schema=public"
 
-# 🔐 JWT 配置
+# 🔐 JWT 配置 - 生產環境務必更換為長且隨機的密鑰
 JWT_SECRET="your-super-secret-jwt-key-here"
 JWT_EXPIRES_IN="24h"
 REFRESH_JWT_SECRET="your-refresh-jwt-secret-here"
@@ -275,9 +821,10 @@ REFRESH_JWT_EXPIRES_IN="7d"
 # 🌐 服務配置
 PORT=3000
 NODE_ENV="development"
+# 生產環境中應指定前端服務的域名，例如: http://your-domain.com
 CORS_ORIGIN="*"
 
-# 📧 郵件配置 (可選)
+# 📧 郵件配置 (可選，用於未來的密碼重設等功能)
 MAIL_HOST="smtp.gmail.com"
 MAIL_PORT=587
 MAIL_USER="your-email@gmail.com"
@@ -332,64 +879,179 @@ npm run start:debug
 - **📊 PostgreSQL**: localhost:5433
 - **⚡ Redis**: localhost:6379
 
-## 🧪 API 測試平台
+## API 測試平台
 
-本專案內建了一個**企業級 API 測試平台**，提供完整的用戶界面來測試所有系統功能：
+本專案內建了一個功能強大的 **API 測試平台** (`api-tester.html`)，它是一個純手刻的單頁面 Web 應用，旨在提供一個無需任何外部工具（如 Postman）即可驗證所有後端功能的完整環境。
 
 ### 🌐 訪問方式
-**測試平台地址：** `http://localhost:3000/api-tester.html`
+在 `docker-compose` 啟動後，可透過以下地址訪問：
+**`http://localhost/api-tester.html`**
 
-### ✨ 平台特色
-- 🎨 **現代化 UI**: 響應式設計、深色主題、直觀操作
-- 🔐 **完整認證流程**: 註冊、登入、JWT 自動管理、Token 刷新
-- 🛒 **全場景覆蓋**: 涵蓋買家、賣家、管理員所有業務流程
-- 📊 **即時響應顯示**: 詳細的請求/響應信息、狀態碼、執行時間
-- 🔄 **自動化測試**: 支援批量測試、數據重置、快速驗證
-- 📱 **跨平台兼容**: 支援桌面、平板、手機瀏覽器
+> **注意**: 此路徑由 `nginx.conf` 中的特定 `location` 規則進行代理，確保能直接訪問到後端服務提供的測試頁面。
+
+### ✨ 平台真實特色
+透過分析其核心腳本 (`api-tester-scripts.js`)，可見該平台具備以下專為本專案打造的特色功能：
+
+- **🎨 UI/UX 設計**:
+    - **響應式佈局**: 界面佈局清晰，可在不同尺寸的窗口下使用。
+    - **可折疊區塊**: 所有 API 按角色（通用、買家、賣家、管理員）和功能進行分組，並可獨立展開/折疊，方便聚焦。
+    - **即時響應視窗**: 在右側提供一個語法高亮的視窗，即時顯示 API 的請求狀態（加載中、成功、失敗）與完整的返回數據。
+
+- **🔐 認證與授權**:
+    - **JWT 自動管理**: 登入成功後，`accessToken` 會被自動存入 `localStorage`，後續所有需要授權的請求將自動在標頭中附加 `Authorization: Bearer <token>`。
+    - **狀態顯示與快捷操作**: 頁面頂部會實時顯示當前的登入狀態（用戶名和角色），並提供「登出」按鈕。
+    - **快捷登入按鈕**: 為「買家」、「賣家」、「管理員」三種角色提供了快捷登入按鈕，一鍵填充預設帳密，極大提升測試效率。
+
+- **🚀 核心功能支持**:
+    - **全功能覆蓋**: 平台完整地暴露了後端所有 `v1` 版本的 API 接口，從註冊、商品管理到訂單處理和管理員監控。
+    - **支援文件上傳**: 內建了針對 `multipart/form-data` 的請求處理邏輯，可以直接在頁面上選擇圖片文件並上傳。
+    - **動態參數輸入**: 大部分 API 的路徑參數（如 `productId`, `orderId`）都設計為可由用戶手動輸入，方便對特定對象進行操作。
 
 ### 👥 預設測試帳號
-使用 `npm run seed` 命令創建的測試帳號：
+使用 `seed.bat` 或 `npm run seed` 命令創建的測試帳號：
 
 | 角色 | 帳號 | 密碼 | 功能範圍 |
 |------|------|------|----------|
-| 🔧 **管理員** | `admin` | `123456` | 系統管理、用戶控制、數據統計 |
-| 🏪 **賣家** | `seller` | `123456` | 商品管理、訂單處理、客服聊天 |
-| 🛒 **買家** | `buyer` | `123456` | 購物流程、訂單查詢、商品評價 |
+| 🔧 **管理員** | `admin` | `s11114020` | 系統管理、用戶控制、數據統計 |
+| 🏪 **賣家** | `seller` | `cyut123456` | 商品管理、訂單處理、客服聊天 |
+| 🛒 **買家** | `buyer` | `cyut123456` | 購物流程、訂單查詢、商品評價 |
 
-### 🎯 推薦測試流程
+### 🎯 推薦測試流程 (API 實戰指南)
 
-#### 🛒 買家流程測試
-```
-1. 登入買家帳號 (buyer/123456)
-2. 瀏覽商品列表 → 搜尋和篩選
-3. 查看商品詳情 → 檢視變體和評價
-4. 加入購物車 → 調整數量和選項
-5. 執行結帳 → 完成訂單創建
-6. 查看訂單 → 追蹤訂單狀態
-7. 撰寫評價 → 評分和評論
-8. 即時聊天 → 與賣家溝通
-```
+本節提供了一套完整的端到端（End-to-End）測試流程，您可以透過內建的 **API 測試平台** 或使用 `curl` 等工具，跟隨以下步驟來驗證系統的所有核心功能。
 
-#### 🏪 賣家流程測試
-```
-1. 登入賣家帳號 (seller/123456)
-2. 創建商品 → 設定基本信息
-3. 添加變體 → 設定顏色、尺寸、價格
-4. 上傳圖片 → 商品展示圖片
-5. 管理訂單 → 處理買家訂單
-6. 客服聊天 → 回應買家詢問
-7. 查看統計 → 銷售數據分析
-```
+---
 
-#### 🔧 管理員流程測試
-```
-1. 登入管理員帳號 (admin/123456)
-2. 用戶管理 → 查看、封鎖、解除封鎖
-3. 商品管理 → 審核、刪除商品
-4. 訂單監控 → 查看系統訂單
-5. 系統日誌 → 追蹤用戶操作
-6. 數據統計 → 系統健康狀況
-```
+#### 🛒 買家核心購物流程 (End-to-End)
+
+這個流程模擬一位買家從登入、瀏覽商品到完成訂單的完整體驗。
+
+**1. 登入取得 Token**
+首先，買家需要登入以獲取 JWT，後續所有操作都需要在請求標頭中加入 `Authorization: Bearer <your_token>`。
+- **API**: `POST /api/v1/auth/login`
+- **範例**:
+  ```bash
+  # 執行後會返回 access_token，請複製它
+  curl -X POST http://localhost/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"account":"buyer","password":"cyut123456"}'
+  ```
+
+**2. 瀏覽與搜尋商品**
+買家可以瀏覽所有上架商品，並使用關鍵字、分類進行搜尋與篩選。
+- **API**: `GET /api/v1/products`
+- **範例 (搜尋名稱包含 "Classic" 的商品)**:
+  ```bash
+  curl -X GET "http://localhost/api/v1/products?searchTerm=Classic"
+  ```
+  > 📝 **提示**: 記下您感興趣的商品 `id` 和 `variant` `id`，後續步驟會用到。
+
+**3. 加入購物車**
+將選定的商品變體加入購物車。
+- **API**: `POST /api/v1/buyer/cart/items`
+- **範例 (將一個商品變體加入購物車)**:
+  ```bash
+  # 將 <your_token> 和 <variant_id> 替換為實際值
+  curl -X POST http://localhost/api/v1/buyer/cart/items \
+    -H "Authorization: Bearer <your_token>" \
+    -H "Content-Type: application/json" \
+    -d '{"productVariantId": "<variant_id>", "quantity": 1}'
+  ```
+
+**4. 執行結帳**
+將購物車中的商品轉化為一張待處理的訂單。
+- **API**: `POST /api/v1/buyer/checkout`
+- **範例**:
+  ```bash
+  curl -X POST http://localhost/api/v1/buyer/checkout \
+    -H "Authorization: Bearer <your_token>"
+  ```
+  > 📝 **提示**: 記下返回的訂單 `id`。
+
+**5. 查看我的訂單**
+- **API**: `GET /api/v1/buyer/orders`
+- **範例**:
+  ```bash
+  curl -X GET http://localhost/api/v1/buyer/orders \
+    -H "Authorization: Bearer <your_token>"
+  ```
+
+---
+
+#### 🏪 賣家商品與訂單管理流程
+
+這個流程展示了賣家如何管理自己的商品，並處理來自買家的訂單。
+
+**1. 登入取得 Token**
+- **API**: `POST /api/v1/auth/login`
+- **範例**:
+  ```bash
+  curl -X POST http://localhost/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"account":"seller","password":"cyut123456"}'
+  ```
+
+**2. 創建一個新商品**
+- **API**: `POST /api/v1/seller/products`
+- **範例**:
+  ```bash
+  # 記得替換 <your_token> 和 <category_id>
+  curl -X POST http://localhost/api/v1/seller/products \
+    -H "Authorization: Bearer <your_token>" \
+    -H "Content-Type: application/json" \
+    -d '{"name": "新款潮流外套", "description": "2025 秋冬最新款", "categoryId": "<category_id>"}'
+  ```
+  > 📝 **提示**: 記下返回的商品 `id`。
+
+**3. 為商品添加變體 (SKU)**
+- **API**: `POST /api/v1/seller/products/:productId/variants`
+- **範例 (為剛才的商品添加 "紅色, L號" 的變體)**:
+  ```bash
+  # 記得替換 <your_token> 和 <product_id>
+  curl -X POST http://localhost/api/v1/seller/products/<product_id>/variants \
+    -H "Authorization: Bearer <your_token>" \
+    -H "Content-Type: application/json" \
+    -d '{"name": "紅色, L", "price": 1299, "stock": 50}'
+  ```
+
+**4. 處理訂單**
+查看收到的訂單，並更新其狀態（例如：從 `PENDING` 更新為 `SHIPPED`）。
+- **API**: `PATCH /api/v1/seller/orders/:orderId`
+- **範例 (將訂單標記為已出貨)**:
+  ```bash
+  # 記得替換 <your_token> 和 <order_id>
+  curl -X PATCH http://localhost/api/v1/seller/orders/<order_id> \
+    -H "Authorization: Bearer <your_token>" \
+    -H "Content-Type: application/json" \
+    -d '{"status": "SHIPPED"}'
+  ```
+
+---
+
+#### 🔧 管理員系統監控流程
+
+此流程展示管理員如何監控系統中的用戶與商品。
+
+**1. 登入取得 Token**
+- **API**: `POST /api/v1/auth/login`
+- **範例**:
+  ```bash
+  curl -X POST http://localhost/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"account":"admin","password":"s11114020"}'
+  ```
+
+**2. 管理使用者**
+查看系統中所有用戶，並可以對其進行操作（例如：封鎖）。
+- **API**: `PATCH /api/v1/admin/users/:userId/status`
+- **範例 (封鎖某位使用者)**:
+  ```bash
+  # 記得替換 <your_token> 和 <user_id>
+  curl -X PATCH http://localhost/api/v1/admin/users/<user_id>/status \
+    -H "Authorization: Bearer <your_token>" \
+    -H "Content-Type: application/json" \
+    -d '{"isBlocked": true}'
+  ```
 
 ### 🔧 快速重置環境
 ```bash
@@ -424,57 +1086,70 @@ docker-compose logs -f
 docker-compose down
 ```
 
-### 🏗️ 服務架構
+### 🏗️ 服務架構 (Nginx 反向代理)
+下圖展示了系統在 Docker 環境下的完整服務架構。所有外部流量都由 Nginx 統一接收，並根據請求路徑智能地分發到後端 API 服務或前端應用服務。
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         Load Balancer                       │
-│                    Nginx (Port 80)                         │
+│                       External Traffic                      │
+│                      (Port 80, 443)                         │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Application Layer                        │
-│              NestJS Backend (Port 3000)                    │
-│        • RESTful API  • WebSocket  • File Upload           │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
+│                   Load Balancer / Reverse Proxy             │
+│                         Nginx                               │
+├─────────────────────┬───────────────────────────────────────┤
+│ IF path starts with │ ELSE (Serve static files)             │
+│       /api          │                                       │
+└──────────┬──────────┴───────────────────────────────────────┘
+           │                                │
+           ▼                                ▼
+┌───────────────────────────┐   ┌───────────────────────────┐
+│     Frontend Service      │   │     Backend Service       │
+│  (Node.js + Express)      │   │      (NestJS)             │
+│  • 提供使用者介面           │   │  • RESTful API            │
+│  • 靜態檔案 (HTML/CSS)    │   │  • WebSocket              │
+└───────────────────────────┘   └──────────┬────────────────┘
+                                           │
+                                           ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     Data Layer                              │
-│  PostgreSQL (Port 5433)     Redis (Port 6379)             │
-│  • 關聯數據存儲              • 快取和會話                    │
-│  • 事務處理                  • 實時數據                      │
+│                           Data Layer                        │
+│         PostgreSQL             │           Redis            │
+│      • 核心數據存儲            │         • 快取服務         │
 └─────────────────────────────────────────────────────────────┘
 ```
+
 
 ### 📊 服務端點
 | 服務 | 內部端口 | 外部端口 | 描述 |
 |------|----------|----------|------|
-| **Nginx** | 80 | 80 | 反向代理、靜態資源 |
-| **Backend** | 3000 | 3000 | NestJS 應用程式 |
-| **PostgreSQL** | 5432 | 5433 | 主數據庫 |
-| **Redis** | 6379 | 6379 | 快取服務 |
+| **Nginx** | 80 | 80/443 | 系統唯一入口，作為反向代理，負責 SSL 終止與流量分發。 |
+| **Frontend** | 8080 | (由 Nginx 代理) | 提供用戶操作界面的 Web 應用程式。 |
+| **Backend** | 3000 | (由 Nginx 代理) | 核心後端 API 服務 (NestJS)，處理所有業務邏輯。 |
+| **PostgreSQL**| 5432 | 5433 | 主數據庫，用於持久化存儲核心業務數據。 |
+| **Redis** | 6379 | 6379 | 高效能快取服務，用於 Session、快取等。 |
 
 ### 🔧 容器管理
 ```bash
-# 🔍 查看服務狀態
+# 🔍 查看所有服務狀態
 docker-compose ps
 
-# 📊 查看資源使用
+# 📊 實時查看所有容器資源使用
 docker stats
 
 # 🗂️ 查看特定服務日誌
-docker-compose logs backend
-docker-compose logs postgres
-docker-compose logs redis
+docker-compose logs -f frontend
+docker-compose logs -f backend
+docker-compose logs -f postgres
 
 # 🔄 重啟特定服務
 docker-compose restart backend
 
-# 🧹 清理停止的容器
+# 🧹 清理停止的容器與孤立網絡
 docker-compose down --remove-orphans
 
-# 🗑️ 完全清理（包含數據卷）
+# 🗑️ 完全清理（包含數據卷，此操作會刪除數據庫！）
 docker-compose down -v
 ```
 
@@ -601,14 +1276,6 @@ describe('Real-time Features', () => {
 });
 ```
 
-### 📊 測試報告
-```bash
-# 生成詳細的測試報告
-npm run test:cov -- --coverageReporters=html
-
-# 查看報告（生成在 coverage/ 目錄）
-# 打開 coverage/lcov-report/index.html
-```
 
 ## 📄 API 文件與設計
 
@@ -831,85 +1498,6 @@ export class ProductService {
 | **常數** | UPPER_SNAKE_CASE | `JWT_SECRET`, `DEFAULT_PAGE_SIZE` |
 | **DTO** | PascalCase + 後綴 | `CreateProductDto`, `ProductResponseDto` |
 
-### 🔄 Git 工作流程
-
-#### 分支策略
-```bash
-# 主要分支
-main          # 生產環境分支
-develop       # 開發環境分支
-
-# 功能分支
-feature/auth-system
-feature/product-management
-feature/chat-system
-
-# 修復分支
-hotfix/security-patch
-bugfix/cart-calculation
-```
-
-#### 提交訊息規範
-```bash
-# 格式: <type>(<scope>): <description>
-
-# 功能開發
-feat(auth): add JWT refresh token mechanism
-feat(product): implement product variant management
-
-# 錯誤修復
-fix(cart): resolve quantity calculation issue
-fix(auth): handle expired token edge case
-
-# 重構
-refactor(database): optimize product query performance
-refactor(api): standardize error response format
-
-# 文檔更新
-docs(readme): update API documentation
-docs(api): add request/response examples
-
-# 測試
-test(auth): add unit tests for JWT service
-test(e2e): add checkout flow integration test
-```
-
-### 🧪 測試策略
-
-#### 測試覆蓋率要求
-- **整體覆蓋率**: ≥ 85%
-- **Services**: ≥ 90%
-- **Controllers**: ≥ 80%
-- **關鍵業務邏輯**: 100%
-
-#### 效能優化指南
-```typescript
-// ✅ 優化後的查詢
-async getProductsWithFilters(filters: ProductFiltersDto) {
-  return this.prisma.product.findMany({
-    where: {
-      AND: [
-        { status: ProductStatus.ON_SHELF },
-        filters.categoryId && { categoryId: filters.categoryId },
-        filters.searchTerm && {
-          name: { contains: filters.searchTerm, mode: 'insensitive' }
-        }
-      ].filter(Boolean)
-    },
-    include: {
-      variants: { select: { price: true, stock: true } },
-      images: { select: { url: true }, take: 1 }
-    },
-    orderBy: { createdAt: 'desc' },
-    skip: (filters.page - 1) * filters.limit,
-    take: filters.limit
-  });
-}
-```
-
-## 📅 版本更新日誌
-
-### v1.0.0 (2025-06-11) - 初始發布 🎉
 #### ✨ 新功能
 - **🔐 完整認證系統**: JWT 雙 Token 機制、密碼重設、多角色權限
 - **🛍️ 電商核心功能**: 商品管理、購物車、訂單流程、庫存控制
@@ -928,45 +1516,7 @@ async getProductsWithFilters(filters: ProductFiltersDto) {
 - **完整測試**: 85%+ 覆蓋率、E2E 測試、效能測試
 - **監控告警**: 健康檢查、指標監控、異常告警
 
-#### 📊 核心指標
-- **⚡ API 響應時間**: < 200ms (平均)
-- **🧪 測試覆蓋率**: 85%+ (目標 90%+)
-- **🔐 安全評級**: A+ (OWASP 標準)
-- **📱 支援請求**: 1000+ req/min
-- **💾 資料一致性**: ACID 事務保證
-
-### 🔄 未來規劃 (v1.1.0)
-- **📱 移動端 API**: 優化移動應用支援
-- **🔍 智能搜尋**: Elasticsearch 整合、AI 推薦
-- **💳 支付整合**: 多種支付方式、自動對帳
-- **📊 商業智能**: 銷售分析、用戶行為追蹤
-- **🌍 國際化**: 多語言、多貨幣支援
-- **🚀 微服務**: 服務拆分、API Gateway
-
 ## 📞 技術支援與社群
-
-### 🆘 獲得幫助
-
-#### 🔍 自助服務
-1. **📖 查閱文檔**: 首先檢查本 README 和 SystemDesign 文檔
-2. **❓ 常見問題**: 參考 [故障排除指南](#故障排除指南)
-3. **🧪 測試工具**: 使用內建 API 測試平台驗證功能
-4. **📊 健康檢查**: 訪問 `/health` 端點檢查系統狀態
-
-#### 💬 社群支援
-- **📧 技術諮詢**: [zipperoo-support@example.com](mailto:zipperoo-support@example.com)
-- **🐛 Bug 回報**: 使用 GitHub Issues 提交問題
-- **💡 功能建議**: 通過 GitHub Discussions 分享想法
-- **📚 技術文檔**: 查看 SystemDesign 目錄中的詳細文檔
-
-#### 🤝 貢獻指南
-1. **🍴 Fork 專案**: 創建專案分支
-2. **🌿 創建分支**: `git checkout -b feature/amazing-feature`
-3. **💻 編寫代碼**: 遵循編碼規範和測試要求
-4. **🧪 運行測試**: 確保所有測試通過
-5. **📝 提交變更**: `git commit -m 'feat: add amazing feature'`
-6. **🚀 推送分支**: `git push origin feature/amazing-feature`
-7. **🔄 創建 PR**: 提交 Pull Request 等待審核
 
 ### 📋 授權資訊
 
@@ -985,6 +1535,5 @@ async getProductsWithFilters(filters: ProductFiltersDto) {
 [![GitHub issues](https://img.shields.io/github/issues/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo)](https://github.com/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo/issues)
 [![GitHub license](https://img.shields.io/github/license/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo)](https://github.com/Damian-Hsu/Mobile_Commerce_Final_Projec_Zipperoo/blob/main/LICENSE)
 
-**🚀 打造下一代電商平台，讓商業更簡單！**
 
 </div>
