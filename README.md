@@ -1,6 +1,8 @@
 # Zipperoo 購衣平台系統介紹
 
-Zipperoo 是一個功能完整的電商平台後端系統，採用現代化的 NestJS + PostgreSQL + Prisma 技術棧，支援買家、賣家、管理員三種角色的電商生態系統，具備商品變體管理、即時聊天、評價系統等企業級功能。
+Zipperoo 是一個功能完整的電商平台後端系統，採用現代化的 NestJS + PostgreSQL + Prisma 技術棧，支援買家、賣家、管理員三種角色的電商生態系統，具備商品變體管理、即時聊天、評價系統功能。  
+  
+- [DEMO網站:zipperoo.dynns.com](https://zipperoo.dynns.com/)
 
 ## 🌟 設計願景
 
@@ -1439,18 +1441,19 @@ docker-compose down
            │                                │
            ▼                                ▼
 ┌───────────────────────────┐   ┌───────────────────────────┐
-│     Frontend Service      │   │     Backend Service       │
-│  (Node.js + Express)      │   │      (NestJS)             │
-│  • 提供使用者介面           │   │  • RESTful API            │
-│  • 靜態檔案 (HTML/CSS)    │   │  • WebSocket              │
-└───────────────────────────┘   └──────────┬────────────────┘
-                                           │
-                                           ▼
+│     Backend Service       │   │     Frontend Service      │
+│        (NestJS)           │   │  (Node.js + Express)      │
+│  • RESTful API            │   │  • 提供使用者介面         │
+│  • WebSocket              │   │  • 靜態檔案 (HTML/CSS)    │
+└──────────┬────────────────┘   └───────────────────────────┘
+           │
+           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                           Data Layer                        │
 │         PostgreSQL             │           Redis            │
 │      • 核心數據存儲            │         • 快取服務         │
 └─────────────────────────────────────────────────────────────┘
+
 ```
 
 
