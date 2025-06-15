@@ -471,44 +471,94 @@ class SellerOrders {
     }
 
     updatePagination(meta) {
-        const pagination = document.getElementById('pagination');
-        const prevPage = document.getElementById('prev-page');
-        const nextPage = document.getElementById('next-page');
-        const currentPageSpan = document.getElementById('current-page');
-
+        const paginationContainer = document.getElementById('pagination');
+        
         if (!meta || meta.totalPages <= 1) {
-            pagination.style.display = 'none';
+            paginationContainer.style.display = 'none';
             return;
         }
 
-        pagination.style.display = 'block';
-        currentPageSpan.textContent = meta.page;
-
-        // 更新上一頁按鈕
-        if (meta.page <= 1) {
-            prevPage.classList.add('disabled');
-        } else {
-            prevPage.classList.remove('disabled');
+        const { page, totalPages } = meta;
+        paginationContainer.style.display = 'block';
+        
+        // 計算顯示的頁碼範圍 (當前頁面 ± 3，最多顯示7個)
+        const startPage = Math.max(1, page - 3);
+        const endPage = Math.min(totalPages, page + 3);
+        
+        let html = `
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <!-- 上一頁按鈕 -->
+                    <li class="page-item ${page === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="sellerOrders.goToPage(${page - 1})">上一頁</a>
+                    </li>
+        `;
+        
+        // 如果不是從第1頁開始，顯示第1頁和省略號
+        if (startPage > 1) {
+            html += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="sellerOrders.goToPage(1)">1</a>
+                </li>
+            `;
+            if (startPage > 2) {
+                html += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
         }
-
-        // 更新下一頁按鈕
-        if (meta.page >= meta.totalPages) {
-            nextPage.classList.add('disabled');
-        } else {
-            nextPage.classList.remove('disabled');
+        
+        // 顯示頁碼
+        for (let i = startPage; i <= endPage; i++) {
+            html += `
+                <li class="page-item ${i === page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="sellerOrders.goToPage(${i})">${i}</a>
+                </li>
+            `;
         }
+        
+        // 如果不是到最後一頁，顯示省略號和最後一頁
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
+            html += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="sellerOrders.goToPage(${totalPages})">${totalPages}</a>
+                </li>
+            `;
+        }
+        
+        // 下一頁按鈕
+        html += `
+                    <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="sellerOrders.goToPage(${page + 1})">下一頁</a>
+                    </li>
+                </ul>
+            </nav>
+        `;
+        
+        paginationContainer.innerHTML = html;
+    }
+
+    goToPage(page) {
+        if (page < 1 || page === this.currentPage) return;
+        this.currentPage = page;
+        this.loadOrders();
     }
 
     previousPage() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.loadOrders();
-        }
+        this.goToPage(this.currentPage - 1);
     }
 
     nextPage() {
-        this.currentPage++;
-        this.loadOrders();
+        this.goToPage(this.currentPage + 1);
     }
 
     showLoading() {

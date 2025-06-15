@@ -256,6 +256,10 @@ model ChatMessage {
   fromUserId Int @map("from_user_id")
   content String
   isEdited Boolean @default(false) @map("is_edited")
+  isReadByBuyer Boolean @default(false) @map("is_read_by_buyer")
+  isReadBySeller Boolean @default(false) @map("is_read_by_seller")
+  readByBuyerAt DateTime? @map("read_by_buyer_at")
+  readBySellerAt DateTime? @map("read_by_seller_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, Patch } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../common/guards/jwt.guard';
@@ -116,5 +116,32 @@ export class ChatController {
   ) {
     const result = await this.chatService.sendMessage(roomId, user.id, body.content);
     return ResponseDto.created(result.message, '訊息發送成功');
+  }
+
+  @Patch('rooms/:roomId/messages/mark-read')
+  @Roles('BUYER', 'SELLER', 'ADMIN')
+  @ApiOperation({ summary: '標記訊息為已讀', description: '將指定聊天室中的所有未讀訊息標記為已讀' })
+  @ApiParam({ name: 'roomId', type: 'number', description: '聊天室ID' })
+  @ApiResponse({ status: 200, description: '訊息標記為已讀成功' })
+  @ApiResponse({ status: 401, description: '未認證用戶' })
+  @ApiResponse({ status: 403, description: '權限不足或無聊天室訪問權限' })
+  @ApiResponse({ status: 404, description: '聊天室不存在' })
+  async markMessagesAsRead(
+    @CurrentUser() user: any,
+    @Param('roomId', ParseIntPipe) roomId: number,
+  ) {
+    const result = await this.chatService.markMessagesAsRead(roomId, user.id);
+    return ResponseDto.success(result, '訊息標記為已讀成功');
+  }
+
+  @Get('unread-count')
+  @Roles('BUYER', 'SELLER', 'ADMIN')
+  @ApiOperation({ summary: '獲取未讀訊息數量', description: '獲取當前用戶的未讀訊息總數' })
+  @ApiResponse({ status: 200, description: '獲取未讀訊息數量成功' })
+  @ApiResponse({ status: 401, description: '未認證用戶' })
+  @ApiResponse({ status: 403, description: '權限不足' })
+  async getUnreadCount(@CurrentUser() user: any) {
+    const result = await this.chatService.getUnreadCount(user.id);
+    return ResponseDto.success(result, '獲取未讀訊息數量成功');
   }
 } 

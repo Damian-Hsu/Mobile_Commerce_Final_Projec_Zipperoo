@@ -147,7 +147,19 @@ export class ProductDetailPage {
         // Basic product info
         document.getElementById('product-name').textContent = product.name;
         // document.getElementById('product-description').textContent = product.description || '暫無商品說明';
-        document.getElementById('full-description').textContent = product.description || '暫無詳細說明';
+        // 確保換行符能正確顯示 - 將\n轉換為HTML換行
+        const description = product.description || '暫無詳細說明';
+        console.log('原始描述內容:', JSON.stringify(description));
+        console.log('描述內容包含的換行符數量:', (description.match(/\n/g) || []).length);
+        
+        // 將各種換行符都轉換為 <br> 標籤以確保正確換行
+        const formattedDescription = description
+            .replace(/\\n/g, '<br>')    // 處理轉義的 \n
+            .replace(/\n/g, '<br>')     // 處理真正的換行符
+            .replace(/\r\n/g, '<br>')   // 處理Windows格式換行
+            .replace(/\r/g, '<br>');    // 處理Mac格式換行
+        console.log('格式化後的描述:', formattedDescription);
+        document.getElementById('full-description').innerHTML = formattedDescription;
         
         // Seller info
         const sellerName = product.seller?.shopName || product.seller?.username || '未知賣家';

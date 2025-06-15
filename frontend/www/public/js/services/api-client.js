@@ -230,6 +230,11 @@ class APIClient {
     return await this.request('GET', endpoint, null, true);
   }
 
+  // 獲取賣家商品統計
+  async getSellerProductStats() {
+    return await this.request('GET', '/seller/products/stats', null, true);
+  }
+
   // 獲取賣家單個商品
   async getSellerProduct(productId) {
     return await this.request('GET', `/seller/products/${productId}`, null, true);
@@ -393,6 +398,25 @@ class APIClient {
   // 發送訊息
   async sendChatMessage(roomId, content) {
     return await this.request('POST', `/chat/rooms/${roomId}/messages`, { content }, true);
+  }
+
+  // 標記訊息為已讀
+  async markMessagesAsRead(roomId) {
+    return await this.request('PATCH', `/chat/rooms/${roomId}/messages/mark-read`, {}, true);
+  }
+
+  // 獲取未讀訊息數量
+  async getUnreadMessageCount() {
+    return await this.request('GET', '/chat/unread-count', null, true);
+  }
+
+  /**
+   * 通知相關方法
+   */
+  
+  // 獲取通知計數（購物車數量和未讀訊息數量）
+  async getNotificationCounts() {
+    return await this.request('GET', '/notifications/counts', null, true);
   }
 
   /**

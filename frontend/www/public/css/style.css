@@ -347,6 +347,26 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ===== Product Card Styles ===== */
+.product-description-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+.index-product-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
 .product-card {
   border: none;
   border-radius: 16px;
@@ -382,6 +402,152 @@ h1, h2, h3, h4, h5, h6 {
 
 .product-card:hover .card-title {
   color: #bb9571 !important;
+}
+
+/* 手機版 ListView 樣式 */
+@media (max-width: 767.98px) {
+  .mobile-list-view {
+    padding: 0.5rem 0;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  
+  .mobile-product-image {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+  }
+  
+  .mobile-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+  }
+  
+  .mobile-product-info {
+    min-width: 0; /* 防止flex項目溢出 */
+    padding-right: 40px; /* 為右下角收藏按鈕留空間 */
+    min-height: 80px; /* 與圖片高度一致 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .mobile-product-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #2d3436;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-bottom: 0.25rem;
+  }
+  
+  .mobile-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #bb9571 !important;
+    margin-bottom: 0.25rem;
+  }
+  
+  .mobile-category {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 10px;
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    border: 1px solid #dee2e6;
+    display: inline-block;
+    margin-top: 0.25rem;
+  }
+  
+  .mobile-rating {
+    display: flex;
+    align-items: center;
+    margin-top: auto;
+    height: 20px; /* 固定高度確保對齊 */
+    line-height: 20px; /* 確保文字垂直居中 */
+  }
+  
+  .mobile-rating .stars {
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin-right: 0.5rem;
+    padding: 0 !important; /* 強制移除所有padding */
+    margin: 0 !important; /* 強制移除所有margin */
+    line-height: 1; /* 重置行高 */
+  }
+  
+  .mobile-rating small {
+    font-size: 0.75rem;
+    color: #6c757d;
+    line-height: 20px; /* 與容器高度一致 */
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin: 0; /* 移除內建margin */
+    padding: 0; /* 移除內建padding */
+  }
+  
+  .mobile-wishlist-btn {
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    background-color: transparent;
+    border: none;
+    color: #6c757d;
+  }
+  
+  .mobile-wishlist-btn:hover {
+    background-color: #f8f9fa;
+    color: #bb9571 !important;
+    transform: scale(1.1);
+  }
+  
+  .mobile-wishlist-btn i {
+    font-size: 1rem;
+    transition: color 0.3s ease;
+  }
+  
+  .mobile-wishlist-btn:hover i {
+    color: #bb9571 !important;
+  }
+  
+  /* 手機版 ListView 卡片樣式調整 */
+  .mobile-list-view .product-card {
+    height: auto;
+    min-height: auto;
+  }
+  
+  .mobile-list-view .card-body {
+    padding: 0.75rem;
+  }
+  
+  /* 確保星星圖標正確顯示和對齊 */
+  .mobile-rating .stars i {
+    color: #FFD700;
+    font-size: 0.875rem;
+    margin: 0 1px 0 0 !important; /* 只保留右邊1px間距，其他強制為0 */
+    padding: 0 !important; /* 強制移除所有padding */
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    line-height: 1; /* 重置行高 */
+    vertical-align: baseline; /* 重置垂直對齊 */
+  }
 }
 
 .product-image {
@@ -627,7 +793,6 @@ h1, h2, h3, h4, h5, h6 {
 /* 確保星星在商品卡片中正確對齊 */
 .product-card .stars {
   margin-top: auto;
-  padding-top: 0.5rem;
   white-space: nowrap;
   min-height: 1.2rem;
 }
@@ -1437,4 +1602,100 @@ footer a:hover {
   .seller-section span {
     font-size: 14px;
   }
+}
+
+/* ===== Products頁面分頁樣式 - 奶茶色系設計 ===== */
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    justify-content: center;
+}
+
+.pagination .page-item {
+    margin: 0;
+}
+
+.pagination .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 8px 12px;
+    color: #8b6f47;
+    background-color: #ffffff;
+    border: 2px solid #d4c4a8;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.pagination .page-link:hover {
+    color: #ffffff;
+    background-color: #bb9571;
+    border-color: #bb9571;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(187, 149, 113, 0.3);
+    text-decoration: none;
+}
+
+.pagination .page-item.active .page-link {
+    color: #ffffff;
+    background-color: #bb9571;
+    border-color: #bb9571;
+    box-shadow: 0 2px 8px rgba(187, 149, 113, 0.3);
+    font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #c4a484;
+    background-color: #faf8f5;
+    border-color: #e9e1d4;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination .page-item.disabled .page-link:hover {
+    color: #c4a484;
+    background-color: #faf8f5;
+    border-color: #e9e1d4;
+    transform: none;
+    box-shadow: none;
+    text-decoration: none;
+}
+
+/* 響應式分頁設計 */
+@media (max-width: 768px) {
+    .pagination {
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    
+    .pagination .page-link {
+        min-width: 36px;
+        height: 36px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination .page-link {
+        min-width: 32px;
+        height: 32px;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
+/* ===== 平滑滾動效果 ===== */
+html {
+    scroll-behavior: smooth;
 } 

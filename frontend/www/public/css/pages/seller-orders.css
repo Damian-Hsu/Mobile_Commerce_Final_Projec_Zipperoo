@@ -467,26 +467,103 @@
     font-size: 16px;
 }
 
-/* 分頁 */
+/* 分頁 - 奶茶色系設計 */
 .pagination-container {
     padding: 20px;
     background: white;
     border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pagination .page-item {
+    margin: 0;
 }
 
 .pagination .page-link {
-    color: #bb9571;
-    border-color: #dee2e6;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: #bb9571;
-    border-color: #bb9571;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 8px 12px;
+    color: #8b6f47;
+    background-color: #ffffff;
+    border: 2px solid #d4c4a8;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .pagination .page-link:hover {
-    color: #a08660;
-    background-color: #f8f9fa;
+    color: #ffffff;
+    background-color: #bb9571;
+    border-color: #bb9571;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(187, 149, 113, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+    color: #ffffff;
+    background-color: #bb9571;
+    border-color: #bb9571;
+    box-shadow: 0 2px 8px rgba(187, 149, 113, 0.3);
+    font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #c4a484;
+    background-color: #faf8f5;
+    border-color: #e9e1d4;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination .page-item.disabled .page-link:hover {
+    color: #c4a484;
+    background-color: #faf8f5;
+    border-color: #e9e1d4;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 響應式分頁設計 */
+@media (max-width: 768px) {
+    .pagination-container {
+        padding: 15px;
+    }
+    
+    .pagination {
+        gap: 4px;
+    }
+    
+    .pagination .page-link {
+        min-width: 36px;
+        height: 36px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination .page-link {
+        min-width: 32px;
+        height: 32px;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
 }
 
 /* 訂單詳情模態框 */

@@ -1,3 +1,6 @@
+// 版本: 2024-12-19-v5 - 修復下架商品顯示問題，後端支持狀態過濾
+console.log('🔄 seller-products.js 已載入 - 版本: 2024-12-19-v5');
+
 class SellerProducts {
     constructor() {
         this.currentPage = 1;
@@ -155,38 +158,29 @@ class SellerProducts {
                 console.log('🔍 添加搜尋參數:', params.search);
             }
 
+            // 添加狀態過濾參數（現在後端支持了）
+            if (this.statusFilter && this.statusFilter.trim()) {
+                params.status = this.statusFilter.trim();
+                console.log('🔍 添加狀態過濾參數:', params.status);
+            }
+
             console.log('🔍 API請求參數:', params);
             const response = await window.apiClient.getSellerProducts(params);
 
             if (response.statusCode === 200 && response.data) {
-                // 獲取API返回的商品數據
+                // 獲取API返回的商品數據（已經在後端過濾了）
                 this.allProducts = response.data.data || [];
+                this.products = this.allProducts; // 不需要前端過濾了
+                this.totalProducts = response.data.meta?.total || this.allProducts.length;
                 
-                // 後端過濾（搜尋）+ 前端過濾（狀態）
-                let filteredProducts = this.allProducts;
-                
-                // 狀態過濾（前端處理，因為後端不支持複雜的狀態過濾）
-                if (this.statusFilter) {
-                    filteredProducts = filteredProducts.filter(product => {
-                        if (this.statusFilter === 'OUT_OF_STOCK') {
-                            // 缺貨篩選：庫存為0的商品
-                            const totalStock = product.variants?.reduce((sum, variant) => sum + (variant.stock || 0), 0) || 0;
-                            return totalStock === 0;
-                        } else {
-                            // 其他狀態篩選
-                            return product.status === this.statusFilter;
-                        }
-                    });
-                }
-                
-                this.products = filteredProducts;
-                
-                // 如果有狀態過濾，使用過濾後的數量；否則使用API返回的總數
-                if (this.statusFilter) {
-                    this.totalProducts = filteredProducts.length;
-                } else {
-                    this.totalProducts = response.data.meta?.total || filteredProducts.length;
-                }
+                console.log('🔍 載入商品結果:', {
+                    '當前頁': this.currentPage,
+                    '頁面大小': this.pageSize,
+                    '搜尋關鍵字': this.searchQuery,
+                    '狀態過濾': this.statusFilter,
+                    '商品數量': this.products.length,
+                    '總商品數': this.totalProducts
+                });
                 
                 // 載入所有商品用於統計（不受搜尋和狀態過濾影響）
                 await this.loadAllProductsForStats();
@@ -207,30 +201,39 @@ class SellerProducts {
         }
     }
 
-    // 載入所有商品用於統計
+    // 載入所有商品用於統計 - 修復版本 v4
     async loadAllProductsForStats() {
+        console.log('🔍 [v4] loadAllProductsForStats 方法被調用');
+        
         try {
-            // 如果沒有搜尋和狀態過濾，直接使用當前數據
-            if (!this.searchQuery && !this.statusFilter) {
-                console.log('🔍 無搜尋和過濾，使用當前數據計算統計');
-                this.updateStats();
-                return;
-            }
-
-            console.log('🔍 載入所有商品用於統計計算');
-            // 載入所有商品用於統計（不包含搜尋參數）
+            // 直接載入所有商品進行統計，不依賴新API
+            console.log('🔍 [v4] 載入所有商品用於統計計算');
             const response = await window.apiClient.getSellerProducts({
                 page: 1,
-                pageSize: 1000 // 載入大量商品用於統計
+                pageSize: 9999 // 載入所有商品
             });
 
             if (response.statusCode === 200 && response.data) {
                 const allProductsForStats = response.data.data || [];
-                console.log('🔍 統計用商品數量:', allProductsForStats.length);
+                const totalFromMeta = response.data.meta?.total || 0;
+                
+                console.log('🔍 [v4] 統計數據詳情:', {
+                    '從Meta獲取的總數': totalFromMeta,
+                    '實際載入的商品數': allProductsForStats.length,
+                    '是否載入完整': totalFromMeta === allProductsForStats.length,
+                    '前5個商品狀態': allProductsForStats.slice(0, 5).map(p => ({ name: p.name, status: p.status }))
+                });
+                
+                // 使用實際載入的商品數據進行統計
                 this.updateStatsWithData(allProductsForStats);
+                return;
+            } else {
+                console.error('🔍 [v4] API調用失敗:', response);
+                // API調用失敗，使用當前數據
+                this.updateStats();
             }
         } catch (error) {
-            console.error('載入統計數據失敗:', error);
+            console.error('🔍 [v4] 載入統計數據失敗:', error);
             // 如果載入失敗，使用當前數據
             this.updateStats();
         }
@@ -238,6 +241,81 @@ class SellerProducts {
 
     updateStats() {
         this.updateStatsWithData(this.allProducts);
+    }
+
+    // 使用服務器端統計數據更新UI
+    updateStatsWithServerData(serverStats) {
+        console.log('🔍 賣家商品統計 (來自服務器):', serverStats);
+
+        // 更新統計顯示
+        document.getElementById('seller-total-products').textContent = (serverStats.total || 0).toLocaleString();
+        document.getElementById('on-shelf-products').textContent = (serverStats.onShelf || 0).toLocaleString();
+        document.getElementById('off-shelf-products').textContent = (serverStats.offShelf || 0).toLocaleString();
+        document.getElementById('out-of-stock-products').textContent = (serverStats.outOfStock || 0).toLocaleString();
+    }
+
+    // 新增：使用Meta數據和部分商品數據的混合統計方法
+    updateStatsWithMeta(meta, sampleProducts) {
+        const totalProducts = meta.total || 0;
+        
+        // 如果沒有樣本商品，只能顯示總數
+        if (!sampleProducts || sampleProducts.length === 0) {
+            console.log('🔍 無樣本商品，只顯示總數');
+            document.getElementById('seller-total-products').textContent = totalProducts.toLocaleString();
+            document.getElementById('on-shelf-products').textContent = '-';
+            document.getElementById('off-shelf-products').textContent = '-';
+            document.getElementById('out-of-stock-products').textContent = '-';
+            return;
+        }
+
+        // 基於樣本計算比例並推估全體
+        const sampleStats = {
+            total: sampleProducts.length,
+            onShelf: 0,
+            offShelf: 0,
+            outOfStock: 0
+        };
+
+        sampleProducts.forEach(product => {
+            // 計算庫存總量
+            const totalStock = product.variants?.reduce((sum, variant) => sum + (variant.stock || 0), 0) || 0;
+            const isOutOfStock = totalStock === 0;
+
+            // 根據商品狀態統計（不論是否缺貨）
+            switch (product.status) {
+                case 'ON_SHELF':
+                    sampleStats.onShelf++;
+                    break;
+                case 'OFF_SHELF':
+                    sampleStats.offShelf++;
+                    break;
+            }
+
+            // 單獨統計缺貨商品（可以與上架/下架狀態並存）
+            if (isOutOfStock) {
+                sampleStats.outOfStock++;
+            }
+        });
+
+        // 計算比例並推估全體統計
+        const estimatedStats = {
+            total: totalProducts,
+            onShelf: Math.round((sampleStats.onShelf / sampleStats.total) * totalProducts),
+            offShelf: Math.round((sampleStats.offShelf / sampleStats.total) * totalProducts),
+            outOfStock: Math.round((sampleStats.outOfStock / sampleStats.total) * totalProducts)
+        };
+
+        console.log('🔍 賣家商品統計 (基於Meta和樣本推估):', {
+            '樣本統計': sampleStats,
+            '推估統計': estimatedStats,
+            '總商品數 (Meta)': totalProducts
+        });
+
+        // 更新統計顯示
+        document.getElementById('seller-total-products').textContent = estimatedStats.total.toLocaleString();
+        document.getElementById('on-shelf-products').textContent = estimatedStats.onShelf.toLocaleString();
+        document.getElementById('off-shelf-products').textContent = estimatedStats.offShelf.toLocaleString();
+        document.getElementById('out-of-stock-products').textContent = estimatedStats.outOfStock.toLocaleString();
     }
 
     updateStatsWithData(products) {
@@ -270,7 +348,7 @@ class SellerProducts {
             }
         });
 
-        console.log('🔍 賣家商品統計:', stats);
+        console.log('🔍 賣家商品統計 (基於實際數據):', stats);
 
         // 更新統計顯示
         document.getElementById('seller-total-products').textContent = stats.total.toLocaleString();
@@ -441,44 +519,94 @@ class SellerProducts {
     }
 
     updatePagination(meta) {
-        const pagination = document.getElementById('pagination');
-        const prevPage = document.getElementById('prev-page');
-        const nextPage = document.getElementById('next-page');
-        const currentPageSpan = document.getElementById('current-page');
-
+        const paginationContainer = document.getElementById('pagination');
+        
         if (!meta || meta.totalPages <= 1) {
-            pagination.style.display = 'none';
+            paginationContainer.style.display = 'none';
             return;
         }
 
-        pagination.style.display = 'block';
-        currentPageSpan.textContent = meta.page;
-
-        // 更新上一頁按鈕
-        if (meta.page <= 1) {
-            prevPage.classList.add('disabled');
-        } else {
-            prevPage.classList.remove('disabled');
+        const { page, totalPages } = meta;
+        paginationContainer.style.display = 'block';
+        
+        // 計算顯示的頁碼範圍 (當前頁面 ± 3，最多顯示7個)
+        const startPage = Math.max(1, page - 3);
+        const endPage = Math.min(totalPages, page + 3);
+        
+        let html = `
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <!-- 上一頁按鈕 -->
+                    <li class="page-item ${page === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="sellerProducts.goToPage(${page - 1})">上一頁</a>
+                    </li>
+        `;
+        
+        // 如果不是從第1頁開始，顯示第1頁和省略號
+        if (startPage > 1) {
+            html += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="sellerProducts.goToPage(1)">1</a>
+                </li>
+            `;
+            if (startPage > 2) {
+                html += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
         }
-
-        // 更新下一頁按鈕
-        if (meta.page >= meta.totalPages) {
-            nextPage.classList.add('disabled');
-        } else {
-            nextPage.classList.remove('disabled');
+        
+        // 顯示頁碼
+        for (let i = startPage; i <= endPage; i++) {
+            html += `
+                <li class="page-item ${i === page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="sellerProducts.goToPage(${i})">${i}</a>
+                </li>
+            `;
         }
+        
+        // 如果不是到最後一頁，顯示省略號和最後一頁
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                `;
+            }
+            html += `
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="sellerProducts.goToPage(${totalPages})">${totalPages}</a>
+                </li>
+            `;
+        }
+        
+        // 下一頁按鈕
+        html += `
+                    <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="sellerProducts.goToPage(${page + 1})">下一頁</a>
+                    </li>
+                </ul>
+            </nav>
+        `;
+        
+        paginationContainer.innerHTML = html;
+    }
+
+    goToPage(page) {
+        if (page < 1 || page === this.currentPage) return;
+        this.currentPage = page;
+        this.loadProducts();
     }
 
     previousPage() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.loadProducts();
-        }
+        this.goToPage(this.currentPage - 1);
     }
 
     nextPage() {
-        this.currentPage++;
-        this.loadProducts();
+        this.goToPage(this.currentPage + 1);
     }
 
     async viewProduct(productId) {

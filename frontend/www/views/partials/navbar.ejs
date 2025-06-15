@@ -9,8 +9,9 @@
     <!-- Mobile Toggle -->
     <div class="d-lg-none d-flex align-items-center">
       <!-- Chat Icon (Mobile) - Dynamic content managed by frontend JS -->
-      <a href="/chat" class="btn btn-outline-light me-2" id="mobile-chat-icon" style="display: none;">
+      <a href="/chat" class="btn btn-outline-light me-2 position-relative" id="mobile-chat-icon" style="display: none;">
         <i class="bi bi-chat-dots text-muted"></i>
+        <span class="position-absolute unread-messages-badge" style="display: none; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; line-height: 18px; text-align: center;">0</span>
       </a>
       
       <!-- Cart Icon (Mobile) - Dynamic content managed by frontend JS -->
@@ -78,9 +79,9 @@
 
           
           <!-- Chat - Dynamic content managed by frontend JS -->
-          <a href="/chat" class="btn btn-outline-light me-2" id="chat-icon" style="display: none;">
+          <a href="/chat" class="btn btn-outline-light me-2 position-relative" id="chat-icon" style="display: none;">
             <i class="bi bi-chat-dots text-muted"></i>
-            
+            <span class="position-absolute unread-messages-badge" style="display: none; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; line-height: 18px; text-align: center;">0</span>
           </a>
           <!-- Cart - Dynamic content managed by frontend JS -->
           <a href="/cart" class="btn btn-outline-light position-relative me-2" id="cart-icon" style="display: none;">

@@ -234,7 +234,7 @@ export class ChatService {
           },
           messages: {
             orderBy: { createdAt: 'desc' },
-            take: 1,
+            take: 10, // Get more messages to calculate unread count
             include: {
               fromUser: {
                 select: {
@@ -259,8 +259,25 @@ export class ChatService {
       }),
     ]);
 
+    // Calculate unread count for each room
+    const roomsWithUnreadCount = rooms.map(room => {
+      const isBuyer = room.buyerId === userId;
+      const unreadCount = room.messages.filter(message => {
+        // Don't count own messages
+        if (message.fromUserId === userId) return false;
+        
+        // Check read status based on user role
+        return isBuyer ? !message.isReadByBuyer : !message.isReadBySeller;
+      }).length;
+
+      return {
+        ...room,
+        unreadCount,
+      };
+    });
+
     return {
-      data: rooms,
+      data: roomsWithUnreadCount,
       meta: {
         page,
         pageSize,
@@ -268,5 +285,124 @@ export class ChatService {
         totalPages: Math.ceil(total / pageSize),
       },
     };
+  }
+
+  async markMessagesAsRead(roomId: number, userId: number) {
+    // Verify user has access to this room
+    const room = await this.prisma.chatRoom.findFirst({
+      where: {
+        id: roomId,
+        OR: [
+          { buyerId: userId },
+          { sellerId: userId },
+        ],
+      },
+    });
+
+    if (!room) {
+      throw new ForbiddenException('無權訪問此聊天室');
+    }
+
+    // Determine user role in this room
+    const isBuyer = room.buyerId === userId;
+    const isSeller = room.sellerId === userId;
+
+    // Update read status based on user role
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (isBuyer) {
+      updateData.isReadByBuyer = true;
+      updateData.readByBuyerAt = new Date();
+    }
+
+    if (isSeller) {
+      updateData.isReadBySeller = true;
+      updateData.readBySellerAt = new Date();
+    }
+
+    // Only update messages that are not from the current user and not already read
+    const whereCondition: any = {
+      roomId,
+      fromUserId: { not: userId },
+    };
+
+    if (isBuyer) {
+      whereCondition.isReadByBuyer = false;
+    } else if (isSeller) {
+      whereCondition.isReadBySeller = false;
+    }
+
+    const result = await this.prisma.chatMessage.updateMany({
+      where: whereCondition,
+      data: updateData,
+    });
+
+    await this.logService.record(
+      'CHAT_MESSAGES_MARKED_READ',
+      userId,
+      `標記聊天室 ${roomId} 中的 ${result.count} 條訊息為已讀`,
+      undefined,
+      {
+        roomId,
+        markedCount: result.count,
+      }
+    );
+
+    return {
+      markedCount: result.count,
+      roomId,
+    };
+  }
+
+  async getUnreadCount(userId: number) {
+    // Get all rooms where user is participant
+    const userRooms = await this.prisma.chatRoom.findMany({
+      where: {
+        OR: [
+          { buyerId: userId },
+          { sellerId: userId },
+        ],
+      },
+      select: {
+        id: true,
+        buyerId: true,
+        sellerId: true,
+      },
+    });
+
+    if (userRooms.length === 0) {
+      return { unreadCount: 0 };
+    }
+
+    const roomIds = userRooms.map(room => room.id);
+
+    // Count unread messages for this user
+    let unreadCount = 0;
+
+    for (const room of userRooms) {
+      const isBuyer = room.buyerId === userId;
+      const isSeller = room.sellerId === userId;
+
+      const whereCondition: any = {
+        roomId: room.id,
+        fromUserId: { not: userId }, // Don't count own messages
+      };
+
+      if (isBuyer) {
+        whereCondition.isReadByBuyer = false;
+      } else if (isSeller) {
+        whereCondition.isReadBySeller = false;
+      }
+
+      const count = await this.prisma.chatMessage.count({
+        where: whereCondition,
+      });
+
+      unreadCount += count;
+    }
+
+    return { unreadCount };
   }
 } 

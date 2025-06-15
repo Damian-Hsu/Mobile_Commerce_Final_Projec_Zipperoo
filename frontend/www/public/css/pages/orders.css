@@ -291,7 +291,7 @@
     line-height: 1.5;
 }
 
-/* 分頁 */
+/* 分頁 - 奶茶色系設計 */
 .pagination-container {
     display: flex;
     justify-content: center;
@@ -303,72 +303,70 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
     padding: 8px 12px;
-    border: 1px solid #dee2e6;
-    background: white;
-    color: #bb9571;
+    border: 2px solid #d4c4a8;
+    background: #ffffff;
+    color: #8b6f47;
     text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.3s;
+    border-radius: 8px;
+    transition: all 0.2s ease;
     font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
 }
 
 .pagination-btn:hover {
     background: #bb9571;
-    color: white;
+    color: #ffffff;
     border-color: #bb9571;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(187, 149, 113, 0.3);
 }
 
 .pagination-btn.active {
     background: #bb9571;
-    color: white;
+    color: #ffffff;
     border-color: #bb9571;
+    box-shadow: 0 2px 8px rgba(187, 149, 113, 0.3);
+    font-weight: 600;
 }
 
 .pagination-btn:disabled {
-    background: #f8f9fa;
-    color: #6c757d;
-    border-color: #dee2e6;
+    background: #faf8f5;
+    color: #c4a484;
+    border-color: #e9e1d4;
     cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .pagination-btn:disabled:hover {
-    background: #f8f9fa;
-    color: #6c757d;
-    border-color: #dee2e6;
+    background: #faf8f5;
+    color: #c4a484;
+    border-color: #e9e1d4;
+    transform: none;
+    box-shadow: none;
 }
 
-/* 按鈕樣式 */
-.btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
+.pagination-ellipsis {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s;
-    font-size: 14px;
-    line-height: 1.5;
+    padding: 0 8px;
+    color: #6c757d;
+    font-weight: 500;
 }
 
-.btn-primary {
-    background: #bb9571;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #9f754f;
-    transform: translateY(-1px);
-}
-
-/* 響應式設計 */
+/* 響應式分頁設計 */
 @media (max-width: 768px) {
     .orders-main {
         padding: 15px 0;
@@ -426,9 +424,21 @@
         font-size: 20px;
     }
     
+    .pagination-container {
+        padding: 15px;
+    }
+    
     .pagination {
+        gap: 4px;
         flex-wrap: wrap;
         justify-content: center;
+    }
+    
+    .pagination-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 6px 10px;
+        font-size: 13px;
     }
 }
 
@@ -465,4 +475,38 @@
     .empty-state h3 {
         font-size: 20px;
     }
+    
+    .pagination-btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
+/* 按鈕樣式 */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.btn-primary {
+    background: #bb9571;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #9f754f;
+    transform: translateY(-1px);
 } 

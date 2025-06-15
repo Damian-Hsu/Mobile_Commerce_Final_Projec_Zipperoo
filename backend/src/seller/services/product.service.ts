@@ -94,7 +94,7 @@ export class ProductService {
     }
   }
 
-  async getProducts(sellerId: number, page: number = 1, pageSize: number = 10, search?: string) {
+  async getProducts(sellerId: number, page: number = 1, pageSize: number = 10, search?: string, status?: string) {
     const skip = (page - 1) * pageSize;
 
     // 構建搜尋條件
@@ -114,6 +114,106 @@ export class ProductService {
       console.log('🔍 搜尋條件:', JSON.stringify(whereCondition, null, 2));
     }
 
+    // 如果有狀態過濾，添加狀態條件
+    if (status && status.trim()) {
+      console.log('🔍 後端收到狀態過濾:', status.trim());
+      if (status === 'OUT_OF_STOCK') {
+        // 缺貨狀態需要特殊處理，先不在這裡過濾，後面會在應用層處理
+        console.log('🔍 缺貨狀態將在應用層處理');
+      } else {
+        // 其他狀態直接過濾
+        whereCondition.status = status.trim();
+        console.log('🔍 狀態過濾條件:', status.trim());
+      }
+    }
+
+    // 如果是缺貨狀態過濾，需要特殊處理
+    if (status === 'OUT_OF_STOCK') {
+      // 先獲取所有商品（不分頁），然後過濾缺貨商品
+      const allProducts = await this.prisma.product.findMany({
+        where: whereCondition,
+        include: {
+          images: true,
+          category: true,
+          variants: true,
+          reviews: {
+            where: { isDeleted: false },
+          },
+          _count: {
+            select: {
+              reviews: {
+                where: { isDeleted: false },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // 過濾出缺貨商品
+      const outOfStockProducts = allProducts.filter(product => {
+        const totalStock = product.variants?.reduce((sum, variant) => sum + (variant.stock || 0), 0) || 0;
+        return totalStock === 0;
+      });
+
+      // 手動分頁
+      const total = outOfStockProducts.length;
+      const products = outOfStockProducts.slice(skip, skip + pageSize);
+
+      const [enrichedProducts] = await Promise.all([
+        Promise.all(
+          products.map(async (product) => {
+            // 計算價格範圍
+            const prices = product.variants?.map(v => v.price) || [];
+            if (prices.length === 0) prices.push(0);
+            
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+
+            // 計算平均評分
+            const ratings = product.reviews?.map(r => r.score) || [];
+            const avgRating = ratings.length > 0 
+              ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length 
+              : 0;
+
+            // 計算銷售數量
+            const soldQuantity = await this.prisma.orderItem.aggregate({
+              where: {
+                productVariant: {
+                  productId: product.id,
+                },
+                order: {
+                  status: { in: ['UNCOMPLETED', 'COMPLETED','CANCELED'] },
+                },
+              },
+              _sum: {
+                quantity: true,
+              },
+            });
+
+            return {
+              ...product,
+              minPrice,
+              maxPrice,
+              avgRating: Math.round(avgRating * 10) / 10, // 保留一位小數
+              soldQuantity: soldQuantity._sum.quantity || 0,
+            };
+          })
+        )
+      ]);
+
+      return {
+        data: enrichedProducts,
+        meta: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.ceil(total / pageSize),
+        },
+      };
+    }
+
+    // 正常的分頁查詢（非缺貨狀態）
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
         where: whereCondition,
@@ -551,5 +651,60 @@ export class ProductService {
     );
 
     return { message: '訂單已完成' };
+  }
+
+  async getProductStats(sellerId: number) {
+    // 獲取總商品數（排除已刪除的商品）
+    const totalProducts = await this.prisma.product.count({
+      where: {
+        sellerId,
+        status: { not: 'DELETED' },
+      },
+    });
+
+    // 獲取各狀態的商品數量
+    const [onShelfCount, offShelfCount] = await Promise.all([
+      // 上架商品數量
+      this.prisma.product.count({
+        where: {
+          sellerId,
+          status: 'ON_SHELF',
+        },
+      }),
+      // 下架商品數量
+      this.prisma.product.count({
+        where: {
+          sellerId,
+          status: 'OFF_SHELF',
+        },
+      }),
+    ]);
+
+    // 計算缺貨商品數量（需要檢查商品變體的庫存）
+    const productsWithVariants = await this.prisma.product.findMany({
+      where: {
+        sellerId,
+        status: { not: 'DELETED' },
+      },
+      include: {
+        variants: {
+          select: {
+            stock: true,
+          },
+        },
+      },
+    });
+
+    const outOfStockCount = productsWithVariants.filter(product => {
+      const totalStock = product.variants?.reduce((sum, variant) => sum + (variant.stock || 0), 0) || 0;
+      return totalStock === 0;
+    }).length;
+
+    return {
+      total: totalProducts,
+      onShelf: onShelfCount,
+      offShelf: offShelfCount,
+      outOfStock: outOfStockCount,
+    };
   }
 } 

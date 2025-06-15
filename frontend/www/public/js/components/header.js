@@ -39,6 +39,14 @@ export class Header {
             this.updateCartCount();
         });
         
+        // 監聽未讀訊息更新事件
+        window.addEventListener('unreadMessagesUpdated', (e) => {
+            this.updateUnreadMessagesBadge(e.detail.count);
+        });
+        
+        // 定期更新通知計數
+        this.startNotificationUpdates();
+        
         // 設置搜尋功能
         this.setupSearchFunctionality();
         
@@ -176,7 +184,6 @@ export class Header {
                 // 買家顯示購物車和聊天室
                 if (this.cartIcon) {
                     this.cartIcon.style.display = 'inline-block';
-                    this.updateCartCount();
                 }
                 if (this.mobileCartIcon) {
                     this.mobileCartIcon.style.display = 'inline-block';
@@ -197,7 +204,13 @@ export class Header {
                 }
                 this.showSellerCenter();
             }
+            
+            // 啟動通知更新（購物車數量和未讀訊息）
+            this.startNotificationUpdates();
         } else {
+            // 停止通知更新
+            this.stopNotificationUpdates();
+            
             // 桌面版
             if (this.userGreeting) {
                 this.userGreeting.textContent = '您好, 訪客';
@@ -239,56 +252,18 @@ export class Header {
         }
     }
 
-    updateCartCount() {
-        if (!window.authManager?.isAuthenticated()) return;
-        
-        const user = window.authManager.getUser();
-        if (user?.role !== 'BUYER') return;
-        
-        fetch('/api/v1/buyers/me/cart')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.data && data.data.items && data.data.items.length > 0) {
-                    const totalItems = data.data.items.reduce((sum, item) => sum + item.quantity, 0);
-                    
-                    // 桌面版
-                    if (this.cartCountBadge) {
-                        this.cartCountBadge.textContent = totalItems;
-                        this.cartCountBadge.style.display = 'inline-block';
-                    }
-                    
-                    // 手機版
-                    if (this.mobileCartCountBadge) {
-                        this.mobileCartCountBadge.textContent = totalItems;
-                        this.mobileCartCountBadge.style.display = 'inline-block';
-                    }
-                } else {
-                    // 桌面版
-                    if (this.cartCountBadge) {
-                        this.cartCountBadge.style.display = 'none';
-                    }
-                    
-                    // 手機版
-                    if (this.mobileCartCountBadge) {
-                        this.mobileCartCountBadge.style.display = 'none';
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Failed to update cart count:', error);
-            });
-    }
+
 
     showSellerCenter() {
         // 修改購物車按鈕為賣家中心
         if (this.cartIcon) {
             this.cartIcon.href = '/seller/dashboard';
-            this.cartIcon.innerHTML = '<i class="bi bi-shop text-muted"> </i>';
+            this.cartIcon.innerHTML = '<i class="bi bi-shop text-muted"> </i><span class="position-absolute pending-orders-badge" style="display: none; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center;">0</span>';
             this.cartIcon.style.display = 'inline-block';
         }
         if (this.mobileCartIcon) {
             this.mobileCartIcon.href = '/seller/dashboard';
-            this.mobileCartIcon.innerHTML = '<i class="bi bi-shop text-muted"></i>';
+            this.mobileCartIcon.innerHTML = '<i class="bi bi-shop text-muted"></i><span class="position-absolute pending-orders-badge" style="display: none; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center;">0</span>';
             this.mobileCartIcon.style.display = 'inline-block';
         }
     }
@@ -405,16 +380,106 @@ export class Header {
         }
     }
 
+    // 開始定期更新通知計數
+    startNotificationUpdates() {
+        // 立即更新一次
+        this.updateNotificationCounts();
+        
+        // 每5秒更新一次
+        this.notificationInterval = setInterval(() => {
+            this.updateNotificationCounts();
+        }, 5000);
+    }
+    
+    // 停止通知更新
+    stopNotificationUpdates() {
+        if (this.notificationInterval) {
+            clearInterval(this.notificationInterval);
+            this.notificationInterval = null;
+        }
+    }
+    
+    // 更新所有通知計數
+    async updateNotificationCounts() {
+        if (!authManager.isAuthenticated()) {
+            return;
+        }
+        
+        try {
+            const response = await apiClient.getNotificationCounts();
+            if (apiClient.isSuccess(response) && response.data) {
+                const { cartCount, unreadMessageCount, pendingOrderCount } = response.data;
+                
+                // 更新購物車徽章
+                this.updateCartCountBadge(cartCount);
+                
+                // 更新未讀訊息徽章
+                this.updateUnreadMessagesBadge(unreadMessageCount);
+                
+                // 更新未處理訂單徽章（賣家）
+                this.updatePendingOrderBadge(pendingOrderCount);
+            }
+        } catch (error) {
+            console.error('Failed to update notification counts:', error);
+        }
+    }
+    
+    // 更新購物車數量徽章
+    updateCartCountBadge(count) {
+        const badges = [this.cartCountBadge, this.mobileCartCountBadge];
+        badges.forEach(badge => {
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // 更新未讀訊息徽章
+    updateUnreadMessagesBadge(count) {
+        // 查找聊天圖標上的徽章
+        const chatBadges = document.querySelectorAll('.unread-messages-badge');
+        chatBadges.forEach(badge => {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        });
+    }
+    
+    // 更新未處理訂單徽章（賣家）
+    updatePendingOrderBadge(count) {
+        // 查找賣家中心圖標上的徽章
+        const sellerBadges = document.querySelectorAll('.pending-orders-badge');
+        sellerBadges.forEach(badge => {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        });
+    }
+
     async handleLogout(e) {
         e.preventDefault();
+        
+        // 停止通知更新
+        this.stopNotificationUpdates();
         
         // 防止重複登出
         if (this._isLoggingOut) return;
         this._isLoggingOut = true;
         
         try {
-            await authManager.logout();
-            window.location.href = '/';
+        await authManager.logout();
+        window.location.href = '/';
         } catch (error) {
             console.error('登出失敗:', error);
             this._isLoggingOut = false; // 重設狀態以便重試

@@ -9,6 +9,7 @@ import { ResponseDto } from '../../common/dto/response.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
+import { SellerProductsQueryDto } from '../dto/seller-products-query.dto';
 
 @ApiTags('賣家商品管理')
 @Controller('seller')
@@ -18,22 +19,33 @@ import { UpdateProductDto } from '../dto/update-product.dto';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
+  @Get('products/stats')
+  @ApiOperation({ summary: '獲取商品統計', description: '獲取當前賣家的商品統計信息' })
+  @ApiResponse({ status: 200, description: '獲取商品統計成功' })
+  @ApiResponse({ status: 401, description: '未認證用戶' })
+  @ApiResponse({ status: 403, description: '權限不足' })
+  async getProductStats(@CurrentUser() user: any) {
+    const stats = await this.productService.getProductStats(user.id);
+    return ResponseDto.success(stats, '獲取商品統計成功');
+  }
+
   @Get('products')
   @ApiOperation({ summary: '獲取賣家商品列表', description: '獲取當前賣家的所有商品列表' })
   @ApiQuery({ name: 'page', type: 'number', required: false, description: '頁碼' })
   @ApiQuery({ name: 'pageSize', type: 'number', required: false, description: '每頁數量' })
   @ApiQuery({ name: 'search', type: 'string', required: false, description: '搜尋關鍵字' })
+  @ApiQuery({ name: 'status', type: 'string', required: false, description: '商品狀態過濾' })
   @ApiResponse({ status: 200, description: '獲取商品列表成功' })
   @ApiResponse({ status: 401, description: '未認證用戶' })
   @ApiResponse({ status: 403, description: '權限不足' })
-  async getSellerProducts(@CurrentUser() user: any, @Query() paginationDto: PaginationDto, @Query('search') search?: string) {
-    console.log('🔍 控制器收到搜尋參數:', search);
-    console.log('🔍 分頁參數:', paginationDto);
+  async getSellerProducts(@CurrentUser() user: any, @Query() queryDto: SellerProductsQueryDto) {
+    console.log('🔍 控制器收到查詢參數:', queryDto);
     const result = await this.productService.getProducts(
       user.id,
-      paginationDto.page,
-      paginationDto.pageSize,
-      search,
+      queryDto.page,
+      queryDto.pageSize,
+      queryDto.search,
+      queryDto.status,
     );
     return ResponseDto.success(result, '獲取商品列表成功');
   }

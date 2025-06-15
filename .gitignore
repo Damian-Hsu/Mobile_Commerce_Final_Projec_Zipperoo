@@ -23,3 +23,5 @@ ssl/
 
 # #dev中資料夾
 # frontend/
+
+inserts_without_chat.sql

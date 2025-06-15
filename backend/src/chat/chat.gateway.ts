@@ -123,6 +123,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(`user_${result.room.buyerId}`).emit('roomUpdated', result.room);
       this.server.to(`user_${result.room.sellerId}`).emit('roomUpdated', result.room);
 
+      // Notify recipient about unread count update
+      const recipientId = result.room.buyerId === userInfo.userId ? result.room.sellerId : result.room.buyerId;
+      this.notifyUnreadCountUpdate(recipientId);
+
     } catch (error) {
       client.emit('error', { message: '發送訊息失敗' });
     }
@@ -150,6 +154,68 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit('messages', messages);
     } catch (error) {
       client.emit('error', { message: '獲取訊息失敗' });
+    }
+  }
+
+  @SubscribeMessage('markMessagesRead')
+  async handleMarkMessagesRead(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { roomId: number },
+  ) {
+    try {
+      const userInfo = this.connectedUsers.get(client.id);
+      if (!userInfo) {
+        client.emit('error', { message: '未認證用戶' });
+        return;
+      }
+
+      const result = await this.chatService.markMessagesAsRead(
+        data.roomId,
+        userInfo.userId,
+      );
+
+      // Emit to the user who marked messages as read
+      client.emit('messagesMarkedRead', result);
+
+      // Emit to all users in the room to update read status
+      this.server.to(`room_${data.roomId}`).emit('readStatusUpdated', {
+        roomId: data.roomId,
+        userId: userInfo.userId,
+        markedCount: result.markedCount,
+      });
+
+      // Update unread count for the user
+      const unreadCount = await this.chatService.getUnreadCount(userInfo.userId);
+      client.emit('unreadCountUpdated', unreadCount);
+
+    } catch (error) {
+      client.emit('error', { message: '標記訊息失敗' });
+    }
+  }
+
+  @SubscribeMessage('getUnreadCount')
+  async handleGetUnreadCount(@ConnectedSocket() client: Socket) {
+    try {
+      const userInfo = this.connectedUsers.get(client.id);
+      if (!userInfo) {
+        client.emit('error', { message: '未認證用戶' });
+        return;
+      }
+
+      const unreadCount = await this.chatService.getUnreadCount(userInfo.userId);
+      client.emit('unreadCount', unreadCount);
+    } catch (error) {
+      client.emit('error', { message: '獲取未讀數量失敗' });
+    }
+  }
+
+  // Helper method to notify users about unread count changes
+  async notifyUnreadCountUpdate(userId: number) {
+    try {
+      const unreadCount = await this.chatService.getUnreadCount(userId);
+      this.server.to(`user_${userId}`).emit('unreadCountUpdated', unreadCount);
+    } catch (error) {
+      console.error('Failed to notify unread count update:', error);
     }
   }
 } 

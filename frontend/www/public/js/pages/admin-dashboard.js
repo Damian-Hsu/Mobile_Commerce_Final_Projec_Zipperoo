@@ -306,11 +306,11 @@ class AdminDashboard {
 
     initCategoriesSection(section) {
         section.innerHTML = `
-                                <div class="section-header">
-                        <h2>
-                            <i class="bi bi-tags"></i>
-                            類別管理
-                        </h2>
+            <div class="section-header">
+                <h2>
+                    <i class="bi bi-tags"></i>
+                    類別管理
+                </h2>
                 <div class="section-controls">
                     <button class="btn btn-refresh" onclick="window.adminDashboard.refreshCategories()">
                         <i class="bi bi-arrow-clockwise"></i>
@@ -1366,11 +1366,11 @@ class AdminDashboard {
         // 狀態選擇器（始終顯示，不受庫存影響）
         const statusSelect = `
             <select class="form-select form-select-sm status-select mb-1" 
-                    data-product-id="${product.id}" 
-                    onchange="window.adminDashboard.updateProductStatus(${product.id}, this.value)">
-                <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
-                <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>下架</option>
-            </select>
+                            data-product-id="${product.id}" 
+                            onchange="window.adminDashboard.updateProductStatus(${product.id}, this.value)">
+                        <option value="ON_SHELF" ${product.status === 'ON_SHELF' ? 'selected' : ''}>上架中</option>
+                        <option value="OFF_SHELF" ${product.status === 'OFF_SHELF' ? 'selected' : ''}>下架</option>
+                    </select>
         `;
         
         // 庫存狀態標籤（獨立於上架狀態）
@@ -1645,15 +1645,15 @@ class AdminDashboard {
             
             // 如果 API 調用失敗，則使用 DOM 資料作為備用方案
             try {
-                const productRow = document.querySelector(`tr[data-product-id="${productId}"]`);
-                if (!productRow) {
-                    this.showError('找不到商品資訊');
-                    return;
-                }
-                
-                const cells = productRow.querySelectorAll('td');
-                const productData = {
-                    id: productId,
+            const productRow = document.querySelector(`tr[data-product-id="${productId}"]`);
+            if (!productRow) {
+                this.showError('找不到商品資訊');
+                return;
+            }
+            
+            const cells = productRow.querySelectorAll('td');
+            const productData = {
+                id: productId,
                     name: cells[1]?.querySelector('div')?.textContent?.trim() || cells[1]?.textContent?.trim() || '-',
                     seller: cells[2]?.querySelector('div')?.textContent?.trim() || cells[2]?.textContent?.trim() || '-',
                     category: '-', // 表格中沒有類別資訊
@@ -1663,13 +1663,13 @@ class AdminDashboard {
                     createdAt: cells[6]?.textContent?.trim() || '-',
                     description: '-',
                     images: []
-                };
-                
-                this.showProductDetailsModal(productData);
-                
+            };
+            
+            this.showProductDetailsModal(productData);
+            
             } catch (domError) {
                 console.error('❌ DOM 備用方案也失敗:', domError);
-                this.showError('查看商品詳情失敗: ' + error.message);
+            this.showError('查看商品詳情失敗: ' + error.message);
             }
         }
     }

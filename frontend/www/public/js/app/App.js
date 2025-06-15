@@ -59,6 +59,9 @@ class App {
     initComponents() {
         const header = new Header();
         header.init();
+        
+        // Expose header instance globally for other components to access
+        window.header = header;
 
         const footer = new Footer();
         footer.init();

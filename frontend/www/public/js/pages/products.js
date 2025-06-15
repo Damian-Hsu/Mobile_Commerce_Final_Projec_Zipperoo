@@ -98,11 +98,20 @@ export class ProductsPage {
         // Update sort dropdown
         const sortSelect = document.getElementById('sortBy');
         if (sortSelect) {
+            const sortKey = `${this.filters.sortBy}${this.filters.sortOrder === 'asc' ? '-asc' : ''}`;
             if (this.filters.sortBy === 'price' && this.filters.sortOrder === 'desc') {
                 sortSelect.value = 'price-desc';
             } else if (this.filters.sortBy === 'price' && this.filters.sortOrder === 'asc') {
                 sortSelect.value = 'price';
-    } else {
+            } else if (this.filters.sortBy === 'rating' && this.filters.sortOrder === 'desc') {
+                sortSelect.value = 'rating-desc';
+            } else if (this.filters.sortBy === 'sales' && this.filters.sortOrder === 'desc') {
+                sortSelect.value = 'sales-desc';
+            } else if (this.filters.sortBy === 'name' && this.filters.sortOrder === 'desc') {
+                sortSelect.value = 'name-desc';
+            } else if (this.filters.sortBy === 'createdAt' && this.filters.sortOrder === 'asc') {
+                sortSelect.value = 'createdAt-asc';
+            } else {
                 sortSelect.value = this.filters.sortBy;
             }
         }
@@ -126,11 +135,17 @@ export class ProductsPage {
         
         // 處理排序
         const sortValue = document.getElementById('sortBy')?.value || 'createdAt';
-        if (sortValue === 'price-desc') {
-            this.filters.sortBy = 'price';
+        if (sortValue.includes('-desc')) {
+            this.filters.sortBy = sortValue.replace('-desc', '');
             this.filters.sortOrder = 'desc';
+        } else if (sortValue.includes('-asc')) {
+            this.filters.sortBy = sortValue.replace('-asc', '');
+            this.filters.sortOrder = 'asc';
         } else if (sortValue === 'price') {
             this.filters.sortBy = 'price';
+            this.filters.sortOrder = 'asc';
+        } else if (sortValue === 'name') {
+            this.filters.sortBy = 'name';
             this.filters.sortOrder = 'asc';
         } else {
             this.filters.sortBy = sortValue;
@@ -149,6 +164,19 @@ export class ProductsPage {
             this.filters.page = parseInt(pageLink.dataset.page, 10);
             this.updateURL();
             await this.loadProducts();
+            
+            // 等待DOM更新後再滑動
+            setTimeout(() => {
+                // 滑動到結果資訊區域，並留一些頂部空間
+                const resultsInfo = document.getElementById('resultsInfo');
+                if (resultsInfo) {
+                    const offsetTop = resultsInfo.offsetTop - 100; // 減去100px，留出頂部空間
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 100);
         }
     }
 
@@ -233,19 +261,59 @@ export class ProductsPage {
     }
 
     renderPagination(meta) {
-        // Pagination logic from original file...
         const { page, totalPages } = meta;
         if (totalPages <= 1) {
             this.paginationContainer.innerHTML = '';
             return;
         }
-        // Simplified pagination for brevity
+        
         let html = '<ul class="pagination justify-content-center">';
-        html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">Previous</a></li>`;
-        for (let i = 1; i <= totalPages; i++) {
-            html += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+        
+        // 上一頁按鈕
+        html += `<li class="page-item ${page === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${page - 1}">上一頁</a>
+                 </li>`;
+        
+        // 計算顯示的頁碼範圍
+        const startPage = Math.max(1, page - 2);
+        const endPage = Math.min(totalPages, page + 2);
+        
+        // 如果不是從第1頁開始，顯示第1頁和省略號
+        if (startPage > 1) {
+            html += `<li class="page-item">
+                        <a class="page-link" href="#" data-page="1">1</a>
+                     </li>`;
+            if (startPage > 2) {
+                html += `<li class="page-item disabled">
+                            <span class="page-link">...</span>
+                         </li>`;
+            }
         }
-        html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">Next</a></li>`;
+        
+        // 顯示頁碼
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<li class="page-item ${i === page ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                     </li>`;
+        }
+        
+        // 如果不是到最後一頁，顯示省略號和最後一頁
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `<li class="page-item disabled">
+                            <span class="page-link">...</span>
+                         </li>`;
+            }
+            html += `<li class="page-item">
+                        <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+                     </li>`;
+        }
+        
+        // 下一頁按鈕
+        html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${page + 1}">下一頁</a>
+                 </li>`;
+        
         html += '</ul>';
         this.paginationContainer.innerHTML = html;
     }
@@ -289,18 +357,47 @@ export class ProductsPage {
         const reviewCount = product._count?.reviews || 0;
         const stars = UIUtils.generateStars(avgRating);
         
-        // 處理商品描述 - 限制長度
-        const description = product.description 
-            ? (product.description.length > 100 
-                ? product.description.substring(0, 100) + '...' 
-                : product.description)
-            : '';
+        // 處理商品描述 - 處理換行符並限制行數
+        let description = '';
+        if (product.description) {
+            // 將換行符轉換為 <br> 標籤
+            let formattedDesc = product.description
+                .replace(/\\n/g, '<br>')    // 處理轉義的 \n
+                .replace(/\n/g, '<br>')     // 處理真正的換行符
+                .replace(/\r\n/g, '<br>')   // 處理Windows格式換行
+                .replace(/\r/g, '<br>');    // 處理Mac格式換行
+            
+            // 按 <br> 分割並限制最多5行
+            const lines = formattedDesc.split('<br>');
+            if (lines.length > 5) {
+                formattedDesc = lines.slice(0, 5).join('<br>') + '...';
+            }
+            
+            // 如果單行太長也要截斷
+            const maxLength = 200;
+            if (formattedDesc.replace(/<br>/g, '').length > maxLength) {
+                const textContent = formattedDesc.replace(/<br>/g, ' ');
+                formattedDesc = textContent.substring(0, maxLength) + '...';
+                // 重新添加換行符處理
+                formattedDesc = formattedDesc.replace(/\n/g, '<br>');
+            }
+            
+            description = formattedDesc;
+        }
 
         // 根據當前視圖模式創建不同的佈局
         if (this.currentView === 'list') {
             col.innerHTML = this.createListViewCard(product, imageUrl, priceDisplay, avgRating, reviewCount, stars, description);
-  } else {
+          } else {
             col.innerHTML = this.createGridViewCard(product, imageUrl, priceDisplay, avgRating, reviewCount, stars, description);
+        }
+        
+        // 設置商品描述內容（支援HTML）
+        if (description) {
+            const descElements = col.querySelectorAll('.product-description-content');
+            descElements.forEach(element => {
+                element.innerHTML = description;
+            });
         }
         
         return col;
@@ -332,7 +429,7 @@ export class ProductsPage {
                 </div>
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title mb-2 text-dark">${product.name}</h5>
-                    ${description ? `<p class="card-text text-muted small mb-2">${description}</p>` : ''}
+                    ${description ? `<p class="card-text text-muted small mb-2 product-description-content"></p>` : ''}
                     <div class="mb-2">
                         <span class="fw-bold text-primary fs-5">${priceDisplay}</span>
                     </div>
@@ -351,7 +448,8 @@ export class ProductsPage {
                  onclick="window.location.href='/products/${product.id}'"
                  style="cursor: pointer;">
                 <div class="card-body">
-                    <div class="row align-items-center">
+                    <!-- 桌面版佈局 -->
+                    <div class="row align-items-center d-none d-md-flex">
                         <div class="col-auto">
                             <img src="${imageUrl}" 
                                  class="rounded" 
@@ -370,7 +468,7 @@ export class ProductsPage {
                                     </div>
                                 </div>
                             </div>
-                            ${description ? `<p class="text-muted mb-2">${description}</p>` : ''}
+                            ${description ? `<p class="text-muted mb-2 product-description-content"></p>` : ''}
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex gap-2">
                                     <button class="btn btn-outline-primary btn-sm" 
@@ -385,6 +483,44 @@ export class ProductsPage {
                                 </div>
                                 ${product.category ? `<span class="badge bg-secondary">${product.category.name}</span>` : ''}
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 手機版簡化佈局 -->
+                    <div class="d-flex d-md-none mobile-list-view">
+                        <!-- 左側商品圖片 -->
+                        <div class="mobile-product-image">
+                            <img src="${imageUrl}" 
+                                 class="rounded" 
+                                 alt="${product.name}"
+                                 onerror="this.src='/images/placeholder.svg'">
+                        </div>
+                        
+                        <!-- 右側商品信息 -->
+                        <div class="mobile-product-info flex-grow-1 position-relative">
+                            <!-- 商品名稱和類別 -->
+                            <div class="mb-2">
+                                <h6 class="mb-1 text-dark mobile-product-name">${product.name}</h6>
+                                ${product.category ? `<span class="badge bg-light text-dark mobile-category">${product.category.name}</span>` : ''}
+                            </div>
+                            
+                            <!-- 價格 -->
+                            <div class="mb-2">
+                                <div class="fw-bold text-primary mobile-price">${priceDisplay}</div>
+                            </div>
+                            
+                            <!-- 評分 -->
+                            <div class="d-flex align-items-center mobile-rating mb-2">
+                                <div class="stars me-2">${stars}</div>
+                                <small class="text-muted">(${reviewCount})</small>
+                            </div>
+                            
+                            <!-- 右下角收藏按鈕 -->
+                            <button class="btn btn-link p-0 mobile-wishlist-btn position-absolute" 
+                                    onclick="event.stopPropagation(); addToWishlist(${product.id})"
+                                    title="加入收藏">
+                                <i class="bi bi-heart"></i>
+                            </button>
                         </div>
                     </div>
                 </div>

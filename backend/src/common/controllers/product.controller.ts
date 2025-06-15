@@ -23,7 +23,7 @@ export class ProductController {
   @ApiQuery({ name: 'categoryId', type: 'number', required: false, description: '分類ID' })
   @ApiQuery({ name: 'minPrice', type: 'number', required: false, description: '最低價格' })
   @ApiQuery({ name: 'maxPrice', type: 'number', required: false, description: '最高價格' })
-  @ApiQuery({ name: 'sortBy', type: 'string', required: false, description: '排序欄位', enum: ['createdAt', 'name'] })
+  @ApiQuery({ name: 'sortBy', type: 'string', required: false, description: '排序欄位', enum: ['createdAt', 'name', 'price', 'rating', 'sales'] })
   @ApiQuery({ name: 'sortOrder', type: 'string', required: false, description: '排序方向', enum: ['asc', 'desc'] })
   @ApiResponse({ 
     status: 200, 
@@ -88,53 +88,40 @@ export class ProductController {
       where.categoryId = categoryId;
     }
 
-    let orderBy: any = { createdAt: sortOrder || 'desc' };
-    
-    if (sortBy === 'name') {
-      orderBy = { name: sortOrder || 'asc' };
-    } else if (sortBy === 'createdAt') {
-      orderBy = { createdAt: sortOrder || 'desc' };
-    }
-
-    const [products, total] = await Promise.all([
-      this.prisma.product.findMany({
-        where,
-        include: {
-          images: true,
-          category: true,
-          seller: {
-            select: {
-              id: true,
-              username: true,
-              shopName: true,
-            },
-          },
-          variants: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
-              stock: true,
-              attributes: true,
-            },
-          },
-          _count: {
-            select: {
-              reviews: true,
-            },
+    // 先獲取所有符合條件的商品（不分頁），用於價格過濾和複雜排序
+    const allProducts = await this.prisma.product.findMany({
+      where,
+      include: {
+        images: true,
+        category: true,
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            shopName: true,
           },
         },
-        orderBy,
-        skip,
-        take: pageSize || 10,
-      }),
-      this.prisma.product.count({ where }),
-    ]);
+        variants: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            stock: true,
+            attributes: true,
+          },
+        },
+        _count: {
+          select: {
+            reviews: true,
+          },
+        },
+      },
+    });
 
-    // Calculate price range and average rating for each product
+    // 計算每個商品的額外數據並進行價格過濾
     const productsWithData = await Promise.all(
-      products.map(async (product) => {
-        // Calculate average rating
+      allProducts.map(async (product) => {
+        // 計算平均評分
         const avgRating = await this.prisma.review.aggregate({
           where: {
             productId: product.id,
@@ -145,21 +132,92 @@ export class ProductController {
           },
         });
 
+        // 計算銷售數量
+        const salesData = await this.prisma.orderItem.aggregate({
+          where: {
+            productVariant: {
+              productId: product.id,
+            },
+            order: {
+              status: { in: ['COMPLETED'] },
+            },
+          },
+          _sum: {
+            quantity: true,
+          },
+        });
+
+        const minProductPrice = product.variants.length > 0 
+          ? Math.min(...product.variants.map(v => v.price))
+          : 0;
+        const maxProductPrice = product.variants.length > 0 
+          ? Math.max(...product.variants.map(v => v.price))
+          : 0;
+
         return {
           ...product,
           avgRating: avgRating._avg.score || 0,
-          minPrice: product.variants.length > 0 
-            ? Math.min(...product.variants.map(v => v.price))
-            : null,
-          maxPrice: product.variants.length > 0 
-            ? Math.max(...product.variants.map(v => v.price))
-            : null,
+          minPrice: minProductPrice,
+          maxPrice: maxProductPrice,
+          salesCount: salesData._sum.quantity || 0,
         };
       })
     );
 
+    // 價格過濾
+    let filteredProducts = productsWithData;
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filteredProducts = productsWithData.filter(product => {
+        const productMinPrice = product.minPrice;
+        const productMaxPrice = product.maxPrice;
+        
+        let passesMinPrice = true;
+        let passesMaxPrice = true;
+        
+        if (minPrice !== undefined) {
+          passesMinPrice = productMaxPrice >= minPrice; // 商品最高價 >= 篩選最低價
+        }
+        
+        if (maxPrice !== undefined) {
+          passesMaxPrice = productMinPrice <= maxPrice; // 商品最低價 <= 篩選最高價
+        }
+        
+        return passesMinPrice && passesMaxPrice;
+      });
+    }
+
+    // 排序
+    filteredProducts.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'price':
+          comparison = a.minPrice - b.minPrice;
+          break;
+        case 'rating':
+          comparison = a.avgRating - b.avgRating;
+          break;
+        case 'sales':
+          comparison = a.salesCount - b.salesCount;
+          break;
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'createdAt':
+        default:
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+      }
+      
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+
+    // 手動分頁
+    const total = filteredProducts.length;
+    const paginatedProducts = filteredProducts.slice(skip, skip + (pageSize || 10));
+
     return ResponseDto.success({
-      data: productsWithData,
+      data: paginatedProducts,
       meta: {
         page: page || 1,
         pageSize: pageSize || 10,

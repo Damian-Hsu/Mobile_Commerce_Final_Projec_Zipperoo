@@ -64,6 +64,19 @@ class ChatPage {
         // Load chat rooms
         await this.loadChatRooms();
         
+        // Get initial unread count
+        this.getUnreadCount();
+        
+        // Trigger cart count update for navigation
+        if (window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('cartUpdated'));
+        }
+        
+        // Also trigger notification counts update to ensure cart and message counts are shown
+        if (window.header && typeof window.header.updateNotificationCounts === 'function') {
+            window.header.updateNotificationCounts();
+        }
+        
         // Check for URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room');
@@ -93,10 +106,56 @@ class ChatPage {
         // Setup mobile keyboard handling
         this.setupMobileKeyboardHandling();
         
+        // 設置初始視窗高度（用於手機適配）
+        if (window.innerWidth <= 768) {
+            this.setViewportHeight();
+            
+            // 調整底部欄遮擋問題
+            setTimeout(() => {
+                this.adjustForBottomBar();
+            }, 500); // 延遲執行，確保頁面完全載入
+            
+            // 監聽方向變化
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    this.setViewportHeight();
+                    this.adjustForBottomBar();
+                }, 300);
+            });
+            
+            // 監聽視窗大小變化（處理瀏覽器底部欄顯示/隱藏）
+            window.addEventListener('resize', () => {
+                setTimeout(() => {
+                    this.adjustForBottomBar();
+                }, 100);
+            });
+            
+            // 監聽頁面可見性變化（處理瀏覽器底部欄的顯示/隱藏）
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    setTimeout(() => {
+                        this.adjustForBottomBar();
+                    }, 200);
+                }
+            });
+            
+            // 監聽頁面焦點變化
+            window.addEventListener('focus', () => {
+                setTimeout(() => {
+                    this.adjustForBottomBar();
+                }, 200);
+            });
+        }
+        
         // Final scroll check after everything is loaded
         setTimeout(() => {
             if (this.currentRoomId && (this.messagesList || this.messagesContainer)) {
                 this.ensureScrollToBottom();
+            }
+            
+            // 最終調整底部欄（確保所有元素都已載入）
+            if (window.innerWidth <= 768) {
+                this.adjustForBottomBar();
             }
         }, 1000);
         
@@ -199,6 +258,22 @@ class ChatPage {
                 this.showError(error.message || '連接錯誤');
             });
 
+            // Read status events
+            this.socket.on('messagesMarkedRead', (data) => {
+                console.log('Messages marked as read:', data);
+                this.handleMessagesMarkedRead(data);
+            });
+
+            this.socket.on('readStatusUpdated', (data) => {
+                console.log('Read status updated:', data);
+                this.handleReadStatusUpdated(data);
+            });
+
+            this.socket.on('unreadCountUpdated', (data) => {
+                console.log('Unread count updated:', data);
+                this.updateUnreadCountBadge(data.unreadCount);
+            });
+
             this.socket.on('newMessage', (data) => {
                 console.log('New message received:', data);
                 this.handleNewMessage(data);
@@ -286,13 +361,21 @@ class ChatPage {
     createRoomItemHtml(room) {
         const otherUser = room.buyerId === this.currentUser.id ? room.seller : room.buyer;
         const userName = otherUser ? otherUser.username : '未知用戶';
-        const userRole = otherUser ? (otherUser.role === 'SELLER' ? '買家' : '賣家') : '';
         const lastMessage = room.messages && room.messages.length > 0 ? room.messages[0].content : '尚無訊息';
         const lastMessageTime = room.messages && room.messages.length > 0 ? this.formatTime(room.messages[0].createdAt) : '';
         const isActive = this.currentRoomId === room.id;
         
-        // Debug: Log user role information
-        console.log('Room:', room.id, 'Other user:', otherUser, 'Role:', userRole);
+        // Use unread count from backend if available, otherwise calculate locally
+        let unreadCount = 0;
+        if (typeof room.unreadCount === 'number') {
+            unreadCount = room.unreadCount;
+        } else if (room.messages && room.messages.length > 0) {
+            const isBuyer = room.buyerId === this.currentUser.id;
+            unreadCount = room.messages.filter(msg => {
+                if (msg.fromUserId === this.currentUser.id) return false; // Don't count own messages
+                return isBuyer ? !msg.isReadByBuyer : !msg.isReadBySeller;
+            }).length;
+        }
         
         return `
             <div class="chat-room-item ${isActive ? 'active' : ''}" data-room-id="${room.id}">
@@ -300,11 +383,12 @@ class ChatPage {
                     <i class="bi bi-person"></i>
                 </div>
                 <div class="room-info">
-                    <div class="room-name">${userName} ${userRole ? `(${userRole})` : ''}</div>
+                    <div class="room-name">${userName}</div>
                     <div class="room-last-message text-muted">${lastMessage}</div>
                 </div>
                 <div class="room-meta">
                     ${lastMessageTime ? `<div class="room-time">${lastMessageTime}</div>` : ''}
+                    ${unreadCount > 0 ? `<div class="room-unread">${unreadCount}</div>` : ''}
                 </div>
             </div>
         `;
@@ -334,6 +418,12 @@ class ChatPage {
         if (this.socket) {
             this.socket.emit('joinRoom', { roomId });
         }
+        
+        // Update room's unread count to 0 immediately in UI (before loading messages)
+        this.updateRoomUnreadCount(roomId, 0);
+        
+        // Mark messages as read when entering room
+        this.markMessagesAsRead(roomId);
         
         // Load messages
         await this.loadMessages(roomId);
@@ -374,14 +464,10 @@ class ChatPage {
     showChatArea(room) {
         const otherUser = room.buyerId === this.currentUser.id ? room.seller : room.buyer;
         const userName = otherUser ? otherUser.username : '未知用戶';
-        const userRole = otherUser ? (otherUser.role === 'SELLER' ? '買家':'賣家' ) : '';
-        
-        // Debug: Log chat area user role information
-        console.log('Chat area - Room:', room.id, 'Current user:', this.currentUser.id, 'Other user:', otherUser, 'Role:', userRole);
         
         // Update chat header information
         if (this.chatUserName) {
-            this.chatUserName.textContent = `${userName} ${userRole ? `(${userRole})` : ''}`;
+            this.chatUserName.textContent = userName;
             console.log('Updated chat user name:', this.chatUserName.textContent);
         } else {
             console.error('chatUserName element not found');
@@ -582,8 +668,22 @@ class ChatPage {
         const senderName = isOwn ? '我' : (message.fromUser ? message.fromUser.username : '未知用戶');
         const messageTime = this.formatTime(message.createdAt);
         
+        // Determine read status for own messages
+        let readStatusHtml = '';
+        if (isOwn) {
+            const isReadByOther = this.currentUser.role === 'BUYER' 
+                ? message.isReadBySeller 
+                : message.isReadByBuyer;
+            
+            if (isReadByOther) {
+                readStatusHtml = '<span class="message-read-status read">已讀</span>';
+            } else {
+                readStatusHtml = '<span class="message-read-status unread">未讀</span>';
+            }
+        }
+        
         return `
-            <div class="message-item ${isOwn ? 'own' : ''}">
+            <div class="message-item ${isOwn ? 'own' : ''}" data-message-id="${message.id}">
                 <div class="message-avatar">
                     <i class="bi bi-person"></i>
                 </div>
@@ -591,7 +691,10 @@ class ChatPage {
                     <div class="message-bubble">
                         ${this.escapeHtml(message.content)}
                     </div>
-                    <div class="message-time">${messageTime}</div>
+                    <div class="message-meta">
+                        <span class="message-time">${messageTime}</span>
+                        ${readStatusHtml}
+                    </div>
                 </div>
             </div>
         `;
@@ -660,6 +763,9 @@ class ChatPage {
             // Show notification for messages from other rooms
             this.showMessageNotification(message, room);
         }
+        
+        // Reload chat rooms to get updated unread counts
+        this.loadChatRooms();
     }
 
     addNewMessageToDisplay(message) {
@@ -1166,82 +1272,335 @@ class ChatPage {
     setupMobileKeyboardHandling() {
         if (window.innerWidth > 768) return; // 只在手機上執行
         
-        let initialViewportHeight = window.innerHeight;
+        // 設置CSS變數用於視窗高度
+        this.setViewportHeight();
         
-        // 監聽視窗大小變化（鍵盤彈出/收起）
-        window.addEventListener('resize', () => {
-            const currentHeight = window.innerHeight;
-            const heightDiff = initialViewportHeight - currentHeight;
-            
-            // 如果高度減少超過 150px，認為是鍵盤彈出
-            if (heightDiff > 150) {
-                console.log('Keyboard opened, height diff:', heightDiff);
-                this.handleKeyboardOpen();
-            } else {
-                console.log('Keyboard closed or normal resize');
-                this.handleKeyboardClose();
-            }
-        });
+        let initialViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        let isKeyboardOpen = false;
+        
+        // 使用 Visual Viewport API（更準確）
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                this.handleViewportChange();
+            });
+        } else {
+            // 降級到 resize 事件
+            window.addEventListener('resize', () => {
+                this.handleViewportChange();
+            });
+        }
         
         // 監聽輸入框焦點
         if (this.messageInput) {
             this.messageInput.addEventListener('focus', () => {
                 console.log('Input focused');
+                // 延遲處理，等待鍵盤動畫
                 setTimeout(() => {
-                    this.scrollToBottom(true);
-                }, 300); // 等待鍵盤動畫完成
+                    this.handleKeyboardOpen();
+                }, 300);
             });
             
             this.messageInput.addEventListener('blur', () => {
                 console.log('Input blurred');
+                setTimeout(() => {
+                    this.handleKeyboardClose();
+                }, 100);
             });
         }
         
-        // 監聽視窗滾動，防止頁面被推上去
-        window.addEventListener('scroll', (e) => {
+        // 防止頁面滾動
+        document.addEventListener('touchmove', (e) => {
             if (window.innerWidth <= 768) {
-                window.scrollTo(0, 0);
+                // 只允許聊天訊息區域滾動
+                const target = e.target.closest('.messages-list');
+                if (!target) {
+                    e.preventDefault();
+                }
             }
-        });
+        }, { passive: false });
+    }
+    
+    // 設置視窗高度CSS變數
+    setViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    
+    // 獲取移動端瀏覽器窗口配置（參考CSDN文章方法）
+    getWindowConfig() {
+        let windowWidth = window.innerWidth;
+        let windowHeight = window.innerHeight;
+        
+        // 兼容性處理
+        if (typeof windowWidth !== 'number') {
+            if (document.compatMode === 'CSS1Compat') {
+                windowWidth = document.documentElement.clientWidth;
+                windowHeight = document.documentElement.clientHeight;
+            } else {
+                windowWidth = document.body.clientWidth;
+                windowHeight = document.body.clientHeight;
+            }
+        }
+        
+        // 檢測是否有底部導航欄遮擋
+        const screenHeight = window.screen.height;
+        const availableHeight = window.innerHeight;
+        const bottomBarHeight = screenHeight - availableHeight;
+        
+        // 更精確的底部欄檢測：
+        // 1. 高度差要在合理範圍內（30-120px）
+        // 2. 不能是鍵盤彈出狀態（鍵盤通常會佔用更多空間）
+        const isReasonableBottomBar = bottomBarHeight > 30 && bottomBarHeight < 120;
+        const isLikelyKeyboard = bottomBarHeight > 200; // 鍵盤通常佔用200px以上
+        
+        return {
+            windowWidth: windowWidth,
+            windowHeight: windowHeight,
+            screenHeight: screenHeight,
+            availableHeight: availableHeight,
+            bottomBarHeight: bottomBarHeight,
+            hasBottomBar: isReasonableBottomBar && !isLikelyKeyboard
+        };
+    }
+    
+    // 動態調整容器高度以避免底部欄遮擋
+    adjustForBottomBar() {
+        if (window.innerWidth > 768) return; // 只在手機上執行
+        
+        const config = this.getWindowConfig();
+        console.log('Window config:', config);
+        
+        // 只有在沒有鍵盤彈出且確實有底部欄時才調整
+        const hasKeyboard = this.chatContainer && this.chatContainer.classList.contains('keyboard-open');
+        
+        if (config.hasBottomBar && this.chatContainer && !hasKeyboard) {
+            // 使用更保守的調整策略
+            const adjustedHeight = config.availableHeight - 60; // 60px是頂部導航欄高度
+            
+            // 只有當調整後的高度合理時才應用
+            if (adjustedHeight > 300) { // 至少保留300px的聊天區域
+                // 設置CSS變數
+                document.documentElement.style.setProperty('--available-height', `${adjustedHeight}px`);
+                document.documentElement.style.setProperty('--bottom-bar-height', `${config.bottomBarHeight}px`);
+                
+                // 添加底部欄檢測類
+                this.chatContainer.classList.add('has-bottom-bar');
+                
+                console.log(`Adjusted for bottom bar: ${config.bottomBarHeight}px, available height: ${adjustedHeight}px`);
+            }
+        } else {
+            // 移除底部欄相關樣式
+            this.chatContainer.classList.remove('has-bottom-bar');
+            document.documentElement.style.removeProperty('--available-height');
+            document.documentElement.style.removeProperty('--bottom-bar-height');
+        }
+    }
+    
+    // 處理視窗變化
+    handleViewportChange() {
+        this.setViewportHeight();
+        
+        const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const screenHeight = window.screen.height;
+        const heightDiff = screenHeight - currentHeight;
+        
+        // 如果高度減少超過 150px，認為是鍵盤彈出
+        if (heightDiff > 150) {
+            console.log('Keyboard detected - height diff:', heightDiff);
+            this.handleKeyboardOpen(currentHeight);
+        } else {
+            console.log('Keyboard closed or normal resize');
+            this.handleKeyboardClose();
+        }
     }
     
     // 處理鍵盤彈出
-    handleKeyboardOpen() {
+    handleKeyboardOpen(keyboardHeight) {
         if (this.chatContainer && window.innerWidth <= 768) {
-            // 使用 sticky footer 佈局，不需要調整高度
-            this.chatContainer.style.position = 'fixed';
-            this.chatContainer.style.top = '60px';
-            this.chatContainer.style.bottom = '0';
-            this.chatContainer.style.display = 'flex';
-            this.chatContainer.style.flexDirection = 'column';
-        }
-        
-        // 確保輸入框可見
-        setTimeout(() => {
-            if (this.messageInput) {
-                this.messageInput.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'end' 
-                });
+            // 先移除底部欄樣式，避免衝突
+            this.chatContainer.classList.remove('has-bottom-bar');
+            
+            // 添加鍵盤彈出的CSS類
+            this.chatContainer.classList.add('keyboard-open');
+            
+            // 如果有鍵盤高度，設置CSS變數
+            if (keyboardHeight) {
+                // 直接使用鍵盤高度，不再考慮底部欄
+                document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+                console.log(`Keyboard open: available height ${keyboardHeight}px`);
             }
-        }, 100);
+            
+            // 確保訊息滾動到底部
+            setTimeout(() => {
+                this.scrollToBottom(true);
+                
+                // 確保輸入框在可視區域內
+                if (this.messageInput) {
+                    this.messageInput.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'nearest',
+                        inline: 'nearest'
+                    });
+                }
+            }, 100);
+        }
     }
     
     // 處理鍵盤收起
     handleKeyboardClose() {
         if (this.chatContainer && window.innerWidth <= 768) {
-            // 保持 sticky footer 佈局
-            this.chatContainer.style.position = 'fixed';
-            this.chatContainer.style.top = '60px';
-            this.chatContainer.style.bottom = '0';
-            this.chatContainer.style.display = 'flex';
-            this.chatContainer.style.flexDirection = 'column';
+            // 移除鍵盤彈出的CSS類
+            this.chatContainer.classList.remove('keyboard-open');
+            
+            // 重置高度變數
+            document.documentElement.style.removeProperty('--keyboard-height');
+            
+            // 重新檢測底部欄（延遲執行，等待鍵盤完全收起）
+            setTimeout(() => {
+                this.adjustForBottomBar();
+                this.scrollToBottom(true);
+            }, 300);
+        }
+    }
+
+    // Mark messages as read when entering a room
+    markMessagesAsRead(roomId) {
+        if (this.socket && this.isConnected) {
+            this.socket.emit('markMessagesRead', { roomId });
+            
+            // Also update global unread count immediately
+            setTimeout(() => {
+                this.getUnreadCount();
+            }, 100);
+        }
+    }
+
+    // Handle messages marked as read response
+    handleMessagesMarkedRead(data) {
+        console.log(`Marked ${data.markedCount} messages as read in room ${data.roomId}`);
+        // Update UI to show messages as read
+        this.updateMessagesReadStatus(data.roomId);
+        
+        // Update global unread count
+        this.getUnreadCount();
+        
+        // Reload chat rooms to get updated unread counts
+        this.loadChatRooms();
+    }
+
+    // Handle read status updates from other users
+    handleReadStatusUpdated(data) {
+        if (data.roomId === this.currentRoomId) {
+            // Update message read indicators in current room
+            this.updateMessageReadIndicators(data.userId);
+            
+            // Update all own messages to show as read
+            this.updateMessagesReadStatus(data.roomId);
         }
         
-        // 滾動到底部
-        setTimeout(() => {
-            this.scrollToBottom(true);
-        }, 100);
+        // Reload chat rooms to get updated unread counts
+        this.loadChatRooms();
+    }
+
+    // Update messages to show read status
+    updateMessagesReadStatus(roomId) {
+        if (roomId !== this.currentRoomId) return;
+        
+        const messageElements = this.messagesList.querySelectorAll('.message-item.own');
+        messageElements.forEach(element => {
+            const readIndicator = element.querySelector('.message-read-status.unread');
+            if (readIndicator) {
+                readIndicator.textContent = '已讀';
+                readIndicator.className = 'message-read-status read';
+            }
+        });
+    }
+
+    // Update message read indicators for specific user
+    updateMessageReadIndicators(userId) {
+        // Update local message data to reflect read status
+        this.messages.forEach(message => {
+            if (message.fromUserId === this.currentUser.id) {
+                // This is our message, update read status based on who read it
+                const room = this.rooms.find(r => r.id === this.currentRoomId);
+                if (room) {
+                    const isBuyer = room.buyerId === this.currentUser.id;
+                    if (isBuyer) {
+                        message.isReadBySeller = true;
+                    } else {
+                        message.isReadByBuyer = true;
+                    }
+                }
+            }
+        });
+        
+        // Update UI to show read status
+        this.updateMessagesReadStatus(this.currentRoomId);
+        
+        console.log(`User ${userId} read messages in current room - UI updated`);
+    }
+
+    // Update specific room's unread count in UI
+    updateRoomUnreadCount(roomId, count) {
+        const roomElement = this.chatRoomsList.querySelector(`[data-room-id="${roomId}"]`);
+        if (roomElement) {
+            const unreadBadge = roomElement.querySelector('.room-unread');
+            if (count > 0) {
+                if (unreadBadge) {
+                    unreadBadge.textContent = count;
+                } else {
+                    // Create new unread badge
+                    const roomMeta = roomElement.querySelector('.room-meta');
+                    if (roomMeta) {
+                        const newBadge = document.createElement('div');
+                        newBadge.className = 'room-unread';
+                        newBadge.textContent = count;
+                        roomMeta.appendChild(newBadge);
+                    }
+                }
+            } else {
+                // Remove unread badge
+                if (unreadBadge) {
+                    unreadBadge.remove();
+                }
+            }
+        }
+        
+        // Update the room data as well
+        const room = this.rooms.find(r => r.id === roomId);
+        if (room && room.messages) {
+            // Update read status in room data
+            const isBuyer = room.buyerId === this.currentUser.id;
+            room.messages.forEach(msg => {
+                if (msg.fromUserId !== this.currentUser.id) {
+                    if (isBuyer) {
+                        msg.isReadByBuyer = true;
+                    } else {
+                        msg.isReadBySeller = true;
+                    }
+                }
+            });
+        }
+    }
+
+    // Update unread count badge in navigation
+    updateUnreadCountBadge(count) {
+        const badge = document.querySelector('.unread-messages-badge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    // Get unread count from server
+    getUnreadCount() {
+        if (this.socket && this.isConnected) {
+            this.socket.emit('getUnreadCount');
+        }
     }
 
     destroy() {

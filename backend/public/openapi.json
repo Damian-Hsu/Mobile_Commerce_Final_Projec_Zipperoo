@@ -77,7 +77,10 @@
             "schema": {
               "enum": [
                 "createdAt",
-                "name"
+                "name",
+                "price",
+                "rating",
+                "sales"
               ],
               "type": "string"
             }
@@ -449,6 +452,33 @@
         "summary": "獲取分類商品",
         "tags": [
           "公開商品瀏覽"
+        ]
+      }
+    },
+    "/api/v1/notifications/counts": {
+      "get": {
+        "description": "獲取購物車數量、未讀訊息數量和未處理訂單數量",
+        "operationId": "NotificationController_getCounts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "獲取通知計數成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取通知計數",
+        "tags": [
+          "通知系統"
         ]
       }
     },
@@ -952,11 +982,47 @@
         ]
       }
     },
+    "/api/v1/seller/products/stats": {
+      "get": {
+        "description": "獲取當前賣家的商品統計信息",
+        "operationId": "ProductController_getProductStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "獲取商品統計成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取商品統計",
+        "tags": [
+          "賣家商品管理"
+        ]
+      }
+    },
     "/api/v1/seller/products": {
       "get": {
         "description": "獲取當前賣家的所有商品列表",
         "operationId": "ProductController_getSellerProducts",
         "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "商品狀態過濾",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "search",
             "required": false,
@@ -2109,6 +2175,73 @@
           }
         ],
         "summary": "發送訊息",
+        "tags": [
+          "聊天系統"
+        ]
+      }
+    },
+    "/api/v1/chat/rooms/{roomId}/messages/mark-read": {
+      "patch": {
+        "description": "將指定聊天室中的所有未讀訊息標記為已讀",
+        "operationId": "ChatController_markMessagesAsRead",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "description": "聊天室ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "訊息標記為已讀成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足或無聊天室訪問權限"
+          },
+          "404": {
+            "description": "聊天室不存在"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "標記訊息為已讀",
+        "tags": [
+          "聊天系統"
+        ]
+      }
+    },
+    "/api/v1/chat/unread-count": {
+      "get": {
+        "description": "獲取當前用戶的未讀訊息總數",
+        "operationId": "ChatController_getUnreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "獲取未讀訊息數量成功"
+          },
+          "401": {
+            "description": "未認證用戶"
+          },
+          "403": {
+            "description": "權限不足"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "獲取未讀訊息數量",
         "tags": [
           "聊天系統"
         ]

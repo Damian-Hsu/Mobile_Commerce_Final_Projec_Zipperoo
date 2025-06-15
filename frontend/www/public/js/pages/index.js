@@ -186,6 +186,8 @@ export class IndexPage {
             const imageUrl = window.UIUtils ? window.UIUtils.getProductImageUrl(product) : '/images/placeholder.svg';
             const price = product.variants && product.variants.length > 0 ? product.variants[0].price : 0;
             
+
+            
             return `
                     <div class="col-lg-3 col-md-6 mb-4">
                     <div class="product-card card h-100" onclick="window.location.href='/products/${product.id}'" style="cursor: pointer;">
@@ -203,7 +205,7 @@ export class IndexPage {
                             </div>
                             <div class="card-body">
                                 <h6 class="card-title fw-bold text-truncate">${product.name}</h6>
-                                <p class="card-text text-muted small text-truncate">${product.description || ''}</p>
+                                <div class="card-text text-muted small index-product-description"></div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="price fw-bold text-primary">NT$ ${price.toLocaleString()}</span>
                                     <small class="text-muted">${product.category?.name || ''}</small>
@@ -215,6 +217,44 @@ export class IndexPage {
         }).join('');
 
         this.hotProductsContainer.innerHTML = productsHTML;
+        
+        // 設置商品描述內容（支援HTML）
+        const productCards = this.hotProductsContainer.querySelectorAll('.index-product-description');
+        const productDescriptions = products.map(product => {
+            if (product.description) {
+                // 將換行符轉換為 <br> 標籤
+                let formattedDesc = product.description
+                    .replace(/\\n/g, '<br>')    // 處理轉義的 \n
+                    .replace(/\n/g, '<br>')     // 處理真正的換行符
+                    .replace(/\r\n/g, '<br>')   // 處理Windows格式換行
+                    .replace(/\r/g, '<br>');    // 處理Mac格式換行
+                
+                // 按 <br> 分割並限制最多3行（首頁卡片較小）
+                const lines = formattedDesc.split('<br>');
+                if (lines.length > 3) {
+                    formattedDesc = lines.slice(0, 3).join('<br>') + '...';
+                }
+                
+                // 如果單行太長也要截斷
+                const maxLength = 80;
+                if (formattedDesc.replace(/<br>/g, '').length > maxLength) {
+                    const textContent = formattedDesc.replace(/<br>/g, ' ');
+                    formattedDesc = textContent.substring(0, maxLength) + '...';
+                    // 重新添加換行符處理
+                    formattedDesc = formattedDesc.replace(/\n/g, '<br>');
+                }
+                
+                return formattedDesc;
+            }
+            return '';
+        });
+        
+        productCards.forEach((element, index) => {
+            if (productDescriptions[index]) {
+                element.innerHTML = productDescriptions[index];
+            }
+        });
+        
         this.hideNoProducts();
     }
 
