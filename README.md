@@ -48,7 +48,7 @@ Zipperoo 是一個功能完整的電商平台後端系統，採用現代化的 N
 用例圖描述了系統外部不同角色（Actors）與系統提供的功能（Use Cases）之間的互動關係，**完全基於實際 API 端點和控制器實現**，展示了系統的真實業務流程。
 
 ```mermaid
-graph TD
+graph LR
     subgraph "Zipperoo 電商平台系統"
         subgraph "系統檢查 (System)"
             UC1(系統健康檢查)
@@ -522,31 +522,29 @@ classDiagram
     }
 
     %% 關聯關係
-    User ||--o{ Product : sells
-    User ||--|| Cart : owns
-    User ||--o{ Order : places_as_buyer
-    User ||--o{ Order : receives_as_seller
-    User ||--o{ Review : writes
-    User ||--o{ ChatMessage : sends
-    User ||--o{ ChatRoom : buyer
-    User ||--o{ ChatRoom : seller
-    User ||--o{ LogEntry : performs
+    User ||--o{ Product
+    User ||--|| Cart
+    User ||--o{ Order
+    User ||--o{ Review
+    User ||--o{ ChatMessage
+    User ||--o{ ChatRoom
+    User ||--o{ LogEntry
     
-    Category ||--o{ Product : categorizes
+    Category ||--o{ Product
     
-    Product ||--o{ ProductVariant : has
-    Product ||--o{ ProductImage : images
-    Product ||--o{ Review : reviewed
+    Product ||--o{ ProductVariant
+    Product ||--o{ ProductImage
+    Product ||--o{ Review
     
-    ProductVariant ||--o{ CartItem : selected
-    ProductVariant ||--o{ OrderItem : ordered
+    ProductVariant ||--o{ CartItem
+    ProductVariant ||--o{ OrderItem
     
-    Cart ||--o{ CartItem : contains
+    Cart ||--o{ CartItem
     
-    Order ||--o{ OrderItem : contains
-    Order ||--o{ Review : can_be_reviewed
+    Order ||--o{ OrderItem
+    Order ||--o{ Review
     
-    ChatRoom ||--o{ ChatMessage : contains
+    ChatRoom ||--o{ ChatMessage
 ```
 
 ### 🏗️ 前後端架構圖 (Frontend-Backend Architecture)
@@ -876,33 +874,31 @@ erDiagram
     }
 
     %% 用戶關聯
-    User ||--o{ Product : sells
-    User ||--|| Cart : owns
-    User ||--o{ Order : places_as_buyer
-    User ||--o{ Order : receives_as_seller
-    User ||--o{ Review : writes
-    User ||--o{ ChatMessage : sends
-    User ||--o{ ChatRoom : buyer
-    User ||--o{ ChatRoom : seller
-    User ||--o{ LogEntry : performs
+    User ||--o{ Product
+    User ||--|| Cart
+    User ||--o{ Order
+    User ||--o{ Review
+    User ||--o{ ChatMessage
+    User ||--o{ ChatRoom
+    User ||--o{ LogEntry
     
     %% 商品關聯
-    Category ||--o{ Product : categorizes
-    Product ||--o{ ProductVariant : has
-    Product ||--o{ ProductImage : images
-    Product ||--o{ Review : reviewed
+    Category ||--o{ Product
+    Product ||--o{ ProductVariant
+    Product ||--o{ ProductImage
+    Product ||--o{ Review
     
     %% 購物車關聯
-    Cart ||--o{ CartItem : contains
-    ProductVariant ||--o{ CartItem : selected
+    Cart ||--o{ CartItem
+    ProductVariant ||--o{ CartItem
     
     %% 訂單關聯
-    Order ||--o{ OrderItem : contains
-    ProductVariant ||--o{ OrderItem : ordered
-    Order ||--o{ Review : can_be_reviewed
+    Order ||--o{ OrderItem
+    ProductVariant ||--o{ OrderItem
+    Order ||--o{ Review
     
     %% 聊天關聯
-    ChatRoom ||--o{ ChatMessage : contains
+    ChatRoom ||--o{ ChatMessage
 ```
 
 ## 🏗️ 系統架構與實現
