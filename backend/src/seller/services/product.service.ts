@@ -421,7 +421,7 @@ export class ProductService {
             console.log(`更新沒有關聯的 variant: ${existingVariant.name} (ID: ${existingVariant.id})`);
             await tx.productVariant.update({
               where: { id: existingVariant.id },
-        data: {
+              data: {
                 price: matchingNewVariant.price,
                 stock: matchingNewVariant.stock,
               },
@@ -440,8 +440,8 @@ export class ProductService {
           await tx.productVariant.deleteMany({
             where: {
               id: { in: variantsToDelete.map(v => v.id) },
-        },
-      });
+            },
+          });
         }
 
         // 創建新的 variants（名稱在當前商品中不存在的）
@@ -465,22 +465,63 @@ export class ProductService {
         console.log(`=== 商品 ${productId} 的 variants 更新完成 ===`);
       }
 
-      // Update images if provided
-      if (imageUrls) {
-        // Delete existing images
-        await tx.productImage.deleteMany({
+      // Update images if provided and different from current
+      if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0) {
+        // Get current images
+        const currentImages = await tx.productImage.findMany({
           where: { productId },
+          select: { id: true, url: true },
+          orderBy: { id: 'asc' }
         });
 
-        // Create new images
-        if (imageUrls.length > 0) {
-          await tx.productImage.createMany({
-            data: imageUrls.map((url: string) => ({
-              productId,
-              url,
-            })),
-          });
+        const currentUrls = currentImages.map(img => img.url).sort();
+        const newUrls = imageUrls.filter(url => typeof url === 'string' && url.trim()).sort();
+
+        // Check if images have actually changed
+        const imagesChanged = currentUrls.length !== newUrls.length || 
+                             !currentUrls.every((url, index) => url === newUrls[index]);
+
+        if (imagesChanged) {
+          console.log(`商品 ${productId} 的圖片有變化，進行更新`);
+          console.log('當前圖片:', currentUrls);
+          console.log('新圖片:', newUrls);
+
+          // Find images to delete (current but not in new list)
+          const urlsToDelete = currentUrls.filter(url => !newUrls.includes(url));
+          const imagesToDelete = currentImages.filter(img => urlsToDelete.includes(img.url));
+
+          // Find images to add (new but not in current list)
+          const urlsToAdd = newUrls.filter(url => !currentUrls.includes(url));
+
+          // Delete removed images
+          if (imagesToDelete.length > 0) {
+            console.log('刪除圖片:', imagesToDelete.map(img => img.url));
+            await tx.productImage.deleteMany({
+              where: {
+                id: { in: imagesToDelete.map(img => img.id) }
+              }
+            });
+          }
+
+          // Add new images
+          if (urlsToAdd.length > 0) {
+            console.log('新增圖片:', urlsToAdd);
+            await tx.productImage.createMany({
+              data: urlsToAdd.map(url => ({
+                productId,
+                url
+              }))
+            });
+          }
+        } else {
+          console.log(`商品 ${productId} 的圖片沒有變化，跳過圖片更新`);
         }
+      } else if (imageUrls && Array.isArray(imageUrls) && imageUrls.length === 0) {
+        // If explicitly setting empty images array, delete all images
+        console.log(`商品 ${productId} 設置為無圖片，刪除所有現有圖片`);
+        await tx.productImage.deleteMany({
+          where: { productId }
+        });
       }
 
       await this.logService.record(
