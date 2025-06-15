@@ -1,0 +1,336 @@
+@startuml Zipperoo購衣平台前後端架構類別圖
+
+
+
+'======== Enumerations ======
+enum Role {
+    BUYER
+    SELLER
+    ADMIN
+}
+
+enum ProductStatus {
+    ON_SHELF
+    OFF_SHELF
+    DELETED
+}
+
+enum OrderStatus {
+    UNCOMPLETED
+    COMPLETED
+    CANCELED
+}
+
+enum PaymentMethod {
+    COD
+    CREDIT_CARD
+    BANK_TRANSFER
+    LINE_PAY
+}
+
+'======== Frontend Classes (Client Side) =====
+package "Frontend Classes" {
+    class AuthClass {
+        +login(credentials: LoginData): Promise<AuthResponse>
+        +register(userData: RegisterData): Promise<AuthResponse>
+        +logout(): Promise<void>
+        +getProfile(): Promise<UserProfile>
+        +forgotPassword(email: string): Promise<void>
+        +resetPassword(token: string, password: string): Promise<void>
+        --
+        -setAuthToken(token: string): void
+        -clearAuthToken(): void
+        -handleAuthError(error: any): void
+    }
+    
+    class ProductClass {
+        +getProducts(query: ProductQuery): Promise<ProductList>
+        +getProduct(id: number): Promise<ProductDetail>
+        +getCategories(): Promise<Category[]>
+        +getProductReviews(id: number): Promise<ReviewList>
+        +createReview(productId: number, review: ReviewData): Promise<Review>
+        --
+        -formatProductData(data: any): Product
+        -validateReviewData(data: ReviewData): boolean
+    }
+    
+    class SellerClass {
+        +getProductStats(): Promise<ProductStats>
+        +getSellerProducts(query: any): Promise<ProductList>
+        +createProduct(product: ProductData): Promise<Product>
+        +updateProduct(id: number, data: ProductData): Promise<Product>
+        +deleteProduct(id: number): Promise<void>
+        +getOrders(): Promise<OrderList>
+        +shipOrder(orderId: number): Promise<Order>
+        +completeOrder(orderId: number): Promise<Order>
+        --
+        -validateProductData(data: ProductData): boolean
+        -formatOrderData(data: any): Order
+    }
+    
+    class BuyerClass {
+        +getCart(): Promise<Cart>
+        +addToCart(item: CartItemData): Promise<Cart>
+        +updateCartItem(itemId: number, data: any): Promise<Cart>
+        +removeFromCart(itemId: number): Promise<Cart>
+        +checkout(orderData: CheckoutData): Promise<Order[]>
+        +getOrders(): Promise<OrderList>
+        +cancelOrder(orderId: number): Promise<Order>
+        --
+        -calculateCartTotal(items: CartItem[]): number
+        -validateCheckoutData(data: CheckoutData): boolean
+    }
+    
+    class ChatClass {
+        +createChatRoom(sellerId: number): Promise<ChatRoom>
+        +getChatRooms(): Promise<ChatRoom[]>
+        +getMessages(roomId: number): Promise<MessageList>
+        +sendMessage(roomId: number, content: string): Promise<Message>
+        --
+        -connectWebSocket(roomId: number): void
+        -handleNewMessage(message: Message): void
+        -formatMessageTime(timestamp: string): string
+    }
+    
+    class AdminClass {
+        +getUsers(query: any): Promise<UserList>
+        +blockUser(userId: number): Promise<User>
+        +unblockUser(userId: number): Promise<User>
+        +deleteUser(userId: number): Promise<void>
+        +getSystemLogs(query: any): Promise<LogList>
+        +manageOrders(query: any): Promise<OrderList>
+        --
+        -validateAdminPermission(): boolean
+        -formatLogData(data: any): LogEntry
+    }
+    
+    class ImageClass {
+        +uploadProductImages(productId: number, files: File[]): Promise<ImageList>
+        +deleteImage(imageId: number): Promise<void>
+        +getImageUrl(imageId: number): string
+        --
+        -validateImageFile(file: File): boolean
+        -compressImage(file: File): Promise<File>
+        -generateThumbnail(file: File): Promise<File>
+    }
+}
+
+'======== Server API Layer =====
+package "Server API Layer" {
+    class HealthServer {
+        +getHealth(): ResponseDto
+        --
+        -checkSystemStatus(): boolean
+        -getSystemInfo(): SystemInfo
+        -getTimestamp(): DateTime
+    }
+    
+    class AuthServer {
+        +register(dto: RegisterDto): ResponseDto
+        +login(dto: LoginDto): ResponseDto
+        +logout(): ResponseDto
+        +getProfile(): ResponseDto
+        +forgotPassword(dto: ForgotPasswordDto): ResponseDto
+        +resetPassword(dto: ResetPasswordDto): ResponseDto
+        --
+        -validateUser(token: string): User
+        -generateTokens(userId: number): TokenPair
+        -hashPassword(password: string): string
+        -comparePassword(password: string, hash: string): boolean
+        -sendPasswordResetEmail(email: string, token: string): void
+    }
+    
+    class ProductServer {
+        +getProducts(query: ProductQueryDto): ResponseDto
+        +getProduct(id: number): ResponseDto
+        +getCategories(): ResponseDto
+        +getCategoryProducts(id: number, query: PaginationDto): ResponseDto
+        +getProductReviews(id: number, query: PaginationDto): ResponseDto
+        +createReview(id: number, dto: CreateReviewDto): ResponseDto
+        +updateReview(reviewId: number, dto: UpdateReviewDto): ResponseDto
+        +deleteReview(reviewId: number): ResponseDto
+        --
+        -validateProductAccess(productId: number, userId: number): boolean
+        -calculateAverageRating(productId: number): number
+        -validateReviewOwnership(reviewId: number, userId: number): boolean
+        -updateProductRating(productId: number): void
+    }
+    
+    class CategoryServer {
+        +createCategory(dto: CreateCategoryDto): ResponseDto
+        +getCategories(): ResponseDto
+        +getCategory(id: number): ResponseDto
+        +updateCategory(id: number, dto: UpdateCategoryDto): ResponseDto
+        +deleteCategory(id: number): ResponseDto
+        --
+        -validateCategoryName(name: string): boolean
+        -checkCategoryUsage(id: number): boolean
+    }
+    
+    class SellerServer {
+        +getProductStats(): ResponseDto
+        +getSellerProducts(query: SellerProductsQueryDto): ResponseDto
+        +createProduct(dto: CreateProductDto): ResponseDto
+        +getProduct(id: number): ResponseDto
+        +updateProduct(id: number, dto: UpdateProductDto): ResponseDto
+        +deleteProduct(id: number): ResponseDto
+        +getOrders(query: PaginationDto): ResponseDto
+        +shipOrder(orderId: number): ResponseDto
+        +completeOrder(orderId: number): ResponseDto
+        +addVariants(productId: number, dto: CreateVariantsDto): ResponseDto
+        +updateVariant(variantId: number, dto: UpdateVariantDto): ResponseDto
+        +deleteVariant(variantId: number): ResponseDto
+        --
+        -validateProductOwnership(productId: number, sellerId: number): boolean
+        -validateOrderOwnership(orderId: number, sellerId: number): boolean
+        -validateVariantOwnership(variantId: number, sellerId: number): boolean
+        -calculateProductStats(sellerId: number): ProductStats
+        -updateProductStock(productId: number): void
+    }
+    
+    class BuyerServer {
+        +getCart(): ResponseDto
+        +addCartItem(dto: AddCartItemDto): ResponseDto
+        +updateCartItem(itemId: number, dto: UpdateCartItemDto): ResponseDto
+        +removeCartItem(itemId: number): ResponseDto
+        +checkout(dto: CheckoutDto): ResponseDto
+        +getOrders(query: PaginationDto): ResponseDto
+        +getOrder(orderId: number): ResponseDto
+        +cancelOrder(orderId: number): ResponseDto
+        --
+        -validateCartOwnership(itemId: number, buyerId: number): boolean
+        -validateVariantAvailability(variantId: number, quantity: number): boolean
+        -calculateCartTotal(cartId: number): number
+        -processPayment(totalAmount: number): PaymentResult
+        -createOrderFromCartItems(buyerId: number, cartItems: CartItem[]): Order[]
+        -validateOrderOwnership(orderId: number, buyerId: number): boolean
+    }
+    
+    class ChatServer {
+        +createRoom(dto: CreateChatRoomDto): ResponseDto
+        +getRooms(): ResponseDto
+        +getMessages(roomId: number, query: PaginationDto): ResponseDto
+        +sendMessage(roomId: number, dto: SendMessageDto): ResponseDto
+        --
+        -validateRoomAccess(roomId: number, userId: number): boolean
+        -findExistingRoom(buyerId: number, sellerId: number): ChatRoom
+        -createNewRoom(buyerId: number, sellerId: number): ChatRoom
+        -validateMessageContent(content: string): boolean
+        -markMessageAsRead(messageId: number, userId: number): void
+    }
+    
+    class ImageServer {
+        +uploadImages(productId: number, files: File[]): ResponseDto
+        +deleteImage(imageId: number): ResponseDto
+        +getImageByName(imgName: string): ResponseDto
+        +getImageById(imageId: number): ResponseDto
+        --
+        -validateImageOwnership(imageId: number, userId: number, role: Role): boolean
+        -validateFileType(file: File): boolean
+        -validateFileSize(file: File): boolean
+        -saveImageFile(file: File): string
+        -generateImageUrl(filename: string): string
+        -deleteImageFile(filename: string): void
+    }
+    
+    class AdminServer {
+        +getUsers(query: PaginationDto): ResponseDto
+        +deleteUser(userId: number): ResponseDto
+        +blockUser(userId: number): ResponseDto
+        +unblockUser(userId: number): ResponseDto
+        +getProducts(query: PaginationDto): ResponseDto
+        +deleteProduct(productId: number): ResponseDto
+        +getOrders(query: PaginationDto): ResponseDto
+        +getOrder(id: number): ResponseDto
+        +updateOrderStatus(id: number, dto: UpdateOrderStatusDto): ResponseDto
+        +getLogs(query: PaginationDto): ResponseDto
+        --
+        -validateAdminPermission(adminId: number): boolean
+        -validateUserExists(userId: number): boolean
+        -logAdminAction(adminId: number, action: string, targetId: number): void
+        -canDeleteUser(userId: number): boolean
+        -canBlockUser(userId: number): boolean
+    }
+}
+'======== External Dependencies =====
+package "External Dependencies" {
+    class PrismaDatabaseService  {
+        +user: UserRepository
+        +product: ProductRepository
+        +category: CategoryRepository
+        +order: OrderRepository
+        +cart: CartRepository
+        +review: ReviewRepository
+        +chat: ChatRepository
+        +image: ImageRepository
+        +logEntry: LogRepository
+        --
+        +connect(): void
+        +disconnect(): void
+        +transaction(callback: Function): Promise<any>
+    }
+    
+    class JwtService {
+        +sign(payload: object): string
+        +verify(token: string): object
+        +decode(token: string): object
+    }
+    
+    class FileService {
+        +saveFile(file: File, path: string): string
+        +deleteFile(path: string): void
+        +validateFile(file: File): boolean
+    }
+    
+    class EmailService {
+        +sendPasswordResetEmail(email: string, token: string): void
+        +sendOrderConfirmation(email: string, order: Order): void
+    }
+    
+    class LogService {
+        +record(event: string, actorId: number, description: string): void
+        +getEntries(query: any): LogEntry[]
+    }
+}
+
+
+'======== Frontend to Server Communication ============
+AuthClass ..> AuthServer : "HTTP API 通信"
+ProductClass ..> ProductServer : "HTTP API 通信"
+ProductClass ..> CategoryServer : "HTTP API 通信"
+SellerClass ..> SellerServer : "HTTP API 通信"
+BuyerClass ..> BuyerServer : "HTTP API 通信"
+ChatClass ..> ChatServer : "HTTP API & WebSocket 通信"
+AdminClass ..> AdminServer : "HTTP API 通信"
+ImageClass ..> ImageServer : "HTTP API 通信"
+
+'======== Server Dependencies ============
+AuthServer --> PrismaDatabaseService 
+AuthServer --> JwtService
+AuthServer --> EmailService
+AuthServer --> LogService
+
+ProductServer --> PrismaDatabaseService 
+ProductServer --> LogService
+
+CategoryServer --> PrismaDatabaseService 
+CategoryServer --> LogService
+
+SellerServer --> PrismaDatabaseService 
+SellerServer --> LogService
+
+BuyerServer --> PrismaDatabaseService 
+BuyerServer --> LogService
+
+ChatServer --> PrismaDatabaseService 
+ChatServer --> LogService
+
+ImageServer --> PrismaDatabaseService 
+ImageServer --> FileService
+ImageServer --> LogService
+
+AdminServer --> PrismaDatabaseService 
+AdminServer --> LogService
+
+
+@enduml

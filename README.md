@@ -50,55 +50,234 @@ Zipperoo 是一個功能完整的電商平台後端系統，採用現代化的 N
 ```mermaid
 graph TD
     subgraph "Zipperoo 電商平台系統"
-        UC1(用戶認證管理)
-        UC2(商品瀏覽與搜尋)
-        UC3(購物車管理)
-        UC4(訂單結帳與管理)
-        UC5(商品評價系統)
-        UC6(商品與變體管理)
-        UC7(賣家訂單處理)
-        UC8(即時聊天系統)
-        UC9(分類管理)
-        UC10(圖片上傳管理)
-        UC11(用戶管理)
-        UC12(商品狀態審核)
-        UC13(系統日誌監控)
-        UC14(健康檢查)
+        subgraph "系統檢查 (System)"
+            UC1(系統健康檢查)
+        end
+        
+        subgraph "帳號認證 (Authentication)"
+            UC2(註冊帳號)
+            UC3(登入)
+            UC4(登出)
+            UC5(查看個人資料)
+            UC6(更新個人資料)
+            UC7(忘記密碼)
+            UC8(重設密碼)
+        end
+        
+        subgraph "公開功能 (Public API)"
+            UC9(瀏覽商品列表)
+            UC10(查看商品詳情)
+            UC11(瀏覽分類)
+            UC12(查看商品評價列表)
+            UC13(查看分類下的商品)
+        end
+        
+        subgraph "分類管理 (Category Management)"
+            UC14(建立新分類)
+            UC15(查看單一分類)
+            UC16(更新分類)
+            UC17(刪除分類)
+        end
+        
+        subgraph "買家功能 (Buyer API)"
+            UC18(查看購物車)
+            UC19(加入購物車)
+            UC20(更新購物車商品)
+            UC21(移除購物車商品)
+            UC22(結帳)
+            UC23(查看我的訂單)
+            UC24(查看訂單詳情)
+            UC25(取消訂單)
+            UC26(確認收貨)
+        end
+        
+        subgraph "賣家功能 (Seller API)"
+            UC27(查看賣家儀表板)
+            UC28(查看商品統計)
+            UC29(查看我的商品)
+            UC30(上架新商品)
+            UC31(更新商品基本資訊)
+            UC32(下架/刪除商品)
+            UC33(查看收到的訂單)
+            UC34(標記訂單為已出貨)
+            UC35(標記訂單為已完成)
+        end
+        
+        subgraph "商品款式管理 (Variant Management)"
+            UC36(為商品新增款式)
+            UC37(更新商品款式)
+            UC38(刪除商品款式)
+        end
+        
+        subgraph "評價系統 (Review API)"
+            UC39(創建商品評價)
+            UC40(更新評價)
+            UC41(刪除評價)
+        end
+        
+        subgraph "聊天系統 (Chat API)"
+            UC42(創建或獲取聊天室)
+            UC43(獲取聊天室列表)
+            UC44(查看聊天訊息)
+            UC45(發送訊息)
+            UC46(標記訊息為已讀)
+            UC47(獲取未讀訊息數量)
+        end
+        
+        subgraph "圖片管理 (Image API)"
+            UC48(上傳商品圖片)
+            UC49(刪除商品圖片)
+            UC50(通過檔名獲取圖片)
+            UC51(通過ID獲取圖片)
+        end
+        
+        subgraph "通知系統 (Notification)"
+            UC52(獲取通知計數)
+            UC53(接收即時通知)
+        end
+        
+        subgraph "管理員功能 (Admin API)"
+            UC54(查看管理員儀表板)
+            UC55(獲取所有用戶)
+            UC56(刪除用戶)
+            UC57(封鎖用戶)
+            UC58(解除封鎖用戶)
+            UC59(獲取所有商品)
+            UC60(刪除任意商品)
+            UC61(獲取所有訂單)
+            UC62(獲取訂單詳情)
+            UC63(更新訂單狀態)
+            UC64(查看系統日誌)
+            UC65(管理商品分類)
+        end
+        
+        subgraph "統計與報表 (Analytics)"
+            UC66(查看銷售報表)
+            UC67(查看用戶統計)
+            UC68(匯出資料)
+        end
     end
     
+    Visitor(👤 訪客)
     Buyer(🛒 買家<br/>BUYER)
     Seller(🏪 賣家<br/>SELLER)
     Admin(🔧 管理員<br/>ADMIN)
 
+    %% 訪客功能
+    Visitor --> UC1
+    Visitor --> UC2
+    Visitor --> UC3
+    Visitor --> UC7
+    Visitor --> UC8
+    Visitor --> UC9
+    Visitor --> UC10
+    Visitor --> UC11
+    Visitor --> UC12
+    Visitor --> UC13
+    Visitor --> UC50
+    Visitor --> UC51
+    
     %% 買家功能
-    Buyer --> UC1
-    Buyer --> UC2
-    Buyer --> UC3
     Buyer --> UC4
     Buyer --> UC5
-    Buyer --> UC8
-    Buyer --> UC10
+    Buyer --> UC6
+    Buyer --> UC18
+    Buyer --> UC19
+    Buyer --> UC20
+    Buyer --> UC21
+    Buyer --> UC22
+    Buyer --> UC23
+    Buyer --> UC24
+    Buyer --> UC25
+    Buyer --> UC26
+    Buyer --> UC39
+    Buyer --> UC40
+    Buyer --> UC41
+    Buyer --> UC42
+    Buyer --> UC43
+    Buyer --> UC44
+    Buyer --> UC45
+    Buyer --> UC46
+    Buyer --> UC47
+    Buyer --> UC52
+    Buyer --> UC53
     
     %% 賣家功能
-    Seller --> UC1
-    Seller --> UC2
+    Seller --> UC4
+    Seller --> UC5
     Seller --> UC6
-    Seller --> UC7
-    Seller --> UC8
-    Seller --> UC9
-    Seller --> UC10
+    Seller --> UC27
+    Seller --> UC28
+    Seller --> UC29
+    Seller --> UC30
+    Seller --> UC31
+    Seller --> UC32
+    Seller --> UC33
+    Seller --> UC34
+    Seller --> UC35
+    Seller --> UC36
+    Seller --> UC37
+    Seller --> UC38
+    Seller --> UC48
+    Seller --> UC49
+    Seller --> UC14
+    Seller --> UC15
+    Seller --> UC16
+    Seller --> UC17
+    Seller --> UC42
+    Seller --> UC43
+    Seller --> UC44
+    Seller --> UC45
+    Seller --> UC46
+    Seller --> UC47
+    Seller --> UC52
+    Seller --> UC53
+    Seller --> UC66
     
     %% 管理員功能
-    Admin --> UC1
-    Admin --> UC2
+    Admin --> UC4
     Admin --> UC5
-    Admin --> UC8
-    Admin --> UC9
-    Admin --> UC10
-    Admin --> UC11
-    Admin --> UC12
-    Admin --> UC13
+    Admin --> UC6
+    Admin --> UC54
+    Admin --> UC55
+    Admin --> UC56
+    Admin --> UC57
+    Admin --> UC58
+    Admin --> UC59
+    Admin --> UC60
+    Admin --> UC61
+    Admin --> UC62
+    Admin --> UC63
+    Admin --> UC64
+    Admin --> UC65
     Admin --> UC14
+    Admin --> UC15
+    Admin --> UC16
+    Admin --> UC17
+    Admin --> UC36
+    Admin --> UC37
+    Admin --> UC38
+    Admin --> UC39
+    Admin --> UC40
+    Admin --> UC41
+    Admin --> UC42
+    Admin --> UC43
+    Admin --> UC44
+    Admin --> UC45
+    Admin --> UC46
+    Admin --> UC47
+    Admin --> UC48
+    Admin --> UC49
+    Admin --> UC52
+    Admin --> UC53
+    Admin --> UC66
+    Admin --> UC67
+    Admin --> UC68
+    
+    %% 繼承關係
+    Buyer -.-> Visitor : extends
+    Seller -.-> Visitor : extends
+    Admin -.-> Visitor : extends
 ```
 
 ### UML 類別圖 (Class Diagram)
@@ -108,10 +287,41 @@ graph TD
 classDiagram
     direction TB
     
+    %% 角色和狀態枚舉
+    class Role {
+        <<enumeration>>
+        BUYER
+        SELLER
+        ADMIN
+    }
+    
+    class ProductStatus {
+        <<enumeration>>
+        ON_SHELF
+        OFF_SHELF
+        DELETED
+    }
+    
+    class OrderStatus {
+        <<enumeration>>
+        UNCOMPLETED
+        COMPLETED
+        CANCELED
+    }
+    
+    class PaymentMethod {
+        <<enumeration>>
+        COD
+        CREDIT_CARD
+        BANK_TRANSFER
+        LINE_PAY
+    }
+    
+    %% 核心資料模型
     class User {
         +Int id
         +String account
-        +String passwordHash
+        -String passwordHash
         +String username
         +String email
         +String phone
@@ -121,9 +331,18 @@ classDiagram
         +String description
         +DateTime createdAt
         +DateTime updatedAt
-        +login()
-        +register()
-        +updateProfile()
+        +isSeller() boolean
+        +isBuyer() boolean
+        +isAdmin() boolean
+        +canAccess(resource) boolean
+    }
+
+    class Category {
+        +Int id
+        +String name
+        +DateTime createdAt
+        +DateTime updatedAt
+        +hasProducts() boolean
     }
 
     class Product {
@@ -135,9 +354,11 @@ classDiagram
         +ProductStatus status
         +DateTime createdAt
         +DateTime updatedAt
-        +createProduct()
-        +updateStatus()
-        +addVariant()
+        +changeStatus(newStatus) void
+        +isOwnedBy(sellerId) boolean
+        +isOnShelf() boolean
+        +getTotalStock() number
+        +getAverageRating() number
     }
 
     class ProductVariant {
@@ -149,17 +370,48 @@ classDiagram
         +Json attributes
         +DateTime createdAt
         +DateTime updatedAt
-        +updateStock()
-        +checkAvailability()
+        +updateStock(delta) void
+        +isAvailable() boolean
+        +hasEnoughStock(quantity) boolean
+        +getFormattedPrice() string
     }
     
-    class Category {
+    class ProductImage {
         +Int id
-        +String name
+        +Int productId
+        +String url
         +DateTime createdAt
         +DateTime updatedAt
-        +create()
-        +update()
+        +getFullUrl() string
+        +isValid() boolean
+    }
+
+    class Cart {
+        +Int id
+        +Int buyerId
+        +DateTime createdAt
+        +DateTime updatedAt
+        +calculateTotal() Int
+        +getSelectedItems() CartItem[]
+        +clear() void
+        +isEmpty() boolean
+        +getItemCount() number
+    }
+
+    class CartItem {
+        +Int id
+        +Int cartId
+        +Int productVariantId
+        +Int quantity
+        +Int unitPrice
+        +Boolean isSelected
+        +DateTime createdAt
+        +DateTime updatedAt
+        +getTotal() Int
+        +updateQuantity(newQty) void
+        +select() void
+        +unselect() void
+        +isValidQuantity() boolean
     }
 
     class Order {
@@ -178,11 +430,14 @@ classDiagram
         +PaymentMethod paymentMethod
         +DateTime createdAt
         +DateTime updatedAt
-        +checkout()
-        +updateStatus()
-        +ship()
-        +complete()
-        +cancel()
+        +canCancel() boolean
+        +canShip() boolean
+        +canComplete() boolean
+        +cancel() void
+        +ship() void
+        +complete() void
+        +getFormattedAmount() string
+        +getFullAddress() string
     }
     
     class OrderItem {
@@ -193,30 +448,8 @@ classDiagram
         +Int unitPrice
         +DateTime createdAt
         +DateTime updatedAt
-    }
-
-    class Cart {
-        +Int id
-        +Int buyerId
-        +DateTime createdAt
-        +DateTime updatedAt
-        +addItem()
-        +removeItem()
-        +updateQuantity()
-        +clear()
-    }
-
-    class CartItem {
-        +Int id
-        +Int cartId
-        +Int productVariantId
-        +Int quantity
-        +Int unitPrice
-        +Boolean isSelected
-        +DateTime createdAt
-        +DateTime updatedAt
-        +select()
-        +updateQuantity()
+        +getTotal() Int
+        +getFormattedPrice() string
     }
 
     class Review {
@@ -230,9 +463,11 @@ classDiagram
         +Boolean isDeleted
         +DateTime createdAt
         +DateTime updatedAt
-        +create()
-        +update()
-        +delete()
+        +edit(newScore, newComment) void
+        +delete() void
+        +isOwnedBy(buyerId) boolean
+        +isValidScore() boolean
+        +getDisplayComment() string
     }
 
     class ChatRoom {
@@ -241,7 +476,9 @@ classDiagram
         +Int sellerId
         +DateTime createdAt
         +DateTime updatedAt
-        +createOrGet()
+        +canAccess(userId) boolean
+        +getOtherParticipant(userId) Int
+        +hasUnreadMessages(userId) boolean
     }
 
     class ChatMessage {
@@ -250,20 +487,16 @@ classDiagram
         +Int fromUserId
         +String content
         +Boolean isEdited
+        +Boolean isReadByBuyer
+        +Boolean isReadBySeller
+        +DateTime readByBuyerAt
+        +DateTime readBySellerAt
         +DateTime createdAt
         +DateTime updatedAt
-        +send()
-        +edit()
-    }
-
-    class ProductImage {
-        +Int id
-        +Int productId
-        +String url
-        +DateTime createdAt
-        +DateTime updatedAt
-        +upload()
-        +delete()
+        +edit(newContent) void
+        +markAsRead(userId) void
+        +isReadBy(userId) boolean
+        +canEdit(userId) boolean
     }
 
     class LogEntry {
@@ -274,35 +507,135 @@ classDiagram
         +String ipAddress
         +Json meta
         +DateTime createdAt
-        +record()
+        +getFormattedDate() string
+        +hasActor() boolean
+    }
+
+    class PasswordResetToken {
+        +Int id
+        +String email
+        +String token
+        +DateTime expiresAt
+        +DateTime createdAt
+        +isExpired() boolean
+        +isValid() boolean
     }
 
     %% 關聯關係
-    User "1" --> "*" Product : sells
-    User "1" --> "1" Cart : owns
-    User "1" --> "*" Order : places
-    User "1" --> "*" Order : receives
-    User "1" --> "*" Review : writes
-    User "1" --> "*" ChatMessage : sends
-    User "1" --> "*" ChatRoom : buyer
-    User "1" --> "*" ChatRoom : seller
-    User "1" --> "*" LogEntry : performs
+    User ||--o{ Product : "sells"
+    User ||--|| Cart : "owns"
+    User ||--o{ Order : "places as buyer"
+    User ||--o{ Order : "receives as seller"
+    User ||--o{ Review : "writes"
+    User ||--o{ ChatMessage : "sends"
+    User ||--o{ ChatRoom : "buyer"
+    User ||--o{ ChatRoom : "seller"
+    User ||--o{ LogEntry : "performs"
     
-    Category "1" --> "*" Product : categorizes
+    Category ||--o{ Product : "categorizes"
     
-    Product "1" --> "*" ProductVariant : has
-    Product "1" --> "*" ProductImage : images
-    Product "1" --> "*" Review : reviewed
+    Product ||--o{ ProductVariant : "has"
+    Product ||--o{ ProductImage : "images"
+    Product ||--o{ Review : "reviewed"
     
-    ProductVariant "1" --> "*" CartItem : selected
-    ProductVariant "1" --> "*" OrderItem : ordered
+    ProductVariant ||--o{ CartItem : "selected"
+    ProductVariant ||--o{ OrderItem : "ordered"
     
-    Cart "1" --> "*" CartItem : contains
+    Cart ||--o{ CartItem : "contains"
     
-    Order "1" --> "*" OrderItem : contains
-    Order "1" --> "*" Review : reviewed
+    Order ||--o{ OrderItem : "contains"
+    Order ||--o{ Review : "can be reviewed"
     
-    ChatRoom "1" --> "*" ChatMessage : contains
+    ChatRoom ||--o{ ChatMessage : "contains"
+```
+
+### 🏗️ 前後端架構圖 (Frontend-Backend Architecture)
+本架構圖展示了前端客戶端類別與後端服務層之間的通信關係，**完全基於實際API實作和前端功能**，描繪了真實的系統架構模式。
+
+```mermaid
+graph TB
+    subgraph "前端客戶端 (Frontend Client)"
+        AuthClass[AuthClass<br/>認證管理]
+        ProductClass[ProductClass<br/>商品瀏覽]
+        SellerClass[SellerClass<br/>賣家功能]
+        BuyerClass[BuyerClass<br/>買家功能]
+        ChatClass[ChatClass<br/>聊天系統]
+        AdminClass[AdminClass<br/>管理功能]
+        ImageClass[ImageClass<br/>圖片管理]
+    end
+    
+    subgraph "後端服務層 (Backend Server API)"
+        HealthServer[HealthServer<br/>系統健康檢查]
+        AuthServer[AuthServer<br/>身份認證服務]
+        ProductServer[ProductServer<br/>商品服務]
+        CategoryServer[CategoryServer<br/>分類服務]
+        SellerServer[SellerServer<br/>賣家服務]
+        BuyerServer[BuyerServer<br/>買家服務]
+        ChatServer[ChatServer<br/>聊天服務]
+        ImageServer[ImageServer<br/>圖片服務]
+        AdminServer[AdminServer<br/>管理服務]
+    end
+    
+    subgraph "資料存取層 (Data Access Layer)"
+        PrismaService[PrismaService<br/>資料庫ORM]
+        PostgreSQL[(PostgreSQL<br/>關係型資料庫)]
+    end
+    
+    subgraph "外部依賴 (External Dependencies)"
+        JWT[JWT<br/>Token認證]
+        WebSocket[WebSocket<br/>即時通信]
+        FileSystem[File System<br/>檔案存儲]
+        Email[Email Service<br/>郵件服務]
+    end
+    
+    %% HTTP API 通信關係
+    AuthClass -.->|HTTP API| AuthServer
+    ProductClass -.->|HTTP API| ProductServer
+    ProductClass -.->|HTTP API| CategoryServer
+    SellerClass -.->|HTTP API| SellerServer
+    SellerClass -.->|HTTP API| CategoryServer
+    SellerClass -.->|HTTP API| ImageServer
+    BuyerClass -.->|HTTP API| BuyerServer
+    AdminClass -.->|HTTP API| AdminServer
+    ImageClass -.->|HTTP API| ImageServer
+    
+    %% WebSocket 即時通信
+    ChatClass -.->|WebSocket| ChatServer
+    BuyerClass -.->|WebSocket| ChatServer
+    SellerClass -.->|WebSocket| ChatServer
+    AdminClass -.->|WebSocket| ChatServer
+    
+    %% 後端服務間依賴
+    AuthServer --> PrismaService
+    ProductServer --> PrismaService
+    CategoryServer --> PrismaService
+    SellerServer --> PrismaService
+    BuyerServer --> PrismaService
+    ChatServer --> PrismaService
+    ImageServer --> PrismaService
+    AdminServer --> PrismaService
+    
+    %% 資料庫連接
+    PrismaService --> PostgreSQL
+    
+    %% 外部服務依賴
+    AuthServer --> JWT
+    AuthServer --> Email
+    ChatServer --> WebSocket
+    ImageServer --> FileSystem
+    
+    %% 系統健康檢查
+    HealthServer -.->|System Check| PrismaService
+    
+    classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef backend fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef database fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef external fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class AuthClass,ProductClass,SellerClass,BuyerClass,ChatClass,AdminClass,ImageClass frontend
+    class HealthServer,AuthServer,ProductServer,CategoryServer,SellerServer,BuyerServer,ChatServer,ImageServer,AdminServer backend
+    class PrismaService,PostgreSQL database
+    class JWT,WebSocket,FileSystem,Email external
 ```
 
 ### 時序圖 (Sequence Diagram) - 結帳流程
@@ -516,6 +849,10 @@ erDiagram
         Int fromUserId FK
         String content
         Boolean isEdited
+        Boolean isReadByBuyer
+        Boolean isReadBySeller
+        DateTime readByBuyerAt
+        DateTime readBySellerAt
         DateTime createdAt
         DateTime updatedAt
     }
@@ -541,8 +878,8 @@ erDiagram
     %% 用戶關聯
     User ||--o{ Product : "sells"
     User ||--|| Cart : "owns"
-    User ||--o{ Order : "places"
-    User ||--o{ Order : "receives"
+    User ||--o{ Order : "places as buyer"
+    User ||--o{ Order : "receives as seller"
     User ||--o{ Review : "writes"
     User ||--o{ ChatMessage : "sends"
     User ||--o{ ChatRoom : "buyer"
@@ -562,7 +899,7 @@ erDiagram
     %% 訂單關聯
     Order ||--o{ OrderItem : "contains"
     ProductVariant ||--o{ OrderItem : "ordered"
-    Order ||--o{ Review : "reviewed"
+    Order ||--o{ Review : "can be reviewed"
     
     %% 聊天關聯
     ChatRoom ||--o{ ChatMessage : "contains"

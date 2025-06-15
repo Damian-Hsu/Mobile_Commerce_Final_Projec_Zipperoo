@@ -1,0 +1,249 @@
+@startuml Zipperoo購衣平台系統抽象類別圖
+
+'======== Core Models ============
+class User {
+    +id: Int
+    +account: String
+    -passwordHash: String
+    +username: String
+    +email: String
+    +phone: String?
+    +role: Role
+    +isBlocked: Boolean
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    +shopName: String?
+    +description: String?
+    --
+    +isSeller(): boolean
+    +isBuyer(): boolean
+    +isAdmin(): boolean
+    +canAccess(resource: string): boolean
+}
+
+class Category {
+    +id: Int
+    +name: String
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +hasProducts(): boolean
+}
+
+class Product {
+    +id: Int
+    +sellerId: Int
+    +categoryId: Int?
+    +name: String
+    +description: String?
+    +status: ProductStatus
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +changeStatus(newStatus: ProductStatus): void
+    +isOwnedBy(sellerId: Int): boolean
+    +isOnShelf(): boolean
+    +getTotalStock(): number
+    +getAverageRating(): number
+}
+
+class ProductVariant {
+    +id: Int
+    +productId: Int
+    +name: String
+    +price: Int
+    +stock: Int
+    +attributes: Json?
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +updateStock(delta: Int): void
+    +isAvailable(): boolean
+    +hasEnoughStock(quantity: Int): boolean
+    +getFormattedPrice(): string
+}
+
+class ProductImage {
+    +id: Int
+    +productId: Int
+    +url: String
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +getFullUrl(): string
+    +isValid(): boolean
+}
+
+class Cart {
+    +id: Int
+    +buyerId: Int
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +calculateTotal(): Int
+    +getSelectedItems(): CartItem[]
+    +clear(): void
+    +isEmpty(): boolean
+    +getItemCount(): number
+}
+
+class CartItem {
+    +id: Int
+    +cartId: Int
+    +productVariantId: Int
+    +quantity: Int
+    +unitPrice: Int
+    +isSelected: Boolean
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +getTotal(): Int
+    +updateQuantity(newQty: Int): void
+    +select(): void
+    +unselect(): void
+    +isValidQuantity(): boolean
+}
+
+class Order {
+    +id: Int
+    +buyerId: Int
+    +sellerId: Int
+    +totalAmount: Int
+    +status: OrderStatus
+    +recipientName: String
+    +recipientPhone: String
+    +city: String
+    +district: String
+    +postalCode: String
+    +address: String
+    +notes: String?
+    +paymentMethod: PaymentMethod
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +canCancel(): boolean
+    +canShip(): boolean
+    +canComplete(): boolean
+    +cancel(): void
+    +ship(): void
+    +complete(): void
+    +getFormattedAmount(): string
+    +getFullAddress(): string
+}
+
+class OrderItem {
+    +id: Int
+    +orderId: Int
+    +productVariantId: Int
+    +quantity: Int
+    +unitPrice: Int
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +getTotal(): Int
+    +getFormattedPrice(): string
+}
+
+class Review {
+    +id: Int
+    +productId: Int
+    +orderId: Int
+    +buyerId: Int
+    +score: Int
+    +comment: String?
+    +isEdited: Boolean
+    +isDeleted: Boolean
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +edit(newScore: Int, newComment: String): void
+    +delete(): void
+    +isOwnedBy(buyerId: Int): boolean
+    +isValidScore(): boolean
+    +getDisplayComment(): string
+}
+
+class ChatRoom {
+    +id: Int
+    +buyerId: Int
+    +sellerId: Int
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +canAccess(userId: Int): boolean
+    +getOtherParticipant(userId: Int): Int
+    +hasUnreadMessages(userId: Int): boolean
+}
+
+class ChatMessage {
+    +id: Int
+    +roomId: Int
+    +fromUserId: Int
+    +content: String
+    +isEdited: Boolean
+    +isReadByBuyer: Boolean
+    +isReadBySeller: Boolean
+    +readByBuyerAt: DateTime?
+    +readBySellerAt: DateTime?
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    --
+    +edit(newContent: String): void
+    +markAsRead(userId: Int): void
+    +isReadBy(userId: Int): boolean
+    +canEdit(userId: Int): boolean
+}
+
+class LogEntry {
+    +id: Int
+    +event: String
+    +actorId: Int?
+    +description: String?
+    +ipAddress: String?
+    +meta: Json?
+    +createdAt: DateTime
+    --
+    +getFormattedDate(): string
+    +hasActor(): boolean
+}
+
+class PasswordResetToken {
+    +id: Int
+    +email: String
+    +token: String
+    +expiresAt: DateTime
+    +createdAt: DateTime
+    --
+    +isExpired(): boolean
+    +isValid(): boolean
+}
+
+
+
+'======== Data Model Relationships ============
+User ||--o{ Product : "sells"
+User ||--o{ Order : "buys as buyer"
+User ||--o{ Order : "sells as seller"
+User ||--o{ Review : "writes"
+User ||--o{ ChatMessage : "sends"
+User ||--o{ ChatRoom : "participates"
+User ||--|| Cart : "owns"
+User ||--o{ LogEntry : "performs actions"
+
+Category ||--o{ Product : "categorizes"
+Product ||--o{ ProductVariant : "has variants"
+Product ||--o{ ProductImage : "has images"
+Product ||--o{ Review : "receives"
+
+Cart ||--o{ CartItem : "contains"
+CartItem }o--|| ProductVariant : "refers to"
+
+Order ||--o{ OrderItem : "contains"
+Order ||--o{ Review : "can be reviewed"
+OrderItem }o--|| ProductVariant : "refers to"
+
+ChatRoom ||--o{ ChatMessage : "contains"
+
+
+
+@enduml

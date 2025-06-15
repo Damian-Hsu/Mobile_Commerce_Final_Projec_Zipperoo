@@ -1,0 +1,287 @@
+@startuml Zipperoo購衣平台系統類圖
+
+'======== DTOs =====
+package "Data Transfer Objects" {
+    '======== Auth DTOs =====
+    class RegisterDto {
+        +account: String
+        +password: String
+        +username: String
+        +email?: String
+        +phone?: String
+        +role: "BUYER" | "SELLER"
+        +shopName?: String
+        +description?: String
+    }
+    
+    class LoginDto {
+        +account: String
+        +password: String
+    }
+    
+    class AuthResponseDto {
+        +accessToken: String
+        +refreshToken: String
+        +user: UserProfile
+    }
+    
+    class ForgotPasswordDto {
+        +email: String
+    }
+    
+    class ResetPasswordDto {
+        +token: String
+        +newPassword: String
+    }
+    
+    '======== Buyer DTOs =====
+    class AddCartItemDto {
+        +productVariantId: number
+        +quantity: number
+    }
+    
+    class UpdateCartItemDto {
+        +quantity?: number
+        +isSelected?: boolean
+    }
+    
+    class ShippingAddressDto {
+        +recipientName: String
+        +recipientPhone: String
+        +city: String
+        +district: String
+        +postalCode: String
+        +address: String
+        +notes?: String
+    }
+    
+    class CheckoutDto {
+        +cartItemIds?: number[]
+        +shippingAddress: ShippingAddressDto
+        +paymentMethod: PaymentMethod
+    }
+    
+    '======== Seller DTOs =====
+    class VariantDto {
+        +name: String
+        +price: number
+        +stock: number
+        +attributes?: any
+    }
+    
+    class CreateProductDto {
+        +name: String
+        +description?: String
+        +categoryId?: number
+        +imageUrls?: String[]
+        +variants: VariantDto[]
+        +status?: "ON_SHELF" | "OFF_SHELF"
+    }
+    
+    class UpdateProductDto {
+        +name?: String
+        +description?: String
+        +categoryId?: number
+        +status?: "ON_SHELF" | "OFF_SHELF"
+    }
+    
+    class SellerProductsQueryDto {
+        +page?: number
+        +pageSize?: number
+        +search?: String
+        +status?: String
+    }
+    
+    '======== Review DTOs =====
+    class CreateReviewDto {
+        +score: number
+        +comment?: String
+    }
+    
+    class UpdateReviewDto {
+        +score?: number
+        +comment?: String
+    }
+    
+    '======== Category DTOs =====
+    class CreateCategoryDto {
+        +name: String
+    }
+    
+    class UpdateCategoryDto {
+        +name?: String
+    }
+    
+    '======== Variant DTOs =====
+    class CreateVariantsDto {
+        +variants: VariantDto[]
+    }
+    
+    class UpdateVariantDto {
+        +name?: String
+        +price?: number
+        +stock?: number
+        +attributes?: any
+    }
+    
+    '======== Admin DTOs =====
+    class UpdateOrderStatusDto {
+        +status: "UNCOMPLETED" | "COMPLETED" | "CANCELED"
+    }
+    
+    class UpdateProductStatusDto {
+        +status: "ON_SHELF" | "OFF_SHELF" | "DELETED"
+    }
+    
+    class LogsQueryDto {
+        +page?: number
+        +pageSize?: number
+        +search?: String
+        +event?: String
+        +actorId?: number
+        +startDate?: String
+        +endDate?: String
+    }
+    
+    '======== Common DTOs =====
+    class PaginationDto {
+        +page?: number
+        +pageSize?: number
+        +search?: String
+    }
+    
+    class ProductQueryDto {
+        +page?: number
+        +pageSize?: number
+        +search?: string
+        +categoryId?: number
+        +minPrice?: number
+        +maxPrice?: number
+        +sortBy?: string
+        +sortOrder?: string
+    }
+    
+    class ResponseDto<T> {
+        +statusCode: number
+        +message: string
+        +data: T
+        --
+        +success<T>(data: T, message?: string): ResponseDto<T>
+        +created<T>(data: T, message?: string): ResponseDto<T>
+        +error(message: string, statusCode?: number): ResponseDto<null>
+    }
+    
+    class PaginatedResult<T> {
+        +data: T[]
+        +meta: PaginationMeta
+    }
+    
+    class PaginationMeta {
+        +page: number
+        +pageSize: number
+        +total: number
+        +totalPages: number
+    }
+    
+    '======== Chat DTOs =====
+    class CreateChatRoomDto {
+        +sellerId: number
+    }
+    
+    class SendMessageDto {
+        +content: String
+    }
+    
+    '======== Image DTOs =====
+    class UploadImageDto {
+        +files: File[]
+        +productId: number
+    }
+    
+    '======== User Profile DTOs =====
+    class UserProfile {
+        +id: number
+        +account: String
+        +username: String
+        +email?: String
+        +phone?: String
+        +role: String
+        +shopName?: String
+        +description?: String
+    }
+    
+    '======== Query Result DTOs =====
+    class ProductList {
+        +products: Product[]
+        +total: number
+        +page: number
+        +pageSize: number
+    }
+    
+    class OrderList {
+        +orders: Order[]
+        +total: number
+        +page: number
+        +pageSize: number
+    }
+    
+    class ReviewList {
+        +reviews: Review[]
+        +total: number
+        +page: number
+        +pageSize: number
+    }
+    
+    class UserList {
+        +users: User[]
+        +total: number
+        +page: number
+        +pageSize: number
+    }
+    
+    class LogList {
+        +logs: LogEntry[]
+        +total: number
+        +page: number
+        +pageSize: number
+    }
+    
+    class CategoryWithProductCount {
+        +id: number
+        +name: String
+        +productCount: number
+        +createdAt: DateTime
+        +updatedAt: DateTime
+    }
+    
+    class ProductStats {
+        +totalProducts: number
+        +onShelfProducts: number
+        +offShelfProducts: number
+        +totalOrders: number
+        +totalRevenue: number
+        +averageRating: number
+    }
+    
+    '======== Message DTOs =====
+    class MessageDto {
+        +message: String
+        +token?: String
+    }
+    
+    '======== System DTOs =====
+    class HealthStatus {
+        +status: String
+        +timestamp: String
+        +service: String
+    }
+    
+    class SystemInfo {
+        +version: String
+        +environment: String
+        +uptime: number
+        +memory: any
+    }
+}
+
+@enduml
