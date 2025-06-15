@@ -96,7 +96,7 @@ export class OrderService {
             address: checkoutData.shippingAddress?.address || '待填寫',
             notes: checkoutData.shippingAddress?.notes || null,
             // Payment Information
-            paymentMethod: (checkoutData.paymentMethod as any) || 'CASH_ON_DELIVERY',
+            paymentMethod: (checkoutData.paymentMethod as any) || 'COD',
           }as any,
         });
 
