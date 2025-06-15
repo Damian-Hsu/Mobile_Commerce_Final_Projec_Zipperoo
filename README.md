@@ -275,9 +275,9 @@ graph TD
     Admin --> UC68
     
     %% 繼承關係
-    Buyer -.-> Visitor : extends
-    Seller -.-> Visitor : extends
-    Admin -.-> Visitor : extends
+    Buyer -.-> Visitor
+    Seller -.-> Visitor
+    Admin -.-> Visitor
 ```
 
 ### UML 類別圖 (Class Diagram)
@@ -522,31 +522,31 @@ classDiagram
     }
 
     %% 關聯關係
-    User ||--o{ Product : "sells"
-    User ||--|| Cart : "owns"
-    User ||--o{ Order : "places as buyer"
-    User ||--o{ Order : "receives as seller"
-    User ||--o{ Review : "writes"
-    User ||--o{ ChatMessage : "sends"
-    User ||--o{ ChatRoom : "buyer"
-    User ||--o{ ChatRoom : "seller"
-    User ||--o{ LogEntry : "performs"
+    User ||--o{ Product : sells
+    User ||--|| Cart : owns
+    User ||--o{ Order : places_as_buyer
+    User ||--o{ Order : receives_as_seller
+    User ||--o{ Review : writes
+    User ||--o{ ChatMessage : sends
+    User ||--o{ ChatRoom : buyer
+    User ||--o{ ChatRoom : seller
+    User ||--o{ LogEntry : performs
     
-    Category ||--o{ Product : "categorizes"
+    Category ||--o{ Product : categorizes
     
-    Product ||--o{ ProductVariant : "has"
-    Product ||--o{ ProductImage : "images"
-    Product ||--o{ Review : "reviewed"
+    Product ||--o{ ProductVariant : has
+    Product ||--o{ ProductImage : images
+    Product ||--o{ Review : reviewed
     
-    ProductVariant ||--o{ CartItem : "selected"
-    ProductVariant ||--o{ OrderItem : "ordered"
+    ProductVariant ||--o{ CartItem : selected
+    ProductVariant ||--o{ OrderItem : ordered
     
-    Cart ||--o{ CartItem : "contains"
+    Cart ||--o{ CartItem : contains
     
-    Order ||--o{ OrderItem : "contains"
-    Order ||--o{ Review : "can be reviewed"
+    Order ||--o{ OrderItem : contains
+    Order ||--o{ Review : can_be_reviewed
     
-    ChatRoom ||--o{ ChatMessage : "contains"
+    ChatRoom ||--o{ ChatMessage : contains
 ```
 
 ### 🏗️ 前後端架構圖 (Frontend-Backend Architecture)
@@ -876,33 +876,33 @@ erDiagram
     }
 
     %% 用戶關聯
-    User ||--o{ Product : "sells"
-    User ||--|| Cart : "owns"
-    User ||--o{ Order : "places as buyer"
-    User ||--o{ Order : "receives as seller"
-    User ||--o{ Review : "writes"
-    User ||--o{ ChatMessage : "sends"
-    User ||--o{ ChatRoom : "buyer"
-    User ||--o{ ChatRoom : "seller"
-    User ||--o{ LogEntry : "performs"
+    User ||--o{ Product : sells
+    User ||--|| Cart : owns
+    User ||--o{ Order : places_as_buyer
+    User ||--o{ Order : receives_as_seller
+    User ||--o{ Review : writes
+    User ||--o{ ChatMessage : sends
+    User ||--o{ ChatRoom : buyer
+    User ||--o{ ChatRoom : seller
+    User ||--o{ LogEntry : performs
     
     %% 商品關聯
-    Category ||--o{ Product : "categorizes"
-    Product ||--o{ ProductVariant : "has"
-    Product ||--o{ ProductImage : "images"
-    Product ||--o{ Review : "reviewed"
+    Category ||--o{ Product : categorizes
+    Product ||--o{ ProductVariant : has
+    Product ||--o{ ProductImage : images
+    Product ||--o{ Review : reviewed
     
     %% 購物車關聯
-    Cart ||--o{ CartItem : "contains"
-    ProductVariant ||--o{ CartItem : "selected"
+    Cart ||--o{ CartItem : contains
+    ProductVariant ||--o{ CartItem : selected
     
     %% 訂單關聯
-    Order ||--o{ OrderItem : "contains"
-    ProductVariant ||--o{ OrderItem : "ordered"
-    Order ||--o{ Review : "can be reviewed"
+    Order ||--o{ OrderItem : contains
+    ProductVariant ||--o{ OrderItem : ordered
+    Order ||--o{ Review : can_be_reviewed
     
     %% 聊天關聯
-    ChatRoom ||--o{ ChatMessage : "contains"
+    ChatRoom ||--o{ ChatMessage : contains
 ```
 
 ## 🏗️ 系統架構與實現
