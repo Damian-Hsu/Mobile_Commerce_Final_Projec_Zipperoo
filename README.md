@@ -522,29 +522,29 @@ classDiagram
     }
 
     %% 關聯關係
-    User ||--o{ Product
-    User ||--|| Cart
-    User ||--o{ Order
-    User ||--o{ Review
-    User ||--o{ ChatMessage
-    User ||--o{ ChatRoom
-    User ||--o{ LogEntry
+    User "1" --> "0..*" Product : sells
+    User "1" --> "1" Cart : has
+    User "1" --> "0..*" Order : places
+    User "1" --> "0..*" Review : writes
+    User "1" --> "0..*" ChatMessage : sends
+    User "1" --> "0..*" ChatRoom : participates
+    User "0..1" --> "0..*" LogEntry : generates
     
-    Category ||--o{ Product
+    Category "1" --> "0..*" Product : contains
     
-    Product ||--o{ ProductVariant
-    Product ||--o{ ProductImage
-    Product ||--o{ Review
+    Product "1" --> "0..*" ProductVariant : has
+    Product "1" --> "0..*" ProductImage : has
+    Product "1" --> "0..*" Review : receives
     
-    ProductVariant ||--o{ CartItem
-    ProductVariant ||--o{ OrderItem
+    ProductVariant "1" --> "0..*" CartItem : in
+    ProductVariant "1" --> "0..*" OrderItem : in
     
-    Cart ||--o{ CartItem
+    Cart "1" --> "0..*" CartItem : contains
     
-    Order ||--o{ OrderItem
-    Order ||--o{ Review
+    Order "1" --> "0..*" OrderItem : contains
+    Order "1" --> "0..*" Review : generates
     
-    ChatRoom ||--o{ ChatMessage
+    ChatRoom "1" --> "0..*" ChatMessage : contains
 ```
 
 ### 🏗️ 前後端架構圖 (Frontend-Backend Architecture)
@@ -874,31 +874,31 @@ erDiagram
     }
 
     %% 用戶關聯
-    User ||--o{ Product
-    User ||--|| Cart
-    User ||--o{ Order
-    User ||--o{ Review
-    User ||--o{ ChatMessage
-    User ||--o{ ChatRoom
-    User ||--o{ LogEntry
+    User ||--o{ Product : "sells"
+    User ||--|| Cart : "has"
+    User ||--o{ Order : "places"
+    User ||--o{ Review : "writes"
+    User ||--o{ ChatMessage : "sends"
+    User ||--o{ ChatRoom : "participates"
+    User ||--o{ LogEntry : "generates"
     
     %% 商品關聯
-    Category ||--o{ Product
-    Product ||--o{ ProductVariant
-    Product ||--o{ ProductImage
-    Product ||--o{ Review
+    Category ||--o{ Product : "contains"
+    Product ||--o{ ProductVariant : "has"
+    Product ||--o{ ProductImage : "has"
+    Product ||--o{ Review : "receives"
     
     %% 購物車關聯
-    Cart ||--o{ CartItem
-    ProductVariant ||--o{ CartItem
+    Cart ||--o{ CartItem : "contains"
+    ProductVariant ||--o{ CartItem : "in"
     
     %% 訂單關聯
-    Order ||--o{ OrderItem
-    ProductVariant ||--o{ OrderItem
-    Order ||--o{ Review
+    Order ||--o{ OrderItem : "contains"
+    ProductVariant ||--o{ OrderItem : "in"
+    Order ||--o{ Review : "generates"
     
     %% 聊天關聯
-    ChatRoom ||--o{ ChatMessage
+    ChatRoom ||--o{ ChatMessage : "contains"
 ```
 
 ## 🏗️ 系統架構與實現
